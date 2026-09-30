@@ -1,0 +1,84 @@
+# Desenvolvimento: código por bind mount (hot reload). Variáveis vêm do .env da raiz.
+name: demandas-internas-dev
+
+services:
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "127.0.0.1:8080:80"   # só esta máquina; APP_DEBUG=true e o dev server do Vite não devem ficar na rede
+    volumes:
+      - ./docker/nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./api/public:/var/www/api/public:ro
+    depends_on:
+      - api
+      - web
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: dev
+    environment:
+      APP_NAME: ${APP_NAME:?defina APP_NAME no .env (copie de .env.example)}
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: ${APP_KEY:?defina APP_KEY no .env (o comando para gerar está no .env.example)}
+      APP_URL: ${APP_URL:?defina APP_URL no .env (copie de .env.example)}
+      LOG_CHANNEL: stack
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:?defina DB_DATABASE no .env (copie de .env.example)}
+      DB_USERNAME: ${DB_USERNAME:?defina DB_USERNAME no .env (copie de .env.example)}
+      DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (copie de .env.example)}
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:?defina SANCTUM_STATEFUL_DOMAINS no .env (copie de .env.example)}
+    volumes:
+      - ./api:/var/www/api
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "npm install --no-audit --no-fund && npm run dev"   # install sempre: pega dependência nova depois de um pull
+    environment:
+      VITE_APP_TITLE: ${VITE_APP_TITLE:?defina VITE_APP_TITLE no .env (copie de .env.example)}
+    volumes:
+      - ./web:/app
+      - web-node-modules:/app/node_modules
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:?defina DB_DATABASE no .env (copie de .env.example)}
+      POSTGRES_USER: ${DB_USERNAME:?defina DB_USERNAME no .env (copie de .env.example)}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (copie de .env.example)}
+    ports:
+      - "127.0.0.1:5433:5432"   # só esta máquina; 5432 do host fica livre para outros projetos (ex.: Órbita)
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Banco dos testes (phpunit.xml força estes valores); descartável.
+  db_test:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: demandas
+      POSTGRES_USER: demandas
+      POSTGRES_PASSWORD: demandas
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demandas -d demandas"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  db-data:
+  web-node-modules:

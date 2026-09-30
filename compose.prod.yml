@@ -1,0 +1,70 @@
+# Produção (local por enquanto): código dentro das imagens, containers somente leitura.
+# Uso: docker compose -f compose.prod.yml up -d --build   (derrube o dev antes: mesma porta 8080)
+name: demandas-internas-prod
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+      args:
+        VITE_APP_TITLE: ${VITE_APP_TITLE:?defina VITE_APP_TITLE no .env (copie de .env.example)}
+    ports:
+      - "127.0.0.1:8080:80"
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /run
+      - /tmp
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: prod
+    environment:
+      APP_NAME: ${APP_NAME:?defina APP_NAME no .env (copie de .env.example)}
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY:?defina APP_KEY no .env (o comando para gerar está no .env.example)}
+      APP_URL: ${APP_URL:?defina APP_URL no .env (copie de .env.example)}
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:?defina DB_DATABASE no .env (copie de .env.example)}
+      DB_USERNAME: ${DB_USERNAME:?defina DB_USERNAME no .env (copie de .env.example)}
+      DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (copie de .env.example)}
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:?defina SANCTUM_STATEFUL_DOMAINS no .env (copie de .env.example)}
+    read_only: true
+    volumes:
+      - api-storage:/var/www/api/storage
+    tmpfs:
+      - /var/www/api/bootstrap/cache:mode=1777
+      - /tmp:mode=1777
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:?defina DB_DATABASE no .env (copie de .env.example)}
+      POSTGRES_USER: ${DB_USERNAME:?defina DB_USERNAME no .env (copie de .env.example)}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (copie de .env.example)}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  api-storage:
