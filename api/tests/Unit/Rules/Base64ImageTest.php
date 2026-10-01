@@ -57,20 +57,20 @@ class Base64ImageTest extends TestCase
         $this->assertFalse($this->validator(ImageFixtures::dataUri('image/jpeg', ImageFixtures::png()))->passes());
     }
 
-    public function test_accepts_exactly_two_megabytes(): void
+    public function test_accepts_exactly_the_size_limit(): void
     {
         $bytes = ImageFixtures::padTo(ImageFixtures::png(), Base64Image::MAX_BYTES);
 
         $this->assertTrue($this->validator(ImageFixtures::dataUri('image/png', $bytes))->passes());
     }
 
-    public function test_rejects_one_byte_over_two_megabytes_with_portuguese_message(): void
+    public function test_rejects_one_byte_over_the_size_limit_with_portuguese_message(): void
     {
         $bytes = ImageFixtures::padTo(ImageFixtures::png(), Base64Image::MAX_BYTES + 1);
         $validator = $this->validator(ImageFixtures::dataUri('image/png', $bytes));
 
         $this->assertTrue($validator->fails());
-        $this->assertSame('A foto não pode ter mais de 2 MB.', $validator->errors()->first('photo'));
+        $this->assertSame('A foto não pode ter mais de 512 KB.', $validator->errors()->first('photo'));
     }
 
     public function test_format_message_is_in_portuguese(): void

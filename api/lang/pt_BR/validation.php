@@ -23,6 +23,7 @@ return [
         'uncompromised' => 'A :attribute informada apareceu em um vazamento de dados. Escolha outra.',
     ],
     'present' => 'O campo :attribute deve ser enviado.',
+    'prohibited' => 'O campo :attribute não é permitido.',
     'required' => 'O campo :attribute é obrigatório.',
     'string' => 'O campo :attribute deve ser um texto.',
     'unique' => 'Este :attribute já está em uso.',
@@ -31,7 +32,7 @@ return [
     'cpf' => 'O :attribute informado é inválido.',
     'base64_image' => [
         'format' => 'A :attribute deve ser uma imagem JPEG, PNG ou WebP em base64.',
-        'size' => 'A :attribute não pode ter mais de 2 MB.',
+        'size' => 'A :attribute não pode ter mais de 512 KB.',
     ],
 
     'regex' => 'O formato do campo :attribute é inválido.',

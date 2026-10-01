@@ -41,6 +41,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:?defina DB_USERNAME no .env (copie de .env.example)}
       DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (copie de .env.example)}
       SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:?defina SANCTUM_STATEFUL_DOMAINS no .env (copie de .env.example)}
+      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?defina DEFAULT_PASSWORD no .env (copie de .env.example)}
     read_only: true
     volumes:
       - api-storage:/var/www/api/storage

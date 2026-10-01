@@ -8,7 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 class Base64Image implements ValidationRule
 {
-    public const MAX_BYTES = 2 * 1024 * 1024;
+    public const MAX_BYTES = 512 * 1024;
 
     private const DATA_URI = '#^data:(image/(?:jpeg|png|webp));base64,(.+)$#s';
 

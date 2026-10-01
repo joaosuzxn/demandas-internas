@@ -112,6 +112,9 @@ return [
     |
     */
 
+    // Senha inicial de usuários novos ou redefinidos (spec de autenticação §2); vem do .env da raiz.
+    'default_password' => env('DEFAULT_PASSWORD'),
+
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
 ];

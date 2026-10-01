@@ -7,5 +7,6 @@ cd /var/www/api
 composer install --no-interaction --prefer-dist
 
 php artisan migrate --force
+php artisan db:seed --force
 
 exec "$@"
