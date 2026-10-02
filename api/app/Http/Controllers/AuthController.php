@@ -14,7 +14,12 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): UserResource
     {
-        $user = $this->auth->login($request->validated('login'), $request->validated('password'), (string) $request->ip());
+        $user = $this->auth->login(
+            $request->validated('login'),
+            $request->validated('password'),
+            (string) $request->ip(),
+            $request->boolean('remember'),
+        );
 
         if ($request->hasSession()) {
             $request->session()->regenerate();

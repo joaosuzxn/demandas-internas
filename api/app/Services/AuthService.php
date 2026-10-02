@@ -16,7 +16,8 @@ class AuthService
     public function __construct(private readonly LoginThrottle $throttle) {}
 
     // $login já vem normalizado (minúsculas, sem espaços): com @ é e-mail, sem @ é username.
-    public function login(string $login, string $password, string $ip): User
+    // Com $remember, o guard emite o cookie de "lembrar" (400 dias, padrão do Laravel).
+    public function login(string $login, string $password, string $ip, bool $remember = false): User
     {
         $this->throttle->ensureNotLimited($login, $ip);
 
@@ -40,7 +41,7 @@ class AuthService
         }
 
         $this->throttle->clear($login, $ip);
-        Auth::guard('web')->login($user);
+        Auth::guard('web')->login($user, $remember);
 
         return $user;
     }

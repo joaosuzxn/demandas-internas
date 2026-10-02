@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
@@ -72,6 +73,8 @@ class UserService
         }
 
         $user->is_active = false;
+        // Mata os cookies de "lembrar": reativada, a pessoa entra de novo com a senha.
+        $user->setRememberToken(Str::random(60));
         $user->save();
 
         return $user;
@@ -92,6 +95,8 @@ class UserService
     {
         $user->password = $this->defaultPassword();
         $user->must_change_password = true;
+        // Mata os cookies de "lembrar" emitidos com a senha antiga.
+        $user->setRememberToken(Str::random(60));
         $user->save();
     }
 

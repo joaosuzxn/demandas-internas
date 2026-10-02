@@ -2,6 +2,7 @@
 
 // Só as chaves que esta API usa; o que faltar cai no inglês do framework (APP_FALLBACK_LOCALE=en).
 return [
+    'boolean' => 'O campo :attribute deve ser verdadeiro ou falso.',
     'confirmed' => 'A confirmação do campo :attribute não confere.',
     'current_password' => 'A senha atual está incorreta.',
     'email' => 'O campo :attribute deve ser um e-mail válido.',
@@ -56,6 +57,7 @@ return [
         'page' => 'página',
         'password' => 'senha',
         'photo' => 'foto',
+        'remember' => 'lembrar-me',
         'role' => 'perfil',
         'search' => 'busca',
         'username' => 'usuário',
