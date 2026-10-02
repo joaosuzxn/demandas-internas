@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DemandController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Models\Demand;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -34,4 +36,15 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsurePasswordIsCh
     Route::post('/users/{user}/deactivate', [UserController::class, 'deactivate'])->can('deactivate', 'user')->name('users.deactivate');
     Route::post('/users/{user}/activate', [UserController::class, 'activate'])->can('activate', 'user')->name('users.activate');
     Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->can('resetPassword', 'user')->name('users.reset-password');
+
+    // Só dígitos (até 18) no id: texto ou número fora do bigint dá 404 em vez de erro do PostgreSQL.
+    Route::where(['demand' => '[0-9]{1,18}'])->group(function () {
+        Route::get('/demands', [DemandController::class, 'index'])->can('viewAny', Demand::class)->name('demands.index');
+        Route::post('/demands', [DemandController::class, 'store'])->can('create', Demand::class)->name('demands.store');
+        Route::get('/demands/{demand}', [DemandController::class, 'show'])->can('view', 'demand')->name('demands.show');
+        Route::put('/demands/{demand}', [DemandController::class, 'update'])->can('update', 'demand')->name('demands.update');
+        Route::delete('/demands/{demand}', [DemandController::class, 'destroy'])->can('delete', 'demand')->name('demands.destroy');
+        Route::post('/demands/{demand}/close', [DemandController::class, 'close'])->can('close', 'demand')->name('demands.close');
+        Route::post('/demands/{demand}/reopen', [DemandController::class, 'reopen'])->can('reopen', 'demand')->name('demands.reopen');
+    });
 });
