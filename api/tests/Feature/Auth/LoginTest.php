@@ -62,7 +62,7 @@ class LoginTest extends TestCase
         User::factory()->create(['username' => 'user1', 'email' => 'maria@example.com', 'password' => 'Minha@Senha1']);
 
         $this->login('maria', 'Minha@Senha1')
-            ->assertJsonValidationErrors(['login' => 'Credenciais inválidas.']);
+            ->assertJsonValidationErrors(['login' => 'Usuário ou senha incorretos.']);
     }
 
     public function test_login_with_default_password_reports_pending_change(): void
@@ -80,7 +80,7 @@ class LoginTest extends TestCase
 
         $this->login('maria@example.com', 'errada')
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['login' => 'Credenciais inválidas.']);
+            ->assertJsonValidationErrors(['login' => 'Usuário ou senha incorretos.']);
 
         $this->assertGuest('web');
     }
@@ -89,7 +89,7 @@ class LoginTest extends TestCase
     {
         $this->login('ninguem@example.com', 'Minha@Senha1')
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['login' => 'Credenciais inválidas.']);
+            ->assertJsonValidationErrors(['login' => 'Usuário ou senha incorretos.']);
     }
 
     public function test_rejects_inactive_user_with_correct_password(): void
@@ -108,7 +108,7 @@ class LoginTest extends TestCase
         User::factory()->inactive()->create(['email' => 'maria@example.com', 'password' => 'Minha@Senha1']);
 
         $this->login('maria@example.com', 'errada')
-            ->assertJsonValidationErrors(['login' => 'Credenciais inválidas.']);
+            ->assertJsonValidationErrors(['login' => 'Usuário ou senha incorretos.']);
     }
 
     public function test_throttles_after_five_attempts(): void
@@ -181,7 +181,7 @@ class LoginTest extends TestCase
 
         $this->login('ninguem@example.com', 'Minha@Senha1')
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['login' => 'Credenciais inválidas.']);
+            ->assertJsonValidationErrors(['login' => 'Usuário ou senha incorretos.']);
     }
 
     public function test_rejects_password_over_255_characters(): void

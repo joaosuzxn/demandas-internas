@@ -170,4 +170,80 @@ describe('auth store', () => {
 
     expect(auth.mustChangePassword).toBe(true)
   })
+
+  it('guarda a senha do login quando a troca está pendente', async () => {
+    vi.mocked(authService.login).mockResolvedValue(makeUser({ must_change_password: true }))
+    const auth = useAuthStore()
+
+    await auth.login({ login: 'admin', password: '123@Senha', remember: false })
+
+    expect(auth.loginPassword).toBe('123@Senha')
+  })
+
+  it('não guarda a senha do login quando não há troca pendente', async () => {
+    vi.mocked(authService.login).mockResolvedValue(makeUser())
+    const auth = useAuthStore()
+
+    await auth.login({ login: 'maria.souza', password: 'Minha@Senha1', remember: false })
+
+    expect(auth.loginPassword).toBeNull()
+  })
+
+  it('um login sem troca pendente apaga a senha guardada de um login anterior', async () => {
+    vi.mocked(authService.login).mockResolvedValueOnce(makeUser({ must_change_password: true }))
+    vi.mocked(authService.login).mockResolvedValueOnce(makeUser())
+    const auth = useAuthStore()
+
+    await auth.login({ login: 'admin', password: '123@Senha', remember: false })
+    await auth.login({ login: 'maria.souza', password: 'Minha@Senha1', remember: false })
+
+    expect(auth.loginPassword).toBeNull()
+  })
+
+  it('forgetLoginPassword tira a senha da memória sem mexer na sessão', async () => {
+    vi.mocked(authService.login).mockResolvedValue(makeUser({ must_change_password: true }))
+    const auth = useAuthStore()
+    await auth.login({ login: 'admin', password: '123@Senha', remember: false })
+
+    auth.forgetLoginPassword()
+
+    expect(auth.loginPassword).toBeNull()
+    expect(auth.isAuthenticated).toBe(true)
+  })
+
+  it('esquece a senha do login depois de trocar a senha', async () => {
+    vi.mocked(authService.login).mockResolvedValue(makeUser({ must_change_password: true }))
+    vi.mocked(authService.changePassword).mockResolvedValue()
+    const auth = useAuthStore()
+    await auth.login({ login: 'admin', password: '123@Senha', remember: false })
+
+    await auth.changePassword(passwordPayload)
+
+    expect(auth.loginPassword).toBeNull()
+  })
+
+  it('mantém a senha do login quando a troca falha, para a pessoa tentar de novo', async () => {
+    vi.mocked(authService.login).mockResolvedValue(makeUser({ must_change_password: true }))
+    vi.mocked(authService.changePassword).mockRejectedValue(httpError(422))
+    const auth = useAuthStore()
+    await auth.login({ login: 'admin', password: '123@Senha', remember: false })
+
+    await expect(auth.changePassword(passwordPayload)).rejects.toThrow('HTTP 422')
+
+    expect(auth.loginPassword).toBe('123@Senha')
+  })
+
+  it('esquece a senha do login ao sair e quando a sessão cai', async () => {
+    vi.mocked(authService.login).mockResolvedValue(makeUser({ must_change_password: true }))
+    vi.mocked(authService.logout).mockResolvedValue()
+    const auth = useAuthStore()
+
+    await auth.login({ login: 'admin', password: '123@Senha', remember: false })
+    await auth.logout()
+    expect(auth.loginPassword).toBeNull()
+
+    await auth.login({ login: 'admin', password: '123@Senha', remember: false })
+    auth.clear()
+    expect(auth.loginPassword).toBeNull()
+  })
 })

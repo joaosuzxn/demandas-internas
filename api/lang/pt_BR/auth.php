@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'failed' => 'Credenciais inválidas.',
+    'failed' => 'Usuário ou senha incorretos.',
     'inactive' => 'Conta desativada. Procure o administrador.',
     'password' => 'A senha informada está incorreta.',
     'password_change_required' => 'Troque a senha padrão para continuar.',

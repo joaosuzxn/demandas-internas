@@ -5,12 +5,12 @@ import { httpError, networkError } from './fixtures'
 describe('parseApiError', () => {
   it('devolve a primeira mensagem de cada campo conhecido no 422', () => {
     const error = httpError(422, {
-      message: 'Credenciais inválidas.',
-      errors: { login: ['Credenciais inválidas.', 'Outra.'], password: ['Informe a senha.'] },
+      message: 'Usuário ou senha incorretos.',
+      errors: { login: ['Usuário ou senha incorretos.', 'Outra.'], password: ['Informe a senha.'] },
     })
 
     expect(parseApiError(error, ['login', 'password'])).toEqual({
-      fieldErrors: { login: 'Credenciais inválidas.', password: 'Informe a senha.' },
+      fieldErrors: { login: 'Usuário ou senha incorretos.', password: 'Informe a senha.' },
       message: null,
     })
   })
@@ -30,11 +30,11 @@ describe('parseApiError', () => {
   it('mostra o campo conhecido e também a mensagem do desconhecido', () => {
     const error = httpError(422, {
       message: 'x',
-      errors: { login: ['Credenciais inválidas.'], remember: ['Inválido.'] },
+      errors: { login: ['Usuário ou senha incorretos.'], remember: ['Inválido.'] },
     })
 
     expect(parseApiError(error, ['login'])).toEqual({
-      fieldErrors: { login: 'Credenciais inválidas.' },
+      fieldErrors: { login: 'Usuário ou senha incorretos.' },
       message: 'Inválido.',
     })
   })

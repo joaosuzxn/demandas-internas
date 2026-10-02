@@ -9,6 +9,9 @@ export const useAuthStore = defineStore('auth', () => {
   // true depois que a SPA sabe se existe sessão (com ou sem usuário).
   const loaded = ref(false)
   let loading: Promise<void> | null = null
+  // Senha digitada no login, guardada só em memória e só enquanto a troca obrigatória está pendente:
+  // a tela de troca a envia como senha atual, para a pessoa não digitar de novo.
+  const loginPassword = ref<string | null>(null)
 
   const isAuthenticated = computed(() => user.value !== null)
   const mustChangePassword = computed(() => user.value?.must_change_password === true)
@@ -41,12 +44,14 @@ export const useAuthStore = defineStore('auth', () => {
     const loggedIn = await authService.login(credentials)
     user.value = loggedIn
     loaded.value = true
+    loginPassword.value = loggedIn.must_change_password ? credentials.password : null
 
     return loggedIn
   }
 
   async function changePassword(payload: ChangePasswordPayload): Promise<void> {
     await authService.changePassword(payload)
+    loginPassword.value = null
 
     if (user.value) {
       user.value = { ...user.value, must_change_password: false }
@@ -67,6 +72,12 @@ export const useAuthStore = defineStore('auth', () => {
   function clear(): void {
     user.value = null
     loaded.value = true
+    loginPassword.value = null
+  }
+
+  // A senha guardada deixou de servir (a API a recusou): não fica na memória.
+  function forgetLoginPassword(): void {
+    loginPassword.value = null
   }
 
   function requirePasswordChange(): void {
@@ -78,6 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user,
     loaded,
+    loginPassword,
     isAuthenticated,
     mustChangePassword,
     ensureLoaded,
@@ -85,6 +97,7 @@ export const useAuthStore = defineStore('auth', () => {
     changePassword,
     logout,
     clear,
+    forgetLoginPassword,
     requirePasswordChange,
   }
 })

@@ -10,19 +10,18 @@ declare module 'vue-router' {
   }
 }
 
+// Login e troca de senha usam a mesma tela: o Vue Router reaproveita a instância ao ir de uma rota
+// para a outra, então o card fica montado e só troca o conteúdo, com animação.
+const LoginView = () => import('@/views/login/LoginView.vue')
+
 // Nunca começar um caminho com /api ou /sanctum: são da API (ADR 0001).
 export const routes: RouteRecordRaw[] = [
   { path: '/', name: 'home', component: HomeView, meta: { requiresAuth: true } },
-  {
-    path: '/login',
-    name: 'login',
-    component: () => import('@/views/LoginView.vue'),
-    meta: { guestOnly: true },
-  },
+  { path: '/login', name: 'login', component: LoginView, meta: { guestOnly: true } },
   {
     path: '/change-password',
     name: 'change-password',
-    component: () => import('@/views/ChangePasswordView.vue'),
+    component: LoginView,
     meta: { requiresAuth: true },
   },
   // Endereço inexistente: vai para a home (e a guarda manda ao login se não houver sessão).
