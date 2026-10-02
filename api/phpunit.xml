@@ -22,6 +22,12 @@
              então cada valor de teste vai nos dois, com force: sem isso os testes rodam contra o banco de dev. -->
         <env name="APP_ENV" value="testing" force="true"/>
         <server name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_LOCALE" value="pt_BR" force="true"/>
+        <server name="APP_LOCALE" value="pt_BR" force="true"/>
+        <env name="APP_FALLBACK_LOCALE" value="en" force="true"/>
+        <server name="APP_FALLBACK_LOCALE" value="en" force="true"/>
+        <env name="DEFAULT_PASSWORD" value="123@Senha" force="true"/>
+        <server name="DEFAULT_PASSWORD" value="123@Senha" force="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file" force="true"/>
         <server name="APP_MAINTENANCE_DRIVER" value="file" force="true"/>
         <env name="BCRYPT_ROUNDS" value="4" force="true"/>

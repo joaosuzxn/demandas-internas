@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { isAxiosError } from 'axios'
 import { getHealth } from '@/services/health'
+import { useAuthStore } from '@/stores/auth'
 
 type Estado = 'carregando' | 'ok' | 'banco-indisponivel' | 'api-indisponivel'
 
 const titulo = import.meta.env.VITE_APP_TITLE ?? 'Demandas Internas'
 const estado = ref<Estado>('carregando')
+const auth = useAuthStore()
+const router = useRouter()
 
 onMounted(async () => {
   try {
@@ -17,6 +21,11 @@ onMounted(async () => {
       isAxiosError(erro) && erro.response?.status === 503 ? 'banco-indisponivel' : 'api-indisponivel'
   }
 })
+
+async function signOut() {
+  await auth.logout()
+  await router.replace({ name: 'login' })
+}
 </script>
 
 <template>
@@ -36,5 +45,14 @@ onMounted(async () => {
     <p v-else data-testid="estado" role="alert" class="mt-4 text-red-700">
       Não foi possível falar com a API
     </p>
+
+    <button
+      type="button"
+      data-testid="logout"
+      class="mt-6 rounded border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100"
+      @click="signOut"
+    >
+      Sair
+    </button>
   </main>
 </template>

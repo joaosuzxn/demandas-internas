@@ -1,1 +1,82 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+/* Tokens do tema, trazidos do Órbita para o card de autenticação ficar igual ao de lá.
+   Cor nova entra aqui, nunca solta no template. */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Azul da marca. */
+  --color-brand-50: oklch(0.97 0.02 250);
+  --color-brand-100: oklch(0.93 0.04 250);
+  --color-brand-200: oklch(0.86 0.07 250);
+  --color-brand-300: oklch(0.76 0.11 250);
+  --color-brand-400: oklch(0.66 0.15 250);
+  --color-brand-500: oklch(0.58 0.18 250);
+  --color-brand-600: oklch(0.5 0.18 250);
+  --color-brand-700: oklch(0.42 0.15 250);
+  --color-brand-800: oklch(0.34 0.12 250);
+  --color-brand-900: oklch(0.27 0.09 250);
+
+  /* Crepúsculo: base das telas de autenticação (sombra do card, texto do botão, fundo sob a foto). */
+  --color-dusk-400: oklch(0.68 0.09 295);
+  --color-dusk-500: oklch(0.6 0.1 293);
+  --color-dusk-600: oklch(0.5 0.11 291);
+  --color-dusk-700: oklch(0.41 0.11 289);
+  --color-dusk-800: oklch(0.32 0.09 287);
+  --color-dusk-900: oklch(0.24 0.07 285);
+
+  /* Chacoalhada de campo com erro — uso: `animate-shake`. */
+  --animate-shake: shake 0.4s ease-in-out;
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20%,
+    60% {
+      transform: translateX(-6px);
+    }
+    40%,
+    80% {
+      transform: translateX(6px);
+    }
+  }
+
+  /* Entrada suave de conteúdo que troca de lugar — uso: `animate-fade-in`. */
+  --animate-fade-in: fade-in 0.4s ease-out both;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+
+  /* Mãozinha em tudo que é clicável (o Tailwind 4 devolveu os botões ao cursor padrão). */
+  :where(
+    a[href],
+    button,
+    [role='button'],
+    label:has(input[type='checkbox'], input[type='radio']),
+    input[type='checkbox'],
+    input[type='radio']
+  ):not(:disabled, [aria-disabled='true']) {
+    cursor: pointer;
+  }
+
+  :where(button, [role='button'], input):disabled {
+    cursor: not-allowed;
+  }
+
+  /* Foco sempre visível. */
+  :focus-visible {
+    @apply outline-brand-500 outline-2 outline-offset-2;
+  }
+}

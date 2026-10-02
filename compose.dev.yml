@@ -24,6 +24,8 @@ services:
       APP_DEBUG: "true"
       APP_KEY: ${APP_KEY:?defina APP_KEY no .env (o comando para gerar está no .env.example)}
       APP_URL: ${APP_URL:?defina APP_URL no .env (copie de .env.example)}
+      APP_LOCALE: ${APP_LOCALE:-pt_BR}
+      APP_FALLBACK_LOCALE: ${APP_FALLBACK_LOCALE:-en}
       LOG_CHANNEL: stack
       DB_CONNECTION: pgsql
       DB_HOST: db
@@ -32,6 +34,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:?defina DB_USERNAME no .env (copie de .env.example)}
       DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (copie de .env.example)}
       SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:?defina SANCTUM_STATEFUL_DOMAINS no .env (copie de .env.example)}
+      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD:?defina DEFAULT_PASSWORD no .env (copie de .env.example)}
     volumes:
       - ./api:/var/www/api
     depends_on:
