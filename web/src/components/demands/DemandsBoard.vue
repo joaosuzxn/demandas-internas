@@ -95,7 +95,7 @@ function categoryLabel(demand: Demand): string {
           v-if="board[column.status].items.length > 0"
           :aria-label="column.label"
           tabindex="0"
-          class="max-h-[60svh] -mx-1 flex flex-col gap-2.5 overflow-y-auto px-1 pb-1"
+          class="scrollbar-soft max-h-[60svh] -mx-1 flex flex-col gap-2.5 overflow-y-auto px-1 pb-1"
         >
           <li
             v-for="demand in board[column.status].items"

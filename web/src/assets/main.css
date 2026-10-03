@@ -64,6 +64,41 @@
   }
 }
 
+/* Rolagem no estilo do Safari: fina, arredondada e quase invisível até o cursor entrar na área.
+   Uso: `scrollbar-soft` no elemento que rola. Firefox usa a propriedade padrão; Chrome e Safari, o webkit. */
+@utility scrollbar-soft {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+
+  &:hover {
+    scrollbar-color: rgb(15 23 42 / 0.25) transparent;
+  }
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: transparent;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(15 23 42 / 0.25);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(15 23 42 / 0.4);
+  }
+}
+
 @layer base {
   body {
     @apply antialiased;
