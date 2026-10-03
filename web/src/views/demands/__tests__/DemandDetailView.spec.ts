@@ -10,6 +10,7 @@ import type { Role } from '@/services/auth'
 import { httpError, makeUser, networkError } from '@/services/__tests__/fixtures'
 import { useAuthStore } from '@/stores/auth'
 import { NOTICE_TIMEOUT_MS } from '@/composables/useArrivalNotice'
+import { rememberBoardQuery } from '@/composables/demandsBoardQuery'
 
 vi.mock('@/services/demands', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services/demands')>()),
@@ -70,6 +71,7 @@ function button(wrapper: Awaited<ReturnType<typeof mountView>>['wrapper'], label
 
 describe('DemandDetailView', () => {
   beforeEach(() => {
+    sessionStorage.clear()
     vi.mocked(demandsService.getDemand).mockReset().mockResolvedValue(makeDemand())
     vi.mocked(demandsService.closeDemand).mockReset()
     vi.mocked(demandsService.reopenDemand).mockReset()
@@ -88,6 +90,23 @@ describe('DemandDetailView', () => {
     expect(facts).toContain('TI')
     expect(facts).toContain('Maria Souza')
     expect(wrapper.get('a[aria-label="Voltar para Demandas"]').attributes('href')).toBe('/demandas')
+  })
+
+  it('o voltar e a exclusão levam ao quadro com os filtros da última visita', async () => {
+    rememberBoardQuery({ category: 'hr', search: 'monitor' })
+    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'finished' }))
+    vi.mocked(demandsService.deleteDemand).mockResolvedValue()
+
+    const { router, wrapper } = await mountView()
+    expect(wrapper.get('a[aria-label="Voltar para Demandas"]').attributes('href')).toBe(
+      '/demandas?search=monitor&category=hr',
+    )
+
+    await button(wrapper, 'Excluir')!.trigger('click')
+    await button(wrapper, 'Excluir')!.trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.fullPath).toBe('/demandas?search=monitor&category=hr')
   })
 
   it('avisa quando a demanda não existe (404)', async () => {

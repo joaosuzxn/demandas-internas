@@ -24,6 +24,9 @@ class ListDemandsRequest extends FormRequest
             'category' => ['nullable', Rule::enum(DemandCategory::class)],
             'search' => ['nullable', 'string', 'max:100'],
             'mine' => ['nullable', 'boolean'],
+            // Período pela data de criação, dias inteiros no fuso do negócio; cada ponta vale sozinha.
+            'created_from' => ['nullable', 'date_format:Y-m-d'],
+            'created_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:created_from'],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
     }

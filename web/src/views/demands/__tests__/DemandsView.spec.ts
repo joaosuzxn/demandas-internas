@@ -6,6 +6,7 @@ import DemandsView from '../DemandsView.vue'
 import * as demandsService from '@/services/demands'
 import type { Demand, DemandPage } from '@/services/demands'
 import { installIntersectionObserver } from '@/components/ui/__tests__/intersectionObserver'
+import { demandsBoardRoute } from '@/composables/demandsBoardQuery'
 
 vi.mock('@/services/demands', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services/demands')>()),
@@ -49,20 +50,29 @@ function paginatedPending(params: demandsService.ListDemandsParams = {}): Demand
 
 const Stub = defineComponent({ render: () => null })
 
-// Os cartões são links para a tela da demanda: o quadro precisa de um router com a rota `demand`.
-function mountView() {
-  const router = createRouter({
+// Os cartões são links para a tela da demanda, e os filtros moram na query de `/demandas`.
+function makeRouter() {
+  return createRouter({
     history: createMemoryHistory(),
     routes: [
+      { path: '/demandas', name: 'demands', component: Stub },
       { path: '/demandas/nova', name: 'demand-new', component: Stub },
       { path: '/demandas/:id', name: 'demand', component: Stub },
     ],
   })
+}
+
+let router: ReturnType<typeof makeRouter>
+
+async function mountView(path = '/demandas') {
+  router = makeRouter()
+  await router.push(path)
   return mount(DemandsView, { global: { plugins: [router] } })
 }
 
 describe('DemandsView', () => {
   beforeEach(() => {
+    sessionStorage.clear()
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     vi.mocked(demandsService.listDemands).mockReset()
     vi.mocked(demandsService.listDemands).mockImplementation(async (params = {}) => {
@@ -80,7 +90,7 @@ describe('DemandsView', () => {
   })
 
   it('carrega as três situações ao abrir e mostra cada uma na sua coluna', async () => {
-    const wrapper = mountView()
+    const wrapper = await mountView()
     await flushPromises()
 
     expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'pending' })
@@ -92,7 +102,7 @@ describe('DemandsView', () => {
   })
 
   it('refaz a busca pelo título, sem espaços nas pontas, depois de uma pausa na digitação', async () => {
-    const wrapper = mountView()
+    const wrapper = await mountView()
     await flushPromises()
     vi.mocked(demandsService.listDemands).mockClear()
 
@@ -114,24 +124,345 @@ describe('DemandsView', () => {
     })
   })
 
+  describe('filtros', () => {
+    // A lista do select vai para o body pelo Teleport; com o stub ela fica no wrapper.
+    async function mountWithSelect(path = '/demandas') {
+      router = makeRouter()
+      await router.push(path)
+      return mount(DemandsView, {
+        global: { plugins: [router], stubs: { teleport: true } },
+        attachTo: document.body,
+      })
+    }
+
+    async function chooseCategory(wrapper: Awaited<ReturnType<typeof mountWithSelect>>, label: string) {
+      await wrapper.get('[role="combobox"]').trigger('click')
+      const option = wrapper.findAll('[role="option"]').find((item) => item.text() === label)
+      await option!.trigger('click')
+    }
+
+    function dateInput(wrapper: Awaited<ReturnType<typeof mountWithSelect>>, label: string) {
+      const id = wrapper.findAll('label').find((item) => item.text() === label)!.attributes('for')
+      return wrapper.get(`#${id}`)
+    }
+
+    function clearButton(wrapper: Awaited<ReturnType<typeof mountWithSelect>>) {
+      return wrapper.findAll('button').find((button) => button.text() === 'Limpar filtros')
+    }
+
+    function filtersButton(wrapper: Awaited<ReturnType<typeof mountWithSelect>>) {
+      return wrapper.get('button[aria-controls]')
+    }
+
+    it('Categoria e período começam recolhidos e abrem pelo botão Filtros', async () => {
+      const wrapper = await mountWithSelect()
+      await flushPromises()
+
+      const button = filtersButton(wrapper)
+      const panel = wrapper.get(`#${button.attributes('aria-controls')}`)
+      expect(button.attributes('aria-expanded')).toBe('false')
+      expect(panel.isVisible()).toBe(false)
+
+      await button.trigger('click')
+      expect(button.attributes('aria-expanded')).toBe('true')
+      expect(panel.isVisible()).toBe(true)
+      expect(panel.text()).toContain('Categoria')
+
+      await button.trigger('click')
+      expect(button.attributes('aria-expanded')).toBe('false')
+      wrapper.unmount()
+    })
+
+    // A busca fica à vista; o botão conta só o que o painel esconde.
+    it('o botão diz quantos filtros do painel estão em vigor', async () => {
+      const wrapper = await mountWithSelect()
+      await flushPromises()
+      await filtersButton(wrapper).trigger('click')
+      await wrapper.get('input[type="search"]').setValue('impressora')
+      expect(filtersButton(wrapper).text()).toBe('Filtros')
+
+      await chooseCategory(wrapper, 'RH')
+      await dateInput(wrapper, 'De').setValue('2026-10-01')
+
+      expect(filtersButton(wrapper).text()).toBe('Filtros · 2')
+      wrapper.unmount()
+    })
+
+    it('a categoria recarrega as três colunas na hora, sem a pausa', async () => {
+      const wrapper = await mountWithSelect()
+      await flushPromises()
+      vi.mocked(demandsService.listDemands).mockClear()
+
+      await chooseCategory(wrapper, 'RH')
+      await flushPromises()
+
+      for (const status of ['pending', 'in_progress', 'finished'] as const) {
+        expect(demandsService.listDemands).toHaveBeenCalledWith({ status, category: 'hr' })
+      }
+      wrapper.unmount()
+    })
+
+    it('De e Até vão para a API, e a rolagem segue com todos os filtros', async () => {
+      const io = installIntersectionObserver()
+      vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
+        paginatedPending(params),
+      )
+      const wrapper = await mountWithSelect()
+      await flushPromises()
+
+      await chooseCategory(wrapper, 'TI')
+      await dateInput(wrapper, 'De').setValue('2026-10-01')
+      await dateInput(wrapper, 'Até').setValue('2026-10-03')
+      await wrapper.get('input[type="search"]').setValue('pendente')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      const filters = {
+        category: 'it',
+        created_from: '2026-10-01',
+        created_to: '2026-10-03',
+        search: 'pendente',
+      }
+      expect(demandsService.listDemands).toHaveBeenLastCalledWith({ status: 'finished', ...filters })
+
+      vi.mocked(demandsService.listDemands).mockClear()
+      io.reveal()
+      await flushPromises()
+
+      expect(demandsService.listDemands).toHaveBeenCalledWith({
+        status: 'pending',
+        ...filters,
+        page: 2,
+      })
+      wrapper.unmount()
+    })
+
+    // Digitando o ano no campo de data, cada dígito já é uma data válida (0002, 0020, 0202, 2026).
+    it('as datas esperam a pausa, e só a data final da digitação consulta', async () => {
+      const wrapper = await mountWithSelect()
+      await flushPromises()
+      vi.mocked(demandsService.listDemands).mockClear()
+
+      for (const year of ['0002', '0020', '0202', '2026']) {
+        await dateInput(wrapper, 'De').setValue(`${year}-10-01`)
+        vi.advanceTimersByTime(100)
+      }
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
+      expect(demandsService.listDemands).toHaveBeenCalledWith({
+        status: 'pending',
+        created_from: '2026-10-01',
+      })
+      wrapper.unmount()
+    })
+
+    it('ano com mais de quatro dígitos avisa no campo e não consulta', async () => {
+      const wrapper = await mountWithSelect()
+      await flushPromises()
+      vi.mocked(demandsService.listDemands).mockClear()
+
+      await dateInput(wrapper, 'De').setValue('20260-10-01')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      expect(demandsService.listDemands).not.toHaveBeenCalled()
+      expect(dateInput(wrapper, 'De').attributes('aria-invalid')).toBe('true')
+      expect(wrapper.text()).toContain('Informe uma data válida.')
+      wrapper.unmount()
+    })
+
+    it('período invertido avisa no Até e não consulta', async () => {
+      const wrapper = await mountWithSelect()
+      await flushPromises()
+
+      await dateInput(wrapper, 'De').setValue('2026-10-03')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+      vi.mocked(demandsService.listDemands).mockClear()
+
+      await dateInput(wrapper, 'Até').setValue('2026-10-01')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      expect(demandsService.listDemands).not.toHaveBeenCalled()
+      expect(dateInput(wrapper, 'Até').attributes('aria-invalid')).toBe('true')
+      expect(wrapper.text()).toContain('Use uma data igual ou depois da do De.')
+      wrapper.unmount()
+    })
+
+    it('"Limpar filtros" só aparece com filtro ativo e volta tudo ao início', async () => {
+      const wrapper = await mountWithSelect()
+      await flushPromises()
+      expect(clearButton(wrapper)).toBeUndefined()
+
+      await chooseCategory(wrapper, 'RH')
+      await dateInput(wrapper, 'De').setValue('2026-10-01')
+      await wrapper.get('input[type="search"]').setValue('impressora')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+      vi.mocked(demandsService.listDemands).mockClear()
+
+      // Limpar consulta na hora, sem a pausa, e uma vez só.
+      await clearButton(wrapper)!.trigger('click')
+      await flushPromises()
+
+      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
+      expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'pending' })
+      expect((wrapper.get('input[type="search"]').element as HTMLInputElement).value).toBe('')
+      expect((dateInput(wrapper, 'De').element as HTMLInputElement).value).toBe('')
+      expect(clearButton(wrapper)).toBeUndefined()
+
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
+      expect(router.currentRoute.value.fullPath).toBe('/demandas')
+      wrapper.unmount()
+    })
+  })
+
+  describe('filtros na URL', () => {
+    function field(wrapper: Awaited<ReturnType<typeof mountView>>, label: string) {
+      const id = wrapper.findAll('label').find((item) => item.text() === label)!.attributes('for')
+      return wrapper.get(`#${id}`).element as HTMLInputElement
+    }
+
+    it('abre com os filtros da query: preenche os campos e consulta com eles', async () => {
+      const wrapper = await mountView(
+        '/demandas?search=monitor&category=hr&created_from=2026-10-01&created_to=2026-10-03',
+      )
+      await flushPromises()
+
+      for (const status of ['pending', 'in_progress', 'finished'] as const) {
+        expect(demandsService.listDemands).toHaveBeenCalledWith({
+          status,
+          search: 'monitor',
+          category: 'hr',
+          created_from: '2026-10-01',
+          created_to: '2026-10-03',
+        })
+      }
+      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
+      expect((wrapper.get('input[type="search"]').element as HTMLInputElement).value).toBe('monitor')
+      expect(field(wrapper, 'De').value).toBe('2026-10-01')
+      expect(wrapper.get('[role="combobox"]').text()).toContain('RH')
+      expect(wrapper.get('button[aria-controls]').text()).toBe('Filtros · 3')
+    })
+
+    it('ignora na query o que não é filtro válido', async () => {
+      await mountView('/demandas?category=xyz&created_from=ontem&search=impressora')
+      await flushPromises()
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      // Uma consulta só: a URL com lixo não é regravada (o que não vale já foi ignorado).
+      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
+      expect(demandsService.listDemands).toHaveBeenCalledWith({
+        status: 'pending',
+        search: 'impressora',
+      })
+    })
+
+    it('a busca tem o mesmo teto da API: texto maior não chega à URL', async () => {
+      const wrapper = await mountView()
+
+      expect(wrapper.get('input[type="search"]').attributes('maxlength')).toBe('100')
+    })
+
+    // A gravação da letra anterior chega depois da letra nova: o campo não pode voltar atrás.
+    it('a URL atrasada não apaga o que se continua digitando', async () => {
+      const wrapper = await mountView()
+      await flushPromises()
+      const search = wrapper.get('input[type="search"]')
+
+      await search.setValue('mon')
+      vi.advanceTimersByTime(300)
+      await search.setValue('moni')
+      await flushPromises()
+
+      expect((search.element as HTMLInputElement).value).toBe('moni')
+
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+      expect(router.currentRoute.value.query).toEqual({ search: 'moni' })
+    })
+
+    it('mexer nos filtros grava a query, sem empilhar histórico', async () => {
+      const wrapper = await mountView()
+      await flushPromises()
+      const replace = vi.spyOn(router, 'replace')
+      const push = vi.spyOn(router, 'push')
+
+      await wrapper.get('input[type="search"]').setValue('  monitor ')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      expect(router.currentRoute.value.query).toEqual({ search: 'monitor' })
+      expect(replace).toHaveBeenCalled()
+      expect(push).not.toHaveBeenCalled()
+      expect(demandsService.listDemands).toHaveBeenLastCalledWith({
+        status: 'finished',
+        search: 'monitor',
+      })
+    })
+
+    it('a query mudando por fora (voltar do navegador, link) atualiza campos e quadro', async () => {
+      const wrapper = await mountView('/demandas?search=monitor')
+      await flushPromises()
+      vi.mocked(demandsService.listDemands).mockClear()
+
+      await router.push('/demandas?category=it')
+      await flushPromises()
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
+      expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'pending', category: 'it' })
+      expect((wrapper.get('input[type="search"]').element as HTMLInputElement).value).toBe('')
+      expect(router.currentRoute.value.fullPath).toBe('/demandas?category=it')
+    })
+
+    it('link com lixo vindo por fora também consulta uma vez só', async () => {
+      await mountView()
+      await flushPromises()
+      vi.mocked(demandsService.listDemands).mockClear()
+
+      await router.push('/demandas?category=xyz&search=%20monitor%20')
+      await flushPromises()
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
+      expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'pending', search: 'monitor' })
+    })
+
+    it('lembra o último quadro para o voltar das telas da demanda', async () => {
+      await mountView('/demandas?category=hr')
+      await flushPromises()
+
+      expect(demandsBoardRoute()).toEqual({ name: 'demands', query: { category: 'hr' } })
+    })
+  })
+
   it('mostra o erro quando a API não responde', async () => {
     vi.mocked(demandsService.listDemands).mockRejectedValue(new Error('rede'))
 
-    const wrapper = mountView()
+    const wrapper = await mountView()
     await flushPromises()
 
     expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar')
   })
 
   it('leva à tela de criar demanda pela pílula do cabeçalho', async () => {
-    const wrapper = mountView()
+    const wrapper = await mountView()
     await flushPromises()
 
     expect(wrapper.get('a[aria-label="Criar demanda"]').attributes('href')).toBe('/demandas/nova')
   })
 
   describe('rolagem infinita', () => {
-    function pendingCards(wrapper: ReturnType<typeof mountView>) {
+    function pendingCards(wrapper: Awaited<ReturnType<typeof mountView>>) {
       return wrapper.get('[data-column="pending"]').findAll('[data-demand]')
     }
 
@@ -141,7 +472,7 @@ describe('DemandsView', () => {
         paginatedPending(params),
       )
 
-      const wrapper = mountView()
+      const wrapper = await mountView()
       await flushPromises()
       expect(pendingCards(wrapper)).toHaveLength(20)
 
@@ -159,7 +490,7 @@ describe('DemandsView', () => {
         paginatedPending(params),
       )
 
-      const wrapper = mountView()
+      const wrapper = await mountView()
       await flushPromises()
       for (let round = 0; round < 3; round++) {
         io.reveal()
@@ -179,7 +510,7 @@ describe('DemandsView', () => {
       vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
         paginatedPending(params),
       )
-      const wrapper = mountView()
+      const wrapper = await mountView()
       await flushPromises()
 
       let release: (value: DemandPage) => void = () => {}
@@ -208,7 +539,7 @@ describe('DemandsView', () => {
           : page(pendingRange(1), 46, 1, 3)
       })
 
-      const wrapper = mountView()
+      const wrapper = await mountView()
       await flushPromises()
       io.reveal()
       await flushPromises()
@@ -223,7 +554,7 @@ describe('DemandsView', () => {
       vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
         paginatedPending(params),
       )
-      const wrapper = mountView()
+      const wrapper = await mountView()
       await flushPromises()
 
       vi.mocked(demandsService.listDemands).mockRejectedValueOnce(new Error('rede'))
@@ -251,7 +582,7 @@ describe('DemandsView', () => {
       vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
         paginatedPending(params),
       )
-      const wrapper = mountView()
+      const wrapper = await mountView()
       await flushPromises()
       io.reveal()
       await flushPromises()
@@ -279,7 +610,7 @@ describe('DemandsView', () => {
       vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
         paginatedPending(params),
       )
-      const wrapper = mountView()
+      const wrapper = await mountView()
       await flushPromises()
 
       let release: (value: DemandPage) => void = () => {}

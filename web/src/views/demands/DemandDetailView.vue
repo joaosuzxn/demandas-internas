@@ -11,6 +11,7 @@ import BackLink from '@/components/ui/BackLink.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import { useArrivalNotice } from '@/composables/useArrivalNotice'
 import { useDemandRecord } from '@/composables/useDemandRecord'
+import { demandsBoardRoute } from '@/composables/demandsBoardQuery'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,6 +20,8 @@ const id = computed(() => Number(route.params.id))
 const { demand, loading, error, notFound, canManage, load } = useDemandRecord(id)
 // "Demanda criada." / "Demanda atualizada.", de quem chega do formulário.
 const notice = useArrivalNotice()
+// O quadro com os filtros da última visita (lidos ao abrir a tela).
+const boardRoute = demandsBoardRoute()
 
 /** O número abre o título (`#12 - Título`); enquanto o dado não chega, fica o rótulo genérico. */
 const title = computed(() =>
@@ -26,7 +29,7 @@ const title = computed(() =>
 )
 
 function onDeleted(): void {
-  void router.push({ name: 'demands' })
+  void router.push(demandsBoardRoute())
 }
 </script>
 
@@ -34,7 +37,7 @@ function onDeleted(): void {
   <div class="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
     <PageHeader :title="title">
       <template #media>
-        <BackLink :to="{ name: 'demands' }" label="Demandas" />
+        <BackLink :to="boardRoute" label="Demandas" />
       </template>
     </PageHeader>
 

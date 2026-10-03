@@ -199,10 +199,10 @@ describe('DemandsBoard', () => {
     expect(wrapper.text()).toContain('Nenhuma demanda registrada ainda.')
   })
 
-  it('diz que a busca não achou nada quando há busca em vigor', () => {
-    const wrapper = mountBoard({ searching: true })
+  it('diz que os filtros não acharam nada quando há filtro em vigor', () => {
+    const wrapper = mountBoard({ filtering: true })
 
-    expect(wrapper.text()).toContain('Nenhuma demanda corresponde à busca.')
+    expect(wrapper.text()).toContain('Nenhuma demanda corresponde aos filtros.')
   })
 
   it('mostra o estado de carregamento sem as colunas', () => {

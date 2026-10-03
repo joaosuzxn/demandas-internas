@@ -56,9 +56,17 @@ export type DemandBoardColumn = {
 
 export type DemandBoard = Record<DemandStatus, DemandBoardColumn>
 
-export type ListDemandsParams = {
-  status?: DemandStatus
+// Filtros do quadro (item 0027): título, categoria e período pela data de criação (`AAAA-MM-DD`, dias inteiros
+// no horário de Brasília; cada ponta vale sozinha).
+export type DemandFilters = {
   search?: string
+  category?: DemandCategory
+  created_from?: string
+  created_to?: string
+}
+
+export type ListDemandsParams = DemandFilters & {
+  status?: DemandStatus
   page?: number
 }
 

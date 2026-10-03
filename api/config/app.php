@@ -67,6 +67,10 @@ return [
 
     'timezone' => 'UTC',
 
+    // Fuso de quem usa o sistema: o dia de um filtro por período (ex.: "criadas em 03/10") é o dia daqui,
+    // não o do UTC em que o banco grava.
+    'business_timezone' => 'America/Sao_Paulo',
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

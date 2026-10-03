@@ -16,6 +16,7 @@ export type IconName =
   | 'pencil'
   | 'send'
   | 'circle-play'
+  | 'sliders-horizontal'
 
 type IconElement = [tag: string, attributes: Record<string, string>]
 
@@ -70,6 +71,17 @@ export const ICONS: Record<IconName, IconElement[]> = {
   'circle-play': [
     ['circle', { cx: '12', cy: '12', r: '10' }],
     ['polygon', { points: '10 8 16 12 10 16 10 8' }],
+  ],
+  'sliders-horizontal': [
+    ['path', { d: 'M10 5H3' }],
+    ['path', { d: 'M12 19H3' }],
+    ['path', { d: 'M14 3v4' }],
+    ['path', { d: 'M16 17v4' }],
+    ['path', { d: 'M21 12h-9' }],
+    ['path', { d: 'M21 19h-5' }],
+    ['path', { d: 'M21 5h-7' }],
+    ['path', { d: 'M8 10v4' }],
+    ['path', { d: 'M8 12H3' }],
   ],
   plus: [
     ['path', { d: 'M5 12h14' }],

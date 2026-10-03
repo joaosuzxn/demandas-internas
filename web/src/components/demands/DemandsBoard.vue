@@ -17,8 +17,8 @@ defineProps<{
   board: DemandBoard
   loading?: boolean
   error?: string | null
-  /** Há busca em vigor: o vazio passa a ser o da busca, que é outra situação. */
-  searching?: boolean
+  /** Há filtro em vigor: o vazio passa a ser o dos filtros, que é outra situação. */
+  filtering?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -75,7 +75,7 @@ function categoryLabel(demand: Demand): string {
       v-else-if="COLUMNS.every((column) => board[column.status].total === 0)"
       class="py-6 text-center text-sm text-slate-500"
     >
-      {{ searching ? 'Nenhuma demanda corresponde à busca.' : 'Nenhuma demanda registrada ainda.' }}
+      {{ filtering ? 'Nenhuma demanda corresponde aos filtros.' : 'Nenhuma demanda registrada ainda.' }}
     </p>
 
     <!-- As situações ficam à vista ao mesmo tempo, como num quadro: a leitura é a comparação

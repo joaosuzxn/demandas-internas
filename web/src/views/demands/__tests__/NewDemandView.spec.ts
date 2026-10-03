@@ -1,10 +1,11 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import NewDemandView from '../NewDemandView.vue'
 import * as demandsService from '@/services/demands'
 import type { Demand, DemandPayload } from '@/services/demands'
+import { rememberBoardQuery } from '@/composables/demandsBoardQuery'
 
 vi.mock('@/services/demands', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services/demands')>()),
@@ -30,6 +31,17 @@ async function mountView() {
 }
 
 describe('NewDemandView', () => {
+  beforeEach(() => sessionStorage.clear())
+
+  it('o voltar e o cancelar levam ao quadro com os filtros da última visita', async () => {
+    rememberBoardQuery({ created_from: '2026-10-01' })
+    const { wrapper } = await mountView()
+
+    const board = '/demandas?created_from=2026-10-01'
+    expect(wrapper.get('a[aria-label="Voltar para Demandas"]').attributes('href')).toBe(board)
+    expect(wrapper.findAll('a').some((link) => link.text() === 'Cancelar' && link.attributes('href') === board)).toBe(true)
+  })
+
   it('mostra o título, o voltar ao quadro e o formulário vazio', async () => {
     const { wrapper } = await mountView()
 

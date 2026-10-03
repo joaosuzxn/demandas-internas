@@ -180,6 +180,36 @@ class DemandListTest extends TestCase
             ->assertJsonValidationErrors(['mine' => 'O campo só as minhas deve ser verdadeiro ou falso.']);
     }
 
+    // O banco grava em UTC; o período é de dias inteiros no horário de Brasília (UTC-3).
+    public function test_filters_by_period_in_business_timezone(): void
+    {
+        $before = Demand::factory()->create(['created_at' => '2026-10-01 02:59:59']); // 30/09 23:59:59
+        $first = Demand::factory()->create(['created_at' => '2026-10-01 03:00:00']); // 01/10 00:00
+        $lateNight = Demand::factory()->create(['created_at' => '2026-10-04 01:00:00']); // 03/10 22:00
+        $after = Demand::factory()->create(['created_at' => '2026-10-04 03:00:00']); // 04/10 00:00
+
+        $ids = fn (string $query) => collect($this->listAs($this->employee, $query)->assertOk()->json('data'))
+            ->pluck('id')->sort()->values()->all();
+
+        $this->assertSame([$first->id, $lateNight->id], $ids('?created_from=2026-10-01&created_to=2026-10-03'));
+        $this->assertSame([$first->id, $lateNight->id, $after->id], $ids('?created_from=2026-10-01'));
+        $this->assertSame([$before->id, $first->id, $lateNight->id], $ids('?created_to=2026-10-03'));
+        $this->assertSame([$lateNight->id], $ids('?created_from=2026-10-03&created_to=2026-10-03'));
+    }
+
+    public function test_invalid_period_is_rejected(): void
+    {
+        $this->listAs($this->employee, '?created_from=2026-10-03&created_to=2026-10-01')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['created_to' => 'O campo até deve ser uma data igual ou posterior a de.']);
+
+        foreach (['03/10/2026', '2026-02-31', 'ontem'] as $value) {
+            $this->listAs($this->employee, '?created_from='.urlencode($value))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['created_from' => 'O campo de deve ser uma data no formato AAAA-MM-DD.']);
+        }
+    }
+
     public function test_filters_combine(): void
     {
         $match = Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Monitor']);
@@ -187,8 +217,11 @@ class DemandListTest extends TestCase
         Demand::factory()->finished()->create(['category' => 'it', 'title' => 'Monitor']);
         Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'hr', 'title' => 'Monitor']);
         Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Cadeira']);
+        Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Monitor', 'created_at' => now()->subDays(10)]);
 
-        $this->listAs($this->employee, '?status=finished&category=it&search=monitor&mine=true')
+        $today = now('America/Sao_Paulo')->toDateString();
+
+        $this->listAs($this->employee, "?status=finished&category=it&search=monitor&mine=true&created_from={$today}&created_to={$today}")
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $match->id);
     }
