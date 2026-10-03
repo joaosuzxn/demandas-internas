@@ -89,7 +89,14 @@ function categoryLabel(demand: Demand): string {
           </span>
         </header>
 
-        <ul v-if="board[column.status].items.length > 0" class="flex flex-col gap-2.5">
+        <!-- Cada coluna rola por conta própria: a lista longa não estica a página. O contorno
+             (`px-1`/`pb-1`) impede o corte da sombra dos cartões. -->
+        <ul
+          v-if="board[column.status].items.length > 0"
+          :aria-label="column.label"
+          tabindex="0"
+          class="max-h-[60svh] -mx-1 flex flex-col gap-2.5 overflow-y-auto px-1 pb-1"
+        >
           <li
             v-for="demand in board[column.status].items"
             :key="demand.id"
