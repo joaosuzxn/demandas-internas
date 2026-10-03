@@ -56,8 +56,15 @@ export type DemandBoardColumn = {
 
 export type DemandBoard = Record<DemandStatus, DemandBoardColumn>
 
-// Filtros do quadro (item 0027): título, categoria e período pela data de criação (`AAAA-MM-DD`, dias inteiros
-// no horário de Brasília; cada ponta vale sozinha).
+// Listagem (`GET /api/demands`): situação, "só as minhas" e página.
+export type ListDemandsParams = {
+  status?: DemandStatus
+  mine?: boolean
+  page?: number
+}
+
+// Filtros do quadro (item 0027), da busca: título, categoria e período pela data de criação (`AAAA-MM-DD`, dias
+// inteiros no horário de Brasília; cada ponta vale sozinha).
 export type DemandFilters = {
   search?: string
   category?: DemandCategory
@@ -65,7 +72,8 @@ export type DemandFilters = {
   created_to?: string
 }
 
-export type ListDemandsParams = DemandFilters & {
+// Busca (`GET /api/demands/search`): os filtros, mais a situação e a página (o quadro pede uma coluna por vez).
+export type SearchDemandsParams = DemandFilters & {
   status?: DemandStatus
   page?: number
 }
@@ -95,6 +103,11 @@ type DemandResponse = { data: Demand }
 
 export async function listDemands(params: ListDemandsParams = {}): Promise<DemandPage> {
   const { data } = await http.get<DemandPage>('/demands', { params })
+  return data
+}
+
+export async function searchDemands(params: SearchDemandsParams): Promise<DemandPage> {
+  const { data } = await http.get<DemandPage>('/demands/search', { params })
   return data
 }
 

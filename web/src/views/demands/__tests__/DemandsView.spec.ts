@@ -11,7 +11,28 @@ import { demandsBoardRoute } from '@/composables/demandsBoardQuery'
 vi.mock('@/services/demands', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services/demands')>()),
   listDemands: vi.fn<(params?: demandsService.ListDemandsParams) => Promise<DemandPage>>(),
+  searchDemands: vi.fn<(params: demandsService.SearchDemandsParams) => Promise<DemandPage>>(),
 }))
+
+type FetchParams = demandsService.SearchDemandsParams
+const list = vi.mocked(demandsService.listDemands)
+const search = vi.mocked(demandsService.searchDemands)
+
+// O quadro consulta a listagem sem filtro e a busca com filtro: as duas respondem pela mesma fábrica.
+function fakeApi(impl: (params: FetchParams) => Promise<DemandPage>) {
+  list.mockImplementation((params = {}) => impl(params))
+  search.mockImplementation((params) => impl(params))
+}
+
+function clearApi() {
+  list.mockClear()
+  search.mockClear()
+}
+
+// Consultas feitas, somando as duas rotas.
+function fetchCount() {
+  return list.mock.calls.length + search.mock.calls.length
+}
 
 function makeDemand(overrides: Partial<Demand> = {}): Demand {
   return {
@@ -40,7 +61,7 @@ function pendingRange(from: number, count = 20): Demand[] {
 }
 
 // Pendentes em 3 páginas (20 + 20 + 5); as outras colunas, vazias.
-function paginatedPending(params: demandsService.ListDemandsParams = {}): DemandPage {
+function paginatedPending(params: FetchParams = {}): DemandPage {
   if (params.status !== 'pending') return page([])
   const current = params.page ?? 1
   if (current === 1) return page(pendingRange(1), 45, 1, 3)
@@ -74,8 +95,9 @@ describe('DemandsView', () => {
   beforeEach(() => {
     sessionStorage.clear()
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    vi.mocked(demandsService.listDemands).mockReset()
-    vi.mocked(demandsService.listDemands).mockImplementation(async (params = {}) => {
+    list.mockReset()
+    search.mockReset()
+    fakeApi(async (params) => {
       if (params.status === 'finished')
         return page([makeDemand({ id: 2, title: 'Contrato de limpeza', status: 'finished' })])
       if (params.status === 'in_progress')
@@ -104,21 +126,21 @@ describe('DemandsView', () => {
   it('refaz a busca pelo título, sem espaços nas pontas, depois de uma pausa na digitação', async () => {
     const wrapper = await mountView()
     await flushPromises()
-    vi.mocked(demandsService.listDemands).mockClear()
+    clearApi()
 
     await wrapper.get('input[type="search"]').setValue('  impressora ')
     vi.advanceTimersByTime(300)
     await flushPromises()
 
-    expect(demandsService.listDemands).toHaveBeenCalledWith({
+    expect(demandsService.searchDemands).toHaveBeenCalledWith({
       status: 'pending',
       search: 'impressora',
     })
-    expect(demandsService.listDemands).toHaveBeenCalledWith({
+    expect(demandsService.searchDemands).toHaveBeenCalledWith({
       status: 'in_progress',
       search: 'impressora',
     })
-    expect(demandsService.listDemands).toHaveBeenCalledWith({
+    expect(demandsService.searchDemands).toHaveBeenCalledWith({
       status: 'finished',
       search: 'impressora',
     })
@@ -191,22 +213,20 @@ describe('DemandsView', () => {
     it('a categoria recarrega as três colunas na hora, sem a pausa', async () => {
       const wrapper = await mountWithSelect()
       await flushPromises()
-      vi.mocked(demandsService.listDemands).mockClear()
+      clearApi()
 
       await chooseCategory(wrapper, 'RH')
       await flushPromises()
 
       for (const status of ['pending', 'in_progress', 'finished'] as const) {
-        expect(demandsService.listDemands).toHaveBeenCalledWith({ status, category: 'hr' })
+        expect(demandsService.searchDemands).toHaveBeenCalledWith({ status, category: 'hr' })
       }
       wrapper.unmount()
     })
 
     it('De e Até vão para a API, e a rolagem segue com todos os filtros', async () => {
       const io = installIntersectionObserver()
-      vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
-        paginatedPending(params),
-      )
+      fakeApi(async (params) => paginatedPending(params))
       const wrapper = await mountWithSelect()
       await flushPromises()
 
@@ -223,13 +243,13 @@ describe('DemandsView', () => {
         created_to: '2026-10-03',
         search: 'pendente',
       }
-      expect(demandsService.listDemands).toHaveBeenLastCalledWith({ status: 'finished', ...filters })
+      expect(demandsService.searchDemands).toHaveBeenLastCalledWith({ status: 'finished', ...filters })
 
-      vi.mocked(demandsService.listDemands).mockClear()
+      clearApi()
       io.reveal()
       await flushPromises()
 
-      expect(demandsService.listDemands).toHaveBeenCalledWith({
+      expect(demandsService.searchDemands).toHaveBeenCalledWith({
         status: 'pending',
         ...filters,
         page: 2,
@@ -241,7 +261,7 @@ describe('DemandsView', () => {
     it('as datas esperam a pausa, e só a data final da digitação consulta', async () => {
       const wrapper = await mountWithSelect()
       await flushPromises()
-      vi.mocked(demandsService.listDemands).mockClear()
+      clearApi()
 
       for (const year of ['0002', '0020', '0202', '2026']) {
         await dateInput(wrapper, 'De').setValue(`${year}-10-01`)
@@ -250,8 +270,8 @@ describe('DemandsView', () => {
       vi.advanceTimersByTime(300)
       await flushPromises()
 
-      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
-      expect(demandsService.listDemands).toHaveBeenCalledWith({
+      expect(fetchCount()).toBe(3)
+      expect(demandsService.searchDemands).toHaveBeenCalledWith({
         status: 'pending',
         created_from: '2026-10-01',
       })
@@ -261,13 +281,13 @@ describe('DemandsView', () => {
     it('ano com mais de quatro dígitos avisa no campo e não consulta', async () => {
       const wrapper = await mountWithSelect()
       await flushPromises()
-      vi.mocked(demandsService.listDemands).mockClear()
+      clearApi()
 
       await dateInput(wrapper, 'De').setValue('20260-10-01')
       vi.advanceTimersByTime(300)
       await flushPromises()
 
-      expect(demandsService.listDemands).not.toHaveBeenCalled()
+      expect(fetchCount()).toBe(0)
       expect(dateInput(wrapper, 'De').attributes('aria-invalid')).toBe('true')
       expect(wrapper.text()).toContain('Informe uma data válida.')
       wrapper.unmount()
@@ -280,13 +300,13 @@ describe('DemandsView', () => {
       await dateInput(wrapper, 'De').setValue('2026-10-03')
       vi.advanceTimersByTime(300)
       await flushPromises()
-      vi.mocked(demandsService.listDemands).mockClear()
+      clearApi()
 
       await dateInput(wrapper, 'Até').setValue('2026-10-01')
       vi.advanceTimersByTime(300)
       await flushPromises()
 
-      expect(demandsService.listDemands).not.toHaveBeenCalled()
+      expect(fetchCount()).toBe(0)
       expect(dateInput(wrapper, 'Até').attributes('aria-invalid')).toBe('true')
       expect(wrapper.text()).toContain('Use uma data igual ou depois da do De.')
       wrapper.unmount()
@@ -302,13 +322,13 @@ describe('DemandsView', () => {
       await wrapper.get('input[type="search"]').setValue('impressora')
       vi.advanceTimersByTime(300)
       await flushPromises()
-      vi.mocked(demandsService.listDemands).mockClear()
+      clearApi()
 
       // Limpar consulta na hora, sem a pausa, e uma vez só.
       await clearButton(wrapper)!.trigger('click')
       await flushPromises()
 
-      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
+      expect(fetchCount()).toBe(3)
       expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'pending' })
       expect((wrapper.get('input[type="search"]').element as HTMLInputElement).value).toBe('')
       expect((dateInput(wrapper, 'De').element as HTMLInputElement).value).toBe('')
@@ -316,9 +336,32 @@ describe('DemandsView', () => {
 
       vi.advanceTimersByTime(300)
       await flushPromises()
-      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
+      expect(fetchCount()).toBe(3)
       expect(router.currentRoute.value.fullPath).toBe('/demandas')
       wrapper.unmount()
+    })
+  })
+
+  describe('rota da API', () => {
+    it('sem filtro consulta a listagem; com filtro, a busca, e a rolagem segue a mesma rota', async () => {
+      const io = installIntersectionObserver()
+      fakeApi(async (params) => paginatedPending(params))
+      const wrapper = await mountView()
+      await flushPromises()
+
+      expect(list).toHaveBeenCalledTimes(3)
+      expect(search).not.toHaveBeenCalled()
+
+      clearApi()
+      await wrapper.get('input[type="search"]').setValue('pendente')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+      io.reveal()
+      await flushPromises()
+
+      expect(list).not.toHaveBeenCalled()
+      expect(search).toHaveBeenCalledTimes(4)
+      expect(search).toHaveBeenLastCalledWith({ status: 'pending', search: 'pendente', page: 2 })
     })
   })
 
@@ -335,7 +378,7 @@ describe('DemandsView', () => {
       await flushPromises()
 
       for (const status of ['pending', 'in_progress', 'finished'] as const) {
-        expect(demandsService.listDemands).toHaveBeenCalledWith({
+        expect(demandsService.searchDemands).toHaveBeenCalledWith({
           status,
           search: 'monitor',
           category: 'hr',
@@ -343,7 +386,7 @@ describe('DemandsView', () => {
           created_to: '2026-10-03',
         })
       }
-      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
+      expect(fetchCount()).toBe(3)
       expect((wrapper.get('input[type="search"]').element as HTMLInputElement).value).toBe('monitor')
       expect(field(wrapper, 'De').value).toBe('2026-10-01')
       expect(wrapper.get('[role="combobox"]').text()).toContain('RH')
@@ -357,8 +400,8 @@ describe('DemandsView', () => {
       await flushPromises()
 
       // Uma consulta só: a URL com lixo não é regravada (o que não vale já foi ignorado).
-      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
-      expect(demandsService.listDemands).toHaveBeenCalledWith({
+      expect(fetchCount()).toBe(3)
+      expect(demandsService.searchDemands).toHaveBeenCalledWith({
         status: 'pending',
         search: 'impressora',
       })
@@ -401,7 +444,7 @@ describe('DemandsView', () => {
       expect(router.currentRoute.value.query).toEqual({ search: 'monitor' })
       expect(replace).toHaveBeenCalled()
       expect(push).not.toHaveBeenCalled()
-      expect(demandsService.listDemands).toHaveBeenLastCalledWith({
+      expect(demandsService.searchDemands).toHaveBeenLastCalledWith({
         status: 'finished',
         search: 'monitor',
       })
@@ -410,15 +453,15 @@ describe('DemandsView', () => {
     it('a query mudando por fora (voltar do navegador, link) atualiza campos e quadro', async () => {
       const wrapper = await mountView('/demandas?search=monitor')
       await flushPromises()
-      vi.mocked(demandsService.listDemands).mockClear()
+      clearApi()
 
       await router.push('/demandas?category=it')
       await flushPromises()
       vi.advanceTimersByTime(300)
       await flushPromises()
 
-      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
-      expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'pending', category: 'it' })
+      expect(fetchCount()).toBe(3)
+      expect(demandsService.searchDemands).toHaveBeenCalledWith({ status: 'pending', category: 'it' })
       expect((wrapper.get('input[type="search"]').element as HTMLInputElement).value).toBe('')
       expect(router.currentRoute.value.fullPath).toBe('/demandas?category=it')
     })
@@ -426,15 +469,15 @@ describe('DemandsView', () => {
     it('link com lixo vindo por fora também consulta uma vez só', async () => {
       await mountView()
       await flushPromises()
-      vi.mocked(demandsService.listDemands).mockClear()
+      clearApi()
 
       await router.push('/demandas?category=xyz&search=%20monitor%20')
       await flushPromises()
       vi.advanceTimersByTime(300)
       await flushPromises()
 
-      expect(demandsService.listDemands).toHaveBeenCalledTimes(3)
-      expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'pending', search: 'monitor' })
+      expect(fetchCount()).toBe(3)
+      expect(demandsService.searchDemands).toHaveBeenCalledWith({ status: 'pending', search: 'monitor' })
     })
 
     it('lembra o último quadro para o voltar das telas da demanda', async () => {
@@ -468,9 +511,7 @@ describe('DemandsView', () => {
 
     it('ao chegar no fim da coluna, busca a página seguinte e acrescenta', async () => {
       const io = installIntersectionObserver()
-      vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
-        paginatedPending(params),
-      )
+      fakeApi(async (params) => paginatedPending(params))
 
       const wrapper = await mountView()
       await flushPromises()
@@ -486,9 +527,7 @@ describe('DemandsView', () => {
 
     it('para na última página', async () => {
       const io = installIntersectionObserver()
-      vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
-        paginatedPending(params),
-      )
+      fakeApi(async (params) => paginatedPending(params))
 
       const wrapper = await mountView()
       await flushPromises()
@@ -507,9 +546,7 @@ describe('DemandsView', () => {
 
     it('não pede a mesma coluna duas vezes enquanto a página chega', async () => {
       const io = installIntersectionObserver()
-      vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
-        paginatedPending(params),
-      )
+      fakeApi(async (params) => paginatedPending(params))
       const wrapper = await mountView()
       await flushPromises()
 
@@ -521,7 +558,7 @@ describe('DemandsView', () => {
       io.reveal()
       await flushPromises()
 
-      expect(demandsService.listDemands).toHaveBeenCalledTimes(4)
+      expect(fetchCount()).toBe(4)
       expect(wrapper.get('[data-column="pending"]').text()).toContain('Carregando mais…')
 
       release(page(pendingRange(21), 45, 2, 3))
@@ -531,7 +568,7 @@ describe('DemandsView', () => {
 
     it('ignora demanda que já está na coluna (as páginas andam quando alguém cria uma)', async () => {
       const io = installIntersectionObserver()
-      vi.mocked(demandsService.listDemands).mockImplementation(async (params) => {
+      fakeApi(async (params) => {
         if (params?.status !== 'pending') return page([])
         // A página 2 começa repetindo a última da página 1.
         return params.page === 2
@@ -551,9 +588,7 @@ describe('DemandsView', () => {
 
     it('no erro, mantém o que já apareceu e tenta de novo pelo botão', async () => {
       const io = installIntersectionObserver()
-      vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
-        paginatedPending(params),
-      )
+      fakeApi(async (params) => paginatedPending(params))
       const wrapper = await mountView()
       await flushPromises()
 
@@ -579,9 +614,7 @@ describe('DemandsView', () => {
 
     it('a busca recomeça da primeira página, e a rolagem segue com o termo', async () => {
       const io = installIntersectionObserver()
-      vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
-        paginatedPending(params),
-      )
+      fakeApi(async (params) => paginatedPending(params))
       const wrapper = await mountView()
       await flushPromises()
       io.reveal()
@@ -594,11 +627,11 @@ describe('DemandsView', () => {
 
       expect(pendingCards(wrapper)).toHaveLength(20)
 
-      vi.mocked(demandsService.listDemands).mockClear()
+      clearApi()
       io.reveal()
       await flushPromises()
 
-      expect(demandsService.listDemands).toHaveBeenCalledWith({
+      expect(demandsService.searchDemands).toHaveBeenCalledWith({
         status: 'pending',
         search: 'pendente',
         page: 2,
@@ -607,9 +640,7 @@ describe('DemandsView', () => {
 
     it('página que chega depois de uma busca nova é descartada', async () => {
       const io = installIntersectionObserver()
-      vi.mocked(demandsService.listDemands).mockImplementation(async (params) =>
-        paginatedPending(params),
-      )
+      fakeApi(async (params) => paginatedPending(params))
       const wrapper = await mountView()
       await flushPromises()
 

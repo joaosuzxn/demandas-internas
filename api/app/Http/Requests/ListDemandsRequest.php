@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\DemandCategory;
 use App\Enums\DemandStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+// Listagem (GET /api/demands). Título, categoria e período são da busca (SearchDemandsRequest): aqui não entram.
 class ListDemandsRequest extends FormRequest
 {
     public function authorize(): bool
@@ -21,12 +21,7 @@ class ListDemandsRequest extends FormRequest
     {
         return [
             'status' => ['nullable', Rule::enum(DemandStatus::class)],
-            'category' => ['nullable', Rule::enum(DemandCategory::class)],
-            'search' => ['nullable', 'string', 'max:100'],
             'mine' => ['nullable', 'boolean'],
-            // Período pela data de criação, dias inteiros no fuso do negócio; cada ponta vale sozinha.
-            'created_from' => ['nullable', 'date_format:Y-m-d'],
-            'created_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:created_from'],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
     }

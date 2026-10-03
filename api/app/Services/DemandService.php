@@ -18,7 +18,7 @@ class DemandService
     private const PER_PAGE = 10;
 
     /**
-     * @param  array<string, mixed>  $filters  filtros já validados (ListDemandsRequest)
+     * @param  array<string, mixed>  $filters  filtros já validados: a listagem (ListDemandsRequest) traz situação e "só as minhas"; a busca (SearchDemandsRequest), título, categoria e período
      * @return LengthAwarePaginator<int, Demand>
      */
     public function paginate(array $filters, User $actor): LengthAwarePaginator

@@ -115,49 +115,6 @@ class DemandListTest extends TestCase
         $this->listAs($this->employee, '?status=closed')->assertUnprocessable()->assertJsonValidationErrors(['status']);
     }
 
-    public function test_filters_by_category(): void
-    {
-        $hr = Demand::factory()->create(['category' => 'hr']);
-        Demand::factory()->create(['category' => 'it']);
-
-        $this->listAs($this->employee, '?category=hr')->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $hr->id);
-        $this->listAs($this->employee, '?category=rh')->assertUnprocessable()->assertJsonValidationErrors(['category']);
-    }
-
-    public function test_searches_title_case_insensitively(): void
-    {
-        $monitor = Demand::factory()->create(['title' => 'Trocar o Monitor', 'description' => 'tela apagando']);
-        Demand::factory()->create(['title' => 'Comprar cadeiras', 'description' => 'monitor não é o assunto']);
-
-        foreach (['monitor', 'MONITOR', ' monitor '] as $search) {
-            $this->listAs($this->employee, '?search='.urlencode($search))
-                ->assertOk()
-                ->assertJsonCount(1, 'data')
-                ->assertJsonPath('data.0.id', $monitor->id);
-        }
-    }
-
-    public function test_search_treats_wildcards_literally(): void
-    {
-        Demand::factory()->create(['title' => 'Trocar monitor']);
-        $percent = Demand::factory()->create(['title' => 'Desconto de 10% na compra']);
-
-        foreach (['_', 'mon_tor', '\\'] as $search) {
-            $this->listAs($this->employee, '?search='.urlencode($search))->assertOk()->assertJsonCount(0, 'data');
-        }
-
-        $this->listAs($this->employee, '?search='.urlencode('%'))
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.id', $percent->id);
-    }
-
-    public function test_search_longer_than_100_characters_is_rejected(): void
-    {
-        $this->listAs($this->employee, '?search='.str_repeat('a', 101))
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['search']);
-    }
-
     // O Axios manda true/false em texto.
     public function test_mine_filter_accepts_textual_booleans(): void
     {
@@ -180,50 +137,26 @@ class DemandListTest extends TestCase
             ->assertJsonValidationErrors(['mine' => 'O campo só as minhas deve ser verdadeiro ou falso.']);
     }
 
-    // O banco grava em UTC; o período é de dias inteiros no horário de Brasília (UTC-3).
-    public function test_filters_by_period_in_business_timezone(): void
+    public function test_status_and_mine_combine(): void
     {
-        $before = Demand::factory()->create(['created_at' => '2026-10-01 02:59:59']); // 30/09 23:59:59
-        $first = Demand::factory()->create(['created_at' => '2026-10-01 03:00:00']); // 01/10 00:00
-        $lateNight = Demand::factory()->create(['created_at' => '2026-10-04 01:00:00']); // 03/10 22:00
-        $after = Demand::factory()->create(['created_at' => '2026-10-04 03:00:00']); // 04/10 00:00
+        $match = Demand::factory()->finished()->create(['requester_id' => $this->employee->id]);
+        Demand::factory()->create(['requester_id' => $this->employee->id]);
+        Demand::factory()->finished()->create();
 
-        $ids = fn (string $query) => collect($this->listAs($this->employee, $query)->assertOk()->json('data'))
-            ->pluck('id')->sort()->values()->all();
-
-        $this->assertSame([$first->id, $lateNight->id], $ids('?created_from=2026-10-01&created_to=2026-10-03'));
-        $this->assertSame([$first->id, $lateNight->id, $after->id], $ids('?created_from=2026-10-01'));
-        $this->assertSame([$before->id, $first->id, $lateNight->id], $ids('?created_to=2026-10-03'));
-        $this->assertSame([$lateNight->id], $ids('?created_from=2026-10-03&created_to=2026-10-03'));
-    }
-
-    public function test_invalid_period_is_rejected(): void
-    {
-        $this->listAs($this->employee, '?created_from=2026-10-03&created_to=2026-10-01')
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['created_to' => 'O campo até deve ser uma data igual ou posterior a de.']);
-
-        foreach (['03/10/2026', '2026-02-31', 'ontem'] as $value) {
-            $this->listAs($this->employee, '?created_from='.urlencode($value))
-                ->assertUnprocessable()
-                ->assertJsonValidationErrors(['created_from' => 'O campo de deve ser uma data no formato AAAA-MM-DD.']);
-        }
-    }
-
-    public function test_filters_combine(): void
-    {
-        $match = Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Monitor']);
-        Demand::factory()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Monitor']);
-        Demand::factory()->finished()->create(['category' => 'it', 'title' => 'Monitor']);
-        Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'hr', 'title' => 'Monitor']);
-        Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Cadeira']);
-        Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Monitor', 'created_at' => now()->subDays(10)]);
-
-        $today = now('America/Sao_Paulo')->toDateString();
-
-        $this->listAs($this->employee, "?status=finished&category=it&search=monitor&mine=true&created_from={$today}&created_to={$today}")
+        $this->listAs($this->employee, '?status=finished&mine=true')
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $match->id);
+    }
+
+    // Título, categoria e período são da busca (GET /api/demands/search, item 0027): a listagem não os aplica.
+    public function test_list_ignores_search_filters(): void
+    {
+        Demand::factory()->create(['title' => 'Monitor', 'category' => 'it']);
+        Demand::factory()->create(['title' => 'Cadeira', 'category' => 'hr', 'created_at' => '2026-01-01 12:00:00']);
+
+        $this->listAs($this->employee, '?search=monitor&category=it&created_from=2026-10-01&created_to=2026-10-01')
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
     }
 
     public function test_deleted_demands_are_not_listed(): void

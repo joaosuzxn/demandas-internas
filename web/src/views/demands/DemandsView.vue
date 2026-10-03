@@ -16,6 +16,7 @@ import {
 import {
   DEMAND_CATEGORY_LABELS,
   listDemands,
+  searchDemands,
   type DemandBoard,
   type DemandBoardColumn,
   type DemandCategory,
@@ -110,6 +111,14 @@ let latestRequest = 0
 let activeFilters: DemandFilters = {}
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 
+// Sem filtro, a listagem; com qualquer filtro, a busca (item 0027). A rolagem segue a rota da carga em vigor.
+function fetchPage(status: DemandStatus, filters: DemandFilters, page?: number): Promise<DemandPage> {
+  const paging = page === undefined ? {} : { page }
+  return Object.keys(filters).length === 0
+    ? listDemands({ status, ...paging })
+    : searchDemands({ status, ...filters, ...paging })
+}
+
 function toColumn(page: DemandPage): DemandBoardColumn {
   return {
     ...emptyColumn(),
@@ -129,7 +138,7 @@ async function load(filters: DemandFilters): Promise<void> {
 
   try {
     const pages = await Promise.all(
-      STATUSES.map((status) => listDemands({ status, ...filters })),
+      STATUSES.map((status) => fetchPage(status, filters)),
     )
 
     if (request !== latestRequest) return
@@ -154,7 +163,7 @@ async function loadMore(status: DemandStatus): Promise<void> {
   column.loadMoreError = null
 
   try {
-    const next = await listDemands({ status, ...activeFilters, page: column.page + 1 })
+    const next = await fetchPage(status, activeFilters, column.page + 1)
     if (request !== latestRequest) return
 
     // Demanda criada enquanto se rola empurra as páginas: a que já está na coluna não entra de novo.

@@ -6,7 +6,9 @@ import {
   createDemand,
   deleteDemand,
   getDemand,
+  listDemands,
   reopenDemand,
+  searchDemands,
   startDemand,
   updateDemand,
   type Demand,
@@ -35,6 +37,25 @@ afterEach(() => {
 })
 
 describe('demands service', () => {
+  // A listagem e a busca são rotas diferentes da API (item 0027); os filtros vão na query string.
+  it('lista pela rota da listagem e busca pela rota da busca, com os parâmetros na query', async () => {
+    const page = { data: [makeDemand()], meta: { total: 1, current_page: 1, last_page: 1 } }
+    const get = vi.spyOn(http, 'get').mockResolvedValue(ok(page))
+
+    expect(await listDemands({ status: 'pending', page: 2 })).toEqual(page)
+    expect(get).toHaveBeenCalledWith('/demands', { params: { status: 'pending', page: 2 } })
+
+    const filters = {
+      status: 'finished',
+      search: 'monitor',
+      category: 'hr',
+      created_from: '2026-10-01',
+      created_to: '2026-10-03',
+    } as const
+    expect(await searchDemands(filters)).toEqual(page)
+    expect(get).toHaveBeenLastCalledWith('/demands/search', { params: filters })
+  })
+
   it('busca uma demanda pelo id e devolve o que vem em data', async () => {
     const get = vi.spyOn(http, 'get').mockResolvedValue(ok({ data: makeDemand() }))
 

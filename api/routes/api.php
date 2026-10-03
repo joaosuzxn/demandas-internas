@@ -40,6 +40,8 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsurePasswordIsCh
     // Só dígitos (até 18) no id: texto ou número fora do bigint dá 404 em vez de erro do PostgreSQL.
     Route::where(['demand' => '[0-9]{1,18}'])->group(function () {
         Route::get('/demands', [DemandController::class, 'index'])->can('viewAny', Demand::class)->name('demands.index');
+        // Não colide com /demands/{demand}: o {demand} só aceita número.
+        Route::get('/demands/search', [DemandController::class, 'search'])->can('viewAny', Demand::class)->name('demands.search');
         Route::post('/demands', [DemandController::class, 'store'])->can('create', Demand::class)->name('demands.store');
         Route::get('/demands/{demand}', [DemandController::class, 'show'])->can('view', 'demand')->name('demands.show');
         Route::put('/demands/{demand}', [DemandController::class, 'update'])->can('update', 'demand')->name('demands.update');

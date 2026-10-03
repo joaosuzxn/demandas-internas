@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ListDemandsRequest;
+use App\Http\Requests\SearchDemandsRequest;
 use App\Http\Requests\StoreDemandRequest;
 use App\Http\Requests\UpdateDemandRequest;
 use App\Http\Resources\DemandResource;
@@ -18,6 +19,11 @@ class DemandController extends Controller
     public function __construct(private readonly DemandService $demands) {}
 
     public function index(ListDemandsRequest $request): AnonymousResourceCollection
+    {
+        return DemandResource::collection($this->demands->paginate($request->validated(), $request->user()));
+    }
+
+    public function search(SearchDemandsRequest $request): AnonymousResourceCollection
     {
         return DemandResource::collection($this->demands->paginate($request->validated(), $request->user()));
     }
