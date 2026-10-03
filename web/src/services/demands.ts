@@ -40,7 +40,51 @@ export const DEMAND_CATEGORY_LABELS: Record<DemandCategory, string> = {
   infrastructure: 'Infraestrutura',
 }
 
+export const DEMAND_STATUS_LABELS: Record<DemandStatus, string> = {
+  open: 'A fazer',
+  closed: 'Finalizado',
+}
+
+// Corpo de criar e editar. A categoria vazia (nada escolhido) vai assim mesmo: quem recusa é a API, com 422.
+export type DemandPayload = {
+  title: string
+  description: string
+  category: DemandCategory | ''
+}
+
+type DemandResponse = { data: Demand }
+
 export async function listDemands(params: ListDemandsParams = {}): Promise<DemandPage> {
   const { data } = await http.get<DemandPage>('/demands', { params })
   return data
+}
+
+export async function getDemand(id: number): Promise<Demand> {
+  const { data } = await http.get<DemandResponse>(`/demands/${id}`)
+  return data.data
+}
+
+export async function createDemand(payload: DemandPayload): Promise<Demand> {
+  const { data } = await http.post<DemandResponse>('/demands', payload)
+  return data.data
+}
+
+export async function updateDemand(id: number, payload: DemandPayload): Promise<Demand> {
+  const { data } = await http.put<DemandResponse>(`/demands/${id}`, payload)
+  return data.data
+}
+
+// A situação só muda pelas ações próprias da API; o corpo de editar nunca leva o status.
+export async function closeDemand(id: number): Promise<Demand> {
+  const { data } = await http.post<DemandResponse>(`/demands/${id}/close`)
+  return data.data
+}
+
+export async function reopenDemand(id: number): Promise<Demand> {
+  const { data } = await http.post<DemandResponse>(`/demands/${id}/reopen`)
+  return data.data
+}
+
+export async function deleteDemand(id: number): Promise<void> {
+  await http.delete(`/demands/${id}`)
 }

@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
+import { defineComponent } from 'vue'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import DemandsView from '../DemandsView.vue'
 import * as demandsService from '@/services/demands'
 import type { Demand, DemandPage } from '@/services/demands'
@@ -27,8 +29,18 @@ function page(data: Demand[], total = data.length): DemandPage {
   return { data, meta: { total } }
 }
 
+const Stub = defineComponent({ render: () => null })
+
+// Os cartões são links para a tela da demanda: o quadro precisa de um router com a rota `demand`.
 function mountView() {
-  return mount(DemandsView)
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/demandas/nova', name: 'demand-new', component: Stub },
+      { path: '/demandas/:id', name: 'demand', component: Stub },
+    ],
+  })
+  return mount(DemandsView, { global: { plugins: [router] } })
 }
 
 describe('DemandsView', () => {
@@ -82,5 +94,12 @@ describe('DemandsView', () => {
     await flushPromises()
 
     expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar')
+  })
+
+  it('leva à tela de criar demanda pela pílula do cabeçalho', async () => {
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(wrapper.get('a[aria-label="Criar demanda"]').attributes('href')).toBe('/demandas/nova')
   })
 })

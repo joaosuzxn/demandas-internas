@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import {
   DEMAND_CATEGORY_LABELS,
@@ -102,15 +103,17 @@ function categoryLabel(demand: Demand): string {
             :key="demand.id"
             :data-demand="demand.id"
           >
-            <article
-              class="bg-surface-item flex flex-col gap-2 rounded-2xl p-3.5 shadow-sm shadow-slate-900/5"
+            <!-- O cartão inteiro abre a tela da demanda, onde ficam as ações. -->
+            <RouterLink
+              :to="{ name: 'demand', params: { id: demand.id } }"
+              class="bg-surface-item hover:bg-surface-item-hover flex flex-col gap-2 rounded-2xl p-3.5 shadow-sm shadow-slate-900/5 transition"
             >
               <p class="text-sm font-semibold wrap-break-word text-slate-900">{{ demand.title }}</p>
               <p class="text-xs text-slate-600">
                 {{ categoryLabel(demand) }} · {{ demand.requester.name }}
               </p>
               <p class="text-xs text-slate-500">Criada em {{ formatDate(demand.created_at) }}</p>
-            </article>
+            </RouterLink>
           </li>
         </ul>
 

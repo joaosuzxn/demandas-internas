@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import DemandsBoard from '@/components/demands/DemandsBoard.vue'
+import PillLink from '@/components/ui/PillLink.vue'
 import {
   listDemands,
   type DemandBoard,
@@ -67,9 +68,12 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
 
 <template>
   <div class="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
-    <header class="flex flex-col gap-1">
-      <h1 class="text-2xl font-semibold text-slate-900">Demandas</h1>
-      <p class="text-sm text-slate-600">O que foi pedido, por situação.</p>
+    <header class="flex items-center justify-between gap-3">
+      <div class="flex min-w-0 flex-col gap-1">
+        <h1 class="text-2xl font-semibold text-slate-900">Demandas</h1>
+        <p class="text-sm text-slate-600">O que foi pedido, por situação.</p>
+      </div>
+      <PillLink :to="{ name: 'demand-new' }" label="Criar demanda" icon="plus" />
     </header>
 
     <label for="demand-search" class="sr-only">Buscar demanda por título</label>

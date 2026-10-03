@@ -18,14 +18,17 @@ vi.mock('@/services/auth', () => ({
 
 const Stub = defineComponent({ render: () => null })
 
-async function mountLayout() {
+async function mountLayout(path = '/demandas') {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
       {
         path: '/demandas',
         component: DefaultLayout,
-        children: [{ path: '', name: 'demands', component: Stub }],
+        children: [
+          { path: '', name: 'demands', component: Stub },
+          { path: ':id', name: 'demand', component: Stub, meta: { sidebarItem: 'demands' } },
+        ],
       },
       { path: '/login', name: 'login', component: Stub },
     ],
@@ -34,7 +37,7 @@ async function mountLayout() {
   setActivePinia(pinia)
   useAuthStore().user = makeUser()
 
-  await router.push('/demandas')
+  await router.push(path)
   return {
     router,
     wrapper: mount(DefaultLayout, {
@@ -60,5 +63,11 @@ describe('DefaultLayout', () => {
 
     expect(authService.logout).toHaveBeenCalledTimes(1)
     expect(router.currentRoute.value.name).toBe('login')
+  })
+
+  it('mantém Demandas destacado na tela de uma demanda', async () => {
+    const { wrapper } = await mountLayout('/demandas/12')
+
+    expect(wrapper.get('a[aria-current="page"]').text()).toContain('Demandas')
   })
 })

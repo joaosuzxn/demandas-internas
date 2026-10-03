@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { defineComponent } from 'vue'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import DemandsBoard from '../DemandsBoard.vue'
 import type { Demand, DemandBoard } from '@/services/demands'
 
@@ -28,9 +30,17 @@ function makeBoard(
   }
 }
 
+const Stub = defineComponent({ render: () => null })
+
+// O cartão é link para a tela da demanda: o quadro precisa de um router com a rota `demand`.
 function mountBoard(props: Partial<InstanceType<typeof DemandsBoard>['$props']> = {}) {
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: '/demandas/:id', name: 'demand', component: Stub }],
+  })
   return mount(DemandsBoard, {
     props: { board: makeBoard(), ...props },
+    global: { plugins: [router] },
   })
 }
 
@@ -66,6 +76,12 @@ describe('DemandsBoard', () => {
 
     expect(wrapper.text()).toContain('Infraestrutura')
     expect(wrapper.text()).toContain('João Lima')
+  })
+
+  it('leva à tela da demanda ao clicar no cartão', () => {
+    const wrapper = mountBoard({ board: makeBoard([makeDemand({ id: 12 })]) })
+
+    expect(wrapper.get('[data-demand="12"] a').attributes('href')).toBe('/demandas/12')
   })
 
   it('avisa quando a coluna mostra só parte do total', () => {

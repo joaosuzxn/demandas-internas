@@ -11,7 +11,10 @@ const router = useRouter()
 
 const sidebarId = useId()
 // O destaque vem da rota aberta, não do último clique: vale também para voltar no navegador.
-const activeRouteName = computed(() => (route.name ? String(route.name) : null))
+// Tela fora do menu (a de uma demanda) diz pelo `meta.sidebarItem` qual item segue destacado.
+const activeRouteName = computed(
+  () => route.meta.sidebarItem ?? (route.name ? String(route.name) : null),
+)
 /** Drawer do mobile; do `lg` para cima a sidebar fica sempre à vista. */
 const isSidebarOpen = ref(false)
 

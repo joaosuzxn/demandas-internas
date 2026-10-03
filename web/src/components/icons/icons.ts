@@ -1,7 +1,20 @@
 // Ícones no traço do Lucide (ISC), copiados como SVG inline para não instalar pacote de ícones.
 // Cada ícone é a lista dos elementos do desenho: [tag, atributos].
 export type IconName =
-  'clipboard-list' | 'clock' | 'circle-check' | 'user' | 'log-out' | 'menu' | 'x'
+  | 'clipboard-list'
+  | 'clock'
+  | 'circle-check'
+  | 'user'
+  | 'log-out'
+  | 'menu'
+  | 'x'
+  | 'chevron-left'
+  | 'rotate-ccw'
+  | 'trash'
+  | 'chevron-down'
+  | 'plus'
+  | 'pencil'
+  | 'send'
 
 type IconElement = [tag: string, attributes: Record<string, string>]
 
@@ -39,5 +52,40 @@ export const ICONS: Record<IconName, IconElement[]> = {
   x: [
     ['path', { d: 'M18 6 6 18' }],
     ['path', { d: 'm6 6 12 12' }],
+  ],
+  'chevron-left': [['path', { d: 'm15 18-6-6 6-6' }]],
+  'rotate-ccw': [
+    ['path', { d: 'M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8' }],
+    ['path', { d: 'M3 3v5h5' }],
+  ],
+  trash: [
+    ['path', { d: 'M3 6h18' }],
+    ['path', { d: 'M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6' }],
+    ['path', { d: 'M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2' }],
+    ['line', { x1: '10', x2: '10', y1: '11', y2: '17' }],
+    ['line', { x1: '14', x2: '14', y1: '11', y2: '17' }],
+  ],
+  'chevron-down': [['path', { d: 'm6 9 6 6 6-6' }]],
+  plus: [
+    ['path', { d: 'M5 12h14' }],
+    ['path', { d: 'M12 5v14' }],
+  ],
+  pencil: [
+    [
+      'path',
+      {
+        d: 'M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z',
+      },
+    ],
+    ['path', { d: 'm15 5 4 4' }],
+  ],
+  send: [
+    [
+      'path',
+      {
+        d: 'M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z',
+      },
+    ],
+    ['path', { d: 'm21.854 2.147-10.94 10.939' }],
   ],
 }
