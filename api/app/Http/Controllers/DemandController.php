@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateDemandRequest;
 use App\Http\Resources\DemandResource;
 use App\Models\Demand;
 use App\Services\DemandService;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -28,12 +29,14 @@ class DemandController extends Controller
 
     public function show(Demand $demand): DemandResource
     {
-        return new DemandResource($demand);
+        return new DemandResource($demand->load('movements.actor'));
     }
 
     public function update(UpdateDemandRequest $request, Demand $demand): DemandResource
     {
-        return new DemandResource($this->demands->update($demand, $request->validated()));
+        $updated = $this->demands->update($demand, $request->validated(), $request->user());
+
+        return new DemandResource($updated->load('movements.actor'));
     }
 
     public function destroy(Demand $demand): Response
@@ -43,18 +46,18 @@ class DemandController extends Controller
         return response()->noContent();
     }
 
-    public function start(Demand $demand): DemandResource
+    public function start(Request $request, Demand $demand): DemandResource
     {
-        return new DemandResource($this->demands->start($demand));
+        return new DemandResource($this->demands->start($demand, $request->user())->load('movements.actor'));
     }
 
-    public function close(Demand $demand): DemandResource
+    public function close(Request $request, Demand $demand): DemandResource
     {
-        return new DemandResource($this->demands->close($demand));
+        return new DemandResource($this->demands->close($demand, $request->user())->load('movements.actor'));
     }
 
-    public function reopen(Demand $demand): DemandResource
+    public function reopen(Request $request, Demand $demand): DemandResource
     {
-        return new DemandResource($this->demands->reopen($demand));
+        return new DemandResource($this->demands->reopen($demand, $request->user())->load('movements.actor'));
     }
 }

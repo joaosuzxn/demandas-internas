@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 // status e requester_id ficam fora do Fillable: só o DemandService os define.
@@ -35,5 +36,15 @@ class Demand extends Model
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requester_id');
+    }
+
+    /**
+     * O histórico, na ordem em que aconteceu.
+     *
+     * @return HasMany<DemandMovement, $this>
+     */
+    public function movements(): HasMany
+    {
+        return $this->hasMany(DemandMovement::class)->orderBy('id');
     }
 }

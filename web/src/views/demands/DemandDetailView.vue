@@ -5,6 +5,7 @@ import DemandActions from '@/components/demands/DemandActions.vue'
 import DemandFacts from '@/components/demands/DemandFacts.vue'
 import DemandRecordState from '@/components/demands/DemandRecordState.vue'
 import DemandSection from '@/components/demands/DemandSection.vue'
+import DemandTimeline from '@/components/demands/DemandTimeline.vue'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import BackLink from '@/components/ui/BackLink.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
@@ -82,6 +83,8 @@ function onDeleted(): void {
               </p>
             </div>
           </DemandSection>
+
+          <DemandTimeline data-demand-timeline :history="demand.history ?? []" />
         </div>
       </div>
     </DemandRecordState>

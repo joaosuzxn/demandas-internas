@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import DemandSection from '@/components/demands/DemandSection.vue'
+import { formatDateTime } from '@/utils/dates'
 import {
   DEMAND_CATEGORY_LABELS,
   DEMAND_STATUS_LABELS,
@@ -14,11 +15,6 @@ const STATUS_TONES: Record<DemandStatus, string> = {
   pending: 'bg-amber-500/15 text-amber-800',
   in_progress: 'bg-brand-500/15 text-brand-800',
   finished: 'bg-emerald-500/15 text-emerald-800',
-}
-
-function formatDateTime(iso: string | null): string | null {
-  if (!iso) return null
-  return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 }
 
 type Fact = { label: string; value: string }

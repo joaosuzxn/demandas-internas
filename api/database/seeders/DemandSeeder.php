@@ -2,7 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Enums\DemandMovementType;
+use App\Enums\DemandStatus;
 use App\Models\Demand;
+use App\Models\DemandMovement;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -34,5 +37,18 @@ class DemandSeeder extends Seeder
         Demand::factory()->finished()->count(6)->state(fn () => [
             'requester_id' => fake()->randomElement($requesterIds),
         ])->create();
+
+        // Histórico coerente com a situação: pendente → criada; em andamento → + iniciada; finalizada → + finalizada.
+        Demand::query()->each(function (Demand $demand) {
+            $steps = match ($demand->status) {
+                DemandStatus::Pending => [DemandMovementType::Created],
+                DemandStatus::InProgress => [DemandMovementType::Created, DemandMovementType::Started],
+                DemandStatus::Finished => [DemandMovementType::Created, DemandMovementType::Started, DemandMovementType::Finished],
+            };
+
+            foreach ($steps as $type) {
+                DemandMovement::factory()->for($demand)->type($type)->create(['actor_id' => $demand->requester_id]);
+            }
+        });
     }
 }

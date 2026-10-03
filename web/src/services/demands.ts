@@ -14,6 +14,26 @@ export type Demand = {
   requester: { id: number; name: string }
   created_at: string | null
   updated_at: string | null
+  /** Só no detalhe e nas respostas das ações; a listagem não traz. */
+  history?: DemandMovement[]
+}
+
+export type DemandMovementType = 'created' | 'edited' | 'started' | 'finished' | 'reopened'
+
+// Uma movimentação do histórico (item 0026), do mais antigo ao mais recente.
+export type DemandMovement = {
+  id: number
+  type: DemandMovementType
+  actor: { id: number; name: string }
+  created_at: string | null
+}
+
+export const DEMAND_MOVEMENT_LABELS: Record<DemandMovementType, string> = {
+  created: 'Criada',
+  edited: 'Editada',
+  started: 'Iniciada',
+  finished: 'Finalizada',
+  reopened: 'Reaberta',
 }
 
 // Resposta paginada da API: a página atual, a última e o total de solicitações que batem com o filtro.

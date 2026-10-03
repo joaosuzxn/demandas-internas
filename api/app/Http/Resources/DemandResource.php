@@ -27,6 +27,16 @@ class DemandResource extends JsonResource
             ],
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+            // Só no detalhe e nas respostas das ações (o controller carrega movements.actor); a listagem não traz.
+            'history' => $this->whenLoaded('movements', fn () => $this->movements->map(fn ($movement) => [
+                'id' => $movement->id,
+                'type' => $movement->type->value,
+                'actor' => [
+                    'id' => $movement->actor->id,
+                    'name' => $movement->actor->name,
+                ],
+                'created_at' => $movement->created_at?->toIso8601String(),
+            ])->all()),
         ];
     }
 }

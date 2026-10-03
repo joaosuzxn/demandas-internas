@@ -32,6 +32,14 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
     requester: { id: 1, name: 'Maria Souza' },
     created_at: '2026-10-01T12:00:00+00:00',
     updated_at: '2026-10-01T12:00:00+00:00',
+    history: [
+      {
+        id: 1,
+        type: 'created',
+        actor: { id: 1, name: 'Maria Souza' },
+        created_at: '2026-10-01T12:00:00+00:00',
+      },
+    ],
     ...overrides,
   }
 }
@@ -228,6 +236,42 @@ describe('DemandDetailView', () => {
     const { wrapper } = await mountView()
 
     expect(wrapper.findAll('a').some((link) => link.text() === 'Editar')).toBe(false)
+  })
+
+  it('mostra a movimentação da demanda abaixo da descrição', async () => {
+    const { wrapper } = await mountView()
+
+    expect(wrapper.get('[data-demand-timeline]').text()).toContain('Criada')
+    expect(wrapper.get('[data-demand-timeline]').text()).toContain('Maria Souza')
+  })
+
+  it('depois de iniciar, a movimentação nova aparece sem recarregar', async () => {
+    vi.mocked(demandsService.startDemand).mockResolvedValue(
+      makeDemand({
+        status: 'in_progress',
+        history: [
+          {
+            id: 1,
+            type: 'created',
+            actor: { id: 1, name: 'Maria Souza' },
+            created_at: '2026-10-01T12:00:00+00:00',
+          },
+          {
+            id: 2,
+            type: 'started',
+            actor: { id: 1, name: 'Maria Souza' },
+            created_at: '2026-10-03T12:00:00+00:00',
+          },
+        ],
+      }),
+    )
+
+    const { wrapper } = await mountView()
+    await button(wrapper, 'Iniciar')!.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('[data-demand-timeline]').text()).toContain('Iniciada')
+    expect(demandsService.getDemand).toHaveBeenCalledTimes(1)
   })
 
   describe('aviso de quem chega do formulário', () => {
