@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import DemandsBoard from '../DemandsBoard.vue'
-import type { Demand, DemandBoard } from '@/services/demands'
+import type { Demand, DemandBoard, DemandBoardColumn } from '@/services/demands'
+import { installIntersectionObserver } from '@/components/ui/__tests__/intersectionObserver'
 
 function makeDemand(overrides: Partial<Demand> = {}): Demand {
   return {
@@ -26,9 +27,26 @@ function makeBoard(
   totals: Partial<Record<'pending' | 'in_progress' | 'finished', number>> = {},
 ): DemandBoard {
   return {
-    pending: { items: pending, total: totals.pending ?? pending.length },
-    in_progress: { items: inProgress, total: totals.in_progress ?? inProgress.length },
-    finished: { items: finished, total: totals.finished ?? finished.length },
+    pending: column(pending, totals.pending),
+    in_progress: column(inProgress, totals.in_progress),
+    finished: column(finished, totals.finished),
+  }
+}
+
+// Coluna na primeira página; com total maior que os itens, há uma página seguinte.
+function column(
+  items: Demand[],
+  total = items.length,
+  overrides: Partial<DemandBoardColumn> = {},
+): DemandBoardColumn {
+  return {
+    items,
+    total,
+    page: 1,
+    lastPage: total > items.length ? 2 : 1,
+    loadingMore: false,
+    loadMoreError: null,
+    ...overrides,
   }
 }
 
@@ -47,6 +65,10 @@ function mountBoard(props: Partial<InstanceType<typeof DemandsBoard>['$props']> 
 }
 
 describe('DemandsBoard', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('mostra as colunas pendente, em andamento e finalizado com a contagem total', () => {
     const wrapper = mountBoard({
       board: makeBoard([], [], [], { pending: 25, in_progress: 4, finished: 3 }),
@@ -104,10 +126,71 @@ describe('DemandsBoard', () => {
     expect(wrapper.get('[data-demand="12"] a').attributes('href')).toBe('/demandas/12')
   })
 
-  it('avisa quando a coluna mostra só parte do total', () => {
+  it('pede a página seguinte quando a rolagem da coluna chega ao fim', () => {
+    const io = installIntersectionObserver()
     const wrapper = mountBoard({ board: makeBoard([makeDemand()], [], [], { pending: 45 }) })
 
-    expect(wrapper.get('[data-column="pending"]').text()).toContain('Mostrando 1 de 45')
+    io.reveal()
+
+    expect(wrapper.emitted('load-more')).toEqual([['pending']])
+    // O aviso "Mostrando x de y" saiu: o total ao lado do nome da coluna já diz quantas existem.
+    expect(wrapper.text()).not.toContain('Mostrando')
+  })
+
+  it('não vigia o fim da coluna que já está completa', () => {
+    const io = installIntersectionObserver()
+    mountBoard({ board: makeBoard([makeDemand()]) })
+
+    expect(io.active()).toHaveLength(0)
+  })
+
+  it('mostra "Carregando mais…" e não pede de novo enquanto a página chega', () => {
+    const io = installIntersectionObserver()
+    const board = makeBoard()
+    board.pending = column([makeDemand()], 45, { loadingMore: true })
+    const wrapper = mountBoard({ board })
+
+    io.reveal()
+
+    expect(wrapper.get('[data-column="pending"]').text()).toContain('Carregando mais…')
+    expect(wrapper.emitted('load-more')).toBeUndefined()
+  })
+
+  it('no erro ao carregar mais, mostra o aviso e tenta de novo pelo botão', async () => {
+    const io = installIntersectionObserver()
+    const board = makeBoard()
+    board.pending = column([makeDemand()], 45, { loadMoreError: 'Não foi possível carregar mais.' })
+    const wrapper = mountBoard({ board })
+
+    io.reveal()
+    expect(wrapper.emitted('load-more')).toBeUndefined()
+
+    const pending = wrapper.get('[data-column="pending"]')
+    expect(pending.text()).toContain('Não foi possível carregar mais.')
+    // O que já apareceu continua na coluna.
+    expect(pending.text()).toContain('Trocar impressora')
+
+    await pending.get('button').trigger('click')
+
+    expect(wrapper.emitted('load-more')).toEqual([['pending']])
+  })
+
+  it('vigia o fim de novo a cada página nova, mesmo se ele continuar à vista', async () => {
+    const io = installIntersectionObserver()
+    const board = makeBoard([makeDemand()], [], [], { pending: 45 })
+    board.pending.lastPage = 3
+    const wrapper = mountBoard({ board })
+
+    io.reveal()
+    await wrapper.setProps({
+      board: {
+        ...board,
+        pending: { ...board.pending, page: 2, items: [makeDemand(), makeDemand({ id: 2 })] },
+      },
+    })
+    io.reveal()
+
+    expect(wrapper.emitted('load-more')).toEqual([['pending'], ['pending']])
   })
 
   it('diz que não há demandas quando o quadro inteiro está vazio', () => {

@@ -11,7 +11,7 @@ use Illuminate\Validation\ValidationException;
 
 class DemandService
 {
-    private const PER_PAGE = 20;
+    private const PER_PAGE = 10;
 
     /**
      * @param  array<string, mixed>  $filters  filtros já validados (ListDemandsRequest)

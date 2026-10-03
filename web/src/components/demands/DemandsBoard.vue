@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
+import InfiniteSentinel from '@/components/ui/InfiniteSentinel.vue'
 import {
   DEMAND_CATEGORY_LABELS,
   DEMAND_STATUS_LABELS,
   type Demand,
   type DemandBoard,
+  type DemandBoardColumn,
   type DemandStatus,
 } from '@/services/demands'
 import type { IconName } from '@/components/icons/icons'
@@ -21,7 +23,14 @@ defineProps<{
 
 const emit = defineEmits<{
   retry: []
+  /** A rolagem da coluna chegou ao fim (ou a pessoa pediu de novo depois de um erro). */
+  'load-more': [status: DemandStatus]
 }>()
+
+// Há página seguinte e nada impede de pedi-la agora: nem uma a caminho, nem um erro esperando o "Tentar de novo".
+function canLoadMore(column: DemandBoardColumn): boolean {
+  return column.page < column.lastPage && !column.loadingMore && column.loadMoreError === null
+}
 
 // Uma coluna por situação, na ordem em que a demanda anda.
 const COLUMNS: readonly { status: DemandStatus; label: string; icon: IconName }[] = [
@@ -117,16 +126,38 @@ function categoryLabel(demand: Demand): string {
               <p class="text-xs text-slate-500">Criada em {{ formatDate(demand.created_at) }}</p>
             </RouterLink>
           </li>
+
+          <!-- Rolagem infinita: o sentinela no fim da lista pede a página seguinte. A chave muda a cada
+               página e refaz o observador, para avisar de novo se o fim continuar à vista. -->
+          <InfiniteSentinel
+            v-if="canLoadMore(board[column.status])"
+            :key="board[column.status].page"
+            @visible="emit('load-more', column.status)"
+          />
+          <li
+            v-if="board[column.status].loadingMore"
+            role="status"
+            class="px-1 py-2 text-center text-xs text-slate-500"
+          >
+            Carregando mais…
+          </li>
+          <li
+            v-if="board[column.status].loadMoreError"
+            role="alert"
+            class="flex flex-wrap items-center justify-between gap-2 px-1 py-2"
+          >
+            <span class="text-xs text-red-600">{{ board[column.status].loadMoreError }}</span>
+            <button
+              type="button"
+              class="bg-surface-item hover:bg-surface-item-hover rounded-full px-3 py-1 text-xs font-medium text-slate-700 shadow-sm shadow-slate-900/5"
+              @click="emit('load-more', column.status)"
+            >
+              Tentar de novo
+            </button>
+          </li>
         </ul>
 
         <p v-else class="px-1 py-3 text-xs text-slate-500">Nenhuma demanda aqui.</p>
-
-        <p
-          v-if="board[column.status].total > board[column.status].items.length"
-          class="px-1 text-xs text-slate-500"
-        >
-          Mostrando {{ board[column.status].items.length }} de {{ board[column.status].total }}
-        </p>
       </section>
     </div>
   </section>

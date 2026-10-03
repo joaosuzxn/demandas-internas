@@ -56,14 +56,23 @@ class DemandListTest extends TestCase
 
         $this->listAs($this->employee)
             ->assertOk()
-            ->assertJsonCount(20, 'data')
+            ->assertJsonCount(10, 'data')
             ->assertJsonPath('meta.total', 24)
-            ->assertJsonPath('meta.per_page', 20)
+            ->assertJsonPath('meta.per_page', 10)
+            // A rolagem infinita do quadro (SPA) decide se há mais por current_page e last_page.
+            ->assertJsonPath('meta.current_page', 1)
+            ->assertJsonPath('meta.last_page', 3)
             ->assertJsonPath('data.0.title', 'Solicitacao 01')
-            ->assertJsonPath('data.19.title', 'Solicitacao 20');
+            ->assertJsonPath('data.9.title', 'Solicitacao 10');
 
         $this->listAs($this->employee, '?page=2')
+            ->assertJsonCount(10, 'data')
+            ->assertJsonPath('meta.current_page', 2)
+            ->assertJsonPath('data.0.title', 'Solicitacao 11');
+
+        $this->listAs($this->employee, '?page=3')
             ->assertJsonCount(4, 'data')
+            ->assertJsonPath('meta.current_page', 3)
             ->assertJsonPath('data.0.title', 'Solicitacao 21');
     }
 

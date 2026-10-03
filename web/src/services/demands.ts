@@ -16,20 +16,30 @@ export type Demand = {
   updated_at: string | null
 }
 
-// Resposta paginada da API: a página atual e o total de solicitações que batem com o filtro.
+// Resposta paginada da API: a página atual, a última e o total de solicitações que batem com o filtro.
 export type DemandPage = {
   data: Demand[]
-  meta: { total: number }
+  meta: { total: number; current_page: number; last_page: number }
 }
 
-// Uma coluna do quadro: as solicitações carregadas e o total que existe para aquela situação.
-export type DemandBoardColumn = { items: Demand[]; total: number }
+// Uma coluna do quadro: o que já foi carregado (página a página, na rolagem) e o total daquela situação.
+export type DemandBoardColumn = {
+  items: Demand[]
+  total: number
+  /** Última página já carregada; há mais enquanto for menor que `lastPage`. */
+  page: number
+  lastPage: number
+  /** A página seguinte está a caminho: a coluna não pede outra até ela chegar. */
+  loadingMore: boolean
+  loadMoreError: string | null
+}
 
 export type DemandBoard = Record<DemandStatus, DemandBoardColumn>
 
 export type ListDemandsParams = {
   status?: DemandStatus
   search?: string
+  page?: number
 }
 
 export const DEMAND_CATEGORY_LABELS: Record<DemandCategory, string> = {

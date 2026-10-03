@@ -21,8 +21,8 @@ class DemandSeeder extends Seeder
         // Os solicitantes são os usuários que já existem (o AdminSeeder garante ao menos um).
         $requesterIds = User::query()->pluck('id')->all();
 
-        // 26 pendentes, 5 em andamento e 6 finalizadas: 26 passa do limite de 20 por coluna e mostra
-        // o aviso "Mostrando 20 de 26".
+        // 26 pendentes, 5 em andamento e 6 finalizadas: com 10 por página, a coluna Pendente precisa de
+        // três páginas, e a rolagem infinita do quadro aparece no dev.
         Demand::factory()->count(26)->state(fn () => [
             'requester_id' => fake()->randomElement($requesterIds),
         ])->create();

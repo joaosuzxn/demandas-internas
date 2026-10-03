@@ -17,12 +17,12 @@ const term = ref('')
 // As situações na ordem do quadro; cada coluna tem a sua consulta e o seu total.
 const STATUSES: readonly DemandStatus[] = ['pending', 'in_progress', 'finished']
 
+function emptyColumn(): DemandBoardColumn {
+  return { items: [], total: 0, page: 1, lastPage: 1, loadingMore: false, loadMoreError: null }
+}
+
 function emptyBoard(): DemandBoard {
-  return {
-    pending: { items: [], total: 0 },
-    in_progress: { items: [], total: 0 },
-    finished: { items: [], total: 0 },
-  }
+  return { pending: emptyColumn(), in_progress: emptyColumn(), finished: emptyColumn() }
 }
 
 const board = ref<DemandBoard>(emptyBoard())
@@ -30,12 +30,21 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const searching = computed(() => term.value.trim() !== '')
 
-// Só a resposta da consulta mais recente conta: uma busca antiga que chega depois não pode sobrescrever.
+// Só a resposta da consulta mais recente conta: uma busca antiga que chega depois não pode sobrescrever,
+// nem uma página da rolagem pedida antes da busca nova.
 let latestRequest = 0
+// O termo da carga em vigor: a rolagem pede as páginas seguintes com ele.
+let activeSearch: string | undefined
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 
 function toColumn(page: DemandPage): DemandBoardColumn {
-  return { items: page.data, total: page.meta.total }
+  return {
+    ...emptyColumn(),
+    items: page.data,
+    total: page.meta.total,
+    page: page.meta.current_page,
+    lastPage: page.meta.last_page,
+  }
 }
 
 function paramsFor(status: DemandStatus, search: string | undefined) {
@@ -45,6 +54,7 @@ function paramsFor(status: DemandStatus, search: string | undefined) {
 async function load(): Promise<void> {
   const request = ++latestRequest
   const search = term.value.trim() || undefined
+  activeSearch = search
 
   loading.value = true
   error.value = null
@@ -63,6 +73,33 @@ async function load(): Promise<void> {
     error.value = 'Não foi possível carregar as demandas.'
   } finally {
     if (request === latestRequest) loading.value = false
+  }
+}
+
+// A página seguinte de uma coluna, acrescentada ao fim. Uma por vez por coluna.
+async function loadMore(status: DemandStatus): Promise<void> {
+  const column = board.value[status]
+  if (column.loadingMore || column.page >= column.lastPage) return
+
+  const request = latestRequest
+  column.loadingMore = true
+  column.loadMoreError = null
+
+  try {
+    const next = await listDemands({ ...paramsFor(status, activeSearch), page: column.page + 1 })
+    if (request !== latestRequest) return
+
+    // Demanda criada enquanto se rola empurra as páginas: a que já está na coluna não entra de novo.
+    const known = new Set(column.items.map((demand) => demand.id))
+    column.items.push(...next.data.filter((demand) => !known.has(demand.id)))
+    column.total = next.meta.total
+    column.page = next.meta.current_page
+    column.lastPage = next.meta.last_page
+  } catch {
+    if (request !== latestRequest) return
+    column.loadMoreError = 'Não foi possível carregar mais.'
+  } finally {
+    if (request === latestRequest) column.loadingMore = false
   }
 }
 
@@ -100,6 +137,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
       :error="error"
       :searching="searching"
       @retry="load"
+      @load-more="loadMore"
     />
   </div>
 </template>
