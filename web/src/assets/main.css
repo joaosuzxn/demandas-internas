@@ -17,13 +17,27 @@
   --color-brand-800: oklch(0.34 0.12 250);
   --color-brand-900: oklch(0.27 0.09 250);
 
-  /* Crepúsculo: base das telas de autenticação (sombra do card, texto do botão, fundo sob a foto). */
+  /* Crepúsculo: base das telas de autenticação (sombra do card, texto do botão, fundo sob a foto); 50 e 300 no BaseSelect. */
+  --color-dusk-50: oklch(0.975 0.012 293);
+  --color-dusk-300: oklch(0.82 0.07 293);
   --color-dusk-400: oklch(0.68 0.09 295);
   --color-dusk-500: oklch(0.6 0.1 293);
   --color-dusk-600: oklch(0.5 0.11 291);
   --color-dusk-700: oklch(0.41 0.11 289);
   --color-dusk-800: oklch(0.32 0.09 287);
   --color-dusk-900: oklch(0.24 0.07 285);
+  /* Seta do BaseSelect, como no Órbita. */
+  --color-silk-indigo: oklch(0.55 0.2 275);
+
+  /* Superfícies das telas com sidebar, trazidas do Órbita (tema claro). Cor nova entra aqui. */
+  --color-haze-100: oklch(0.94 0.014 250);
+  --color-surface-page: var(--color-haze-100);
+  --color-surface-panel: rgb(255 255 255 / 0.4);
+  --color-surface-sunken: color-mix(in oklab, var(--color-slate-900) 6%, transparent);
+  --color-surface-item: rgb(255 255 255 / 0.8);
+  --color-surface-item-hover: rgb(255 255 255);
+  --color-surface-field: rgb(255 255 255 / 0.6);
+  --color-sidebar-active: rgb(29 26 62);
 
   /* Chacoalhada de campo com erro — uso: `animate-shake`. */
   --animate-shake: shake 0.4s ease-in-out;
@@ -51,6 +65,41 @@
       opacity: 0;
       transform: scale(0.96);
     }
+  }
+}
+
+/* Rolagem no estilo do Safari: fina, arredondada e quase invisível até o cursor entrar na área.
+   Uso: `scrollbar-soft` no elemento que rola. Firefox usa a propriedade padrão; Chrome e Safari, o webkit. */
+@utility scrollbar-soft {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+
+  &:hover {
+    scrollbar-color: rgb(15 23 42 / 0.25) transparent;
+  }
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: transparent;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(15 23 42 / 0.25);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(15 23 42 / 0.4);
   }
 }
 

@@ -2,6 +2,8 @@
 
 // Só as chaves que esta API usa; o que faltar cai no inglês do framework (APP_FALLBACK_LOCALE=en).
 return [
+    'after_or_equal' => 'O campo :attribute deve ser uma data igual ou posterior a :date.',
+    'date_format' => 'O campo :attribute deve ser uma data no formato AAAA-MM-DD.',
     'boolean' => 'O campo :attribute deve ser verdadeiro ou falso.',
     'confirmed' => 'A confirmação do campo :attribute não confere.',
     'current_password' => 'A senha atual está incorreta.',
@@ -48,18 +50,26 @@ return [
     ],
 
     'attributes' => [
+        'category' => 'categoria',
+        'created_from' => 'de',
+        'created_to' => 'até',
         'cpf' => 'CPF',
         'current_password' => 'senha atual',
+        'description' => 'descrição',
         'email' => 'e-mail',
         'is_active' => 'situação',
         'login' => 'usuário ou e-mail',
+        'mine' => 'só as minhas',
         'name' => 'nome',
         'page' => 'página',
         'password' => 'senha',
         'photo' => 'foto',
         'remember' => 'lembrar-me',
+        'requester_id' => 'solicitante',
         'role' => 'perfil',
         'search' => 'busca',
+        'status' => 'status',
+        'title' => 'título',
         'username' => 'usuário',
     ],
 ];
