@@ -25,6 +25,16 @@
   --color-dusk-800: oklch(0.32 0.09 287);
   --color-dusk-900: oklch(0.24 0.07 285);
 
+  /* Superfícies das telas com sidebar, trazidas do Órbita (tema claro). Cor nova entra aqui. */
+  --color-haze-100: oklch(0.94 0.014 250);
+  --color-surface-page: var(--color-haze-100);
+  --color-surface-panel: rgb(255 255 255 / 0.4);
+  --color-surface-sunken: color-mix(in oklab, var(--color-slate-900) 6%, transparent);
+  --color-surface-item: rgb(255 255 255 / 0.8);
+  --color-surface-item-hover: rgb(255 255 255);
+  --color-surface-field: rgb(255 255 255 / 0.6);
+  --color-sidebar-active: rgb(29 26 62);
+
   /* Chacoalhada de campo com erro — uso: `animate-shake`. */
   --animate-shake: shake 0.4s ease-in-out;
 
