@@ -1,6 +1,6 @@
 import { http } from './http'
 
-export type DemandStatus = 'open' | 'closed'
+export type DemandStatus = 'pending' | 'in_progress' | 'finished'
 
 export type DemandCategory = 'it' | 'hr' | 'purchasing' | 'finance' | 'infrastructure'
 
@@ -41,8 +41,9 @@ export const DEMAND_CATEGORY_LABELS: Record<DemandCategory, string> = {
 }
 
 export const DEMAND_STATUS_LABELS: Record<DemandStatus, string> = {
-  open: 'A fazer',
-  closed: 'Finalizado',
+  pending: 'Pendente',
+  in_progress: 'Em andamento',
+  finished: 'Finalizado',
 }
 
 // Corpo de criar e editar. A categoria vazia (nada escolhido) vai assim mesmo: quem recusa é a API, com 422.
@@ -74,7 +75,12 @@ export async function updateDemand(id: number, payload: DemandPayload): Promise<
   return data.data
 }
 
-// A situação só muda pelas ações próprias da API; o corpo de editar nunca leva o status.
+// A situação só muda pelas ações próprias da API (iniciar, finalizar, reabrir); o corpo de editar nunca leva o status.
+export async function startDemand(id: number): Promise<Demand> {
+  const { data } = await http.post<DemandResponse>(`/demands/${id}/start`)
+  return data.data
+}
+
 export async function closeDemand(id: number): Promise<Demand> {
   const { data } = await http.post<DemandResponse>(`/demands/${id}/close`)
   return data.data

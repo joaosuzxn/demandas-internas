@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'already_closed' => 'Esta solicitação já está fechada.',
-    'already_open' => 'Esta solicitação já está aberta.',
-    'closed_cannot_be_edited' => 'Solicitação fechada não pode ser editada. Reabra antes de editar.',
+    'start_requires_pending' => 'Só demanda pendente pode ser iniciada.',
+    'close_requires_in_progress' => 'Só demanda em andamento pode ser finalizada.',
+    'reopen_requires_finished' => 'Só demanda finalizada pode ser reaberta.',
+    'only_pending_can_be_edited' => 'Só demanda pendente pode ser editada.',
 ];

@@ -21,12 +21,17 @@ class DemandSeeder extends Seeder
         // Os solicitantes são os usuários que já existem (o AdminSeeder garante ao menos um).
         $requesterIds = User::query()->pluck('id')->all();
 
-        // 26 abertas e 6 fechadas: 26 passa do limite de 20 por coluna e mostra o aviso "Mostrando 20 de 26".
+        // 26 pendentes, 5 em andamento e 6 finalizadas: 26 passa do limite de 20 por coluna e mostra
+        // o aviso "Mostrando 20 de 26".
         Demand::factory()->count(26)->state(fn () => [
             'requester_id' => fake()->randomElement($requesterIds),
         ])->create();
 
-        Demand::factory()->closed()->count(6)->state(fn () => [
+        Demand::factory()->inProgress()->count(5)->state(fn () => [
+            'requester_id' => fake()->randomElement($requesterIds),
+        ])->create();
+
+        Demand::factory()->finished()->count(6)->state(fn () => [
             'requester_id' => fake()->randomElement($requesterIds),
         ])->create();
     }

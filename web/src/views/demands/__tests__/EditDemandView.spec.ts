@@ -24,7 +24,7 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
     title: 'Trocar impressora',
     description: 'A do setor 2 não imprime.',
     category: 'it',
-    status: 'open',
+    status: 'pending',
     requester: { id: 1, name: 'Maria Souza' },
     created_at: '2026-10-01T12:00:00+00:00',
     updated_at: '2026-10-01T12:00:00+00:00',
@@ -116,14 +116,17 @@ describe('EditDemandView', () => {
     ).toBe('/demandas/12')
   })
 
-  it('demanda finalizada não abre o formulário', async () => {
-    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'closed' }))
+  it.each(['in_progress', 'finished'] as const)(
+    'demanda %s não abre o formulário',
+    async (status) => {
+      vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status }))
 
-    const { wrapper } = await mountView()
+      const { wrapper } = await mountView()
 
-    expect(wrapper.find('form').exists()).toBe(false)
-    expect(wrapper.text()).toContain('Demanda finalizada não pode ser editada')
-  })
+      expect(wrapper.find('form').exists()).toBe(false)
+      expect(wrapper.text()).toContain('Só demanda pendente pode ser editada.')
+    },
+  )
 
   it('avisa quando a demanda não existe (404)', async () => {
     vi.mocked(demandsService.getDemand).mockRejectedValue(httpError(404))

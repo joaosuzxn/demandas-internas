@@ -11,7 +11,7 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
     title: 'Trocar impressora',
     description: 'A do setor 2 não imprime.',
     category: 'it',
-    status: 'open',
+    status: 'pending',
     requester: { id: 1, name: 'Maria Souza' },
     created_at: '2026-10-01T12:00:00+00:00',
     updated_at: '2026-10-01T12:00:00+00:00',
@@ -20,13 +20,15 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
 }
 
 function makeBoard(
-  open: Demand[] = [],
-  closed: Demand[] = [],
-  totals: { open?: number; closed?: number } = {},
+  pending: Demand[] = [],
+  inProgress: Demand[] = [],
+  finished: Demand[] = [],
+  totals: Partial<Record<'pending' | 'in_progress' | 'finished', number>> = {},
 ): DemandBoard {
   return {
-    open: { items: open, total: totals.open ?? open.length },
-    closed: { items: closed, total: totals.closed ?? closed.length },
+    pending: { items: pending, total: totals.pending ?? pending.length },
+    in_progress: { items: inProgress, total: totals.in_progress ?? inProgress.length },
+    finished: { items: finished, total: totals.finished ?? finished.length },
   }
 }
 
@@ -45,26 +47,44 @@ function mountBoard(props: Partial<InstanceType<typeof DemandsBoard>['$props']> 
 }
 
 describe('DemandsBoard', () => {
-  it('mostra as colunas a fazer e finalizado com a contagem total', () => {
-    const wrapper = mountBoard({ board: makeBoard([], [], { open: 25, closed: 3 }) })
+  it('mostra as colunas pendente, em andamento e finalizado com a contagem total', () => {
+    const wrapper = mountBoard({
+      board: makeBoard([], [], [], { pending: 25, in_progress: 4, finished: 3 }),
+    })
 
-    expect(wrapper.get('[data-column="open"]').text()).toContain('A fazer')
-    expect(wrapper.get('[data-column="open"]').text()).toContain('25')
-    expect(wrapper.get('[data-column="closed"]').text()).toContain('Finalizado')
-    expect(wrapper.get('[data-column="closed"]').text()).toContain('3')
+    const columns = wrapper
+      .findAll('[data-column]')
+      .map((column) => column.attributes('data-column'))
+    expect(columns).toEqual(['pending', 'in_progress', 'finished'])
+    expect(wrapper.get('[data-column="pending"]').text()).toContain('Pendente')
+    expect(wrapper.get('[data-column="pending"]').text()).toContain('25')
+    expect(wrapper.get('[data-column="in_progress"]').text()).toContain('Em andamento')
+    expect(wrapper.get('[data-column="in_progress"]').text()).toContain('4')
+    expect(wrapper.get('[data-column="finished"]').text()).toContain('Finalizado')
+    expect(wrapper.get('[data-column="finished"]').text()).toContain('3')
   })
 
   it('põe cada demanda na coluna do seu status', () => {
     const wrapper = mountBoard({
       board: makeBoard(
         [makeDemand({ id: 1, title: 'Trocar impressora' })],
-        [makeDemand({ id: 2, title: 'Contrato de limpeza', status: 'closed' })],
+        [makeDemand({ id: 2, title: 'Pintar sala', status: 'in_progress' })],
+        [makeDemand({ id: 3, title: 'Contrato de limpeza', status: 'finished' })],
       ),
     })
 
-    expect(wrapper.get('[data-column="open"]').text()).toContain('Trocar impressora')
-    expect(wrapper.get('[data-column="open"]').text()).not.toContain('Contrato de limpeza')
-    expect(wrapper.get('[data-column="closed"]').text()).toContain('Contrato de limpeza')
+    expect(wrapper.get('[data-column="pending"]').text()).toContain('Trocar impressora')
+    expect(wrapper.get('[data-column="in_progress"]').text()).toContain('Pintar sala')
+    expect(wrapper.get('[data-column="finished"]').text()).toContain('Contrato de limpeza')
+    expect(wrapper.get('[data-column="pending"]').text()).not.toContain('Pintar sala')
+  })
+
+  // Foco de revisão 4: o vazio do quadro soma as três colunas.
+  it('com demandas só em andamento, mostra o quadro e não o vazio', () => {
+    const wrapper = mountBoard({ board: makeBoard([], [makeDemand({ status: 'in_progress' })]) })
+
+    expect(wrapper.text()).not.toContain('Nenhuma demanda registrada ainda.')
+    expect(wrapper.get('[data-column="in_progress"]').text()).toContain('Trocar impressora')
   })
 
   it('mostra categoria em português e quem pediu no cartão', () => {
@@ -85,9 +105,9 @@ describe('DemandsBoard', () => {
   })
 
   it('avisa quando a coluna mostra só parte do total', () => {
-    const wrapper = mountBoard({ board: makeBoard([makeDemand()], [], { open: 45 }) })
+    const wrapper = mountBoard({ board: makeBoard([makeDemand()], [], [], { pending: 45 }) })
 
-    expect(wrapper.get('[data-column="open"]').text()).toContain('Mostrando 1 de 45')
+    expect(wrapper.get('[data-column="pending"]').text()).toContain('Mostrando 1 de 45')
   })
 
   it('diz que não há demandas quando o quadro inteiro está vazio', () => {

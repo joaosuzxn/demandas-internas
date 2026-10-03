@@ -4,7 +4,13 @@ import { RouterLink } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import type { IconName } from '@/components/icons/icons'
 import { parseApiError } from '@/services/apiErrors'
-import { closeDemand, deleteDemand, reopenDemand, type Demand } from '@/services/demands'
+import {
+  closeDemand,
+  deleteDemand,
+  reopenDemand,
+  startDemand,
+  type Demand,
+} from '@/services/demands'
 
 const props = defineProps<{ demand: Demand }>()
 
@@ -38,15 +44,22 @@ type StatusAction = {
   run: (id: number) => Promise<Demand>
 }
 
-// Finalizar e reabrir partem no clique: a API não pede motivo para nenhum dos dois.
+// Iniciar, finalizar e reabrir partem no clique: a API não pede motivo para nenhum deles.
+// Cada situação tem uma só ação de avanço (spec do item 0022).
 const STATUS_ACTIONS: Record<Demand['status'], StatusAction> = {
-  open: {
+  pending: {
+    label: 'Iniciar',
+    icon: 'circle-play',
+    success: 'Demanda iniciada.',
+    run: startDemand,
+  },
+  in_progress: {
     label: 'Finalizar',
     icon: 'circle-check',
     success: 'Demanda finalizada.',
     run: closeDemand,
   },
-  closed: {
+  finished: {
     label: 'Reabrir',
     icon: 'rotate-ccw',
     success: 'Demanda reaberta.',
@@ -152,9 +165,9 @@ const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700'
         <AppIcon :name="STATUS_ACTIONS[demand.status].icon" class="size-4" />
         {{ STATUS_ACTIONS[demand.status].label }}
       </button>
-      <!-- Editar leva à tela do formulário; só na aberta, porque a API não edita a finalizada. -->
+      <!-- Editar leva à tela do formulário; só na pendente, porque a API não edita as outras. -->
       <RouterLink
-        v-if="demand.status === 'open'"
+        v-if="demand.status === 'pending'"
         :to="{ name: 'demand-edit', params: { id: demand.id } }"
         :class="[BUTTON, SECONDARY]"
       >

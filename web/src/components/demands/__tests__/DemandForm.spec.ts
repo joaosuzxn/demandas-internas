@@ -21,7 +21,7 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
     title: 'Trocar impressora',
     description: 'A do setor 2 não imprime.',
     category: 'it',
-    status: 'open',
+    status: 'pending',
     requester: { id: 1, name: 'Maria Souza' },
     created_at: '2026-10-01T12:00:00+00:00',
     updated_at: '2026-10-01T12:00:00+00:00',

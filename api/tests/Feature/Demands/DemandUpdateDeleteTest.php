@@ -62,7 +62,7 @@ class DemandUpdateDeleteTest extends TestCase
             ->assertJsonPath('data.title', 'Título novo')
             ->assertJsonPath('data.description', 'Descrição nova')
             ->assertJsonPath('data.category', 'finance')
-            ->assertJsonPath('data.status', 'open')
+            ->assertJsonPath('data.status', 'pending')
             ->assertJsonPath('data.requester.id', $this->requester->id);
     }
 
@@ -108,29 +108,31 @@ class DemandUpdateDeleteTest extends TestCase
     public function test_status_and_requester_are_prohibited_on_update(): void
     {
         $this->actingAsSpa($this->requester)
-            ->putJson("/api/demands/{$this->demand->id}", $this->validPayload(['status' => 'closed', 'requester_id' => $this->stranger->id]))
+            ->putJson("/api/demands/{$this->demand->id}", $this->validPayload(['status' => 'finished', 'requester_id' => $this->stranger->id]))
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['status', 'requester_id']);
 
         $this->assertDatabaseHas('demands', [
             'id' => $this->demand->id,
-            'status' => 'open',
+            'status' => 'pending',
             'requester_id' => $this->requester->id,
             'title' => 'Título original',
         ]);
     }
 
-    public function test_closed_demand_cannot_be_edited(): void
+    public function test_only_pending_demand_can_be_edited(): void
     {
-        $closed = Demand::factory()->closed()->create(['requester_id' => $this->requester->id, 'title' => 'Fechada']);
+        foreach ([Demand::factory()->inProgress(), Demand::factory()->finished()] as $factory) {
+            $locked = $factory->create(['requester_id' => $this->requester->id, 'title' => 'Travada']);
 
-        foreach ([$this->requester, $this->admin] as $actor) {
-            $this->actingAsSpa($actor)->putJson("/api/demands/{$closed->id}", $this->validPayload())
-                ->assertUnprocessable()
-                ->assertJsonValidationErrors(['status' => 'Solicitação fechada não pode ser editada. Reabra antes de editar.']);
+            foreach ([$this->requester, $this->admin] as $actor) {
+                $this->actingAsSpa($actor)->putJson("/api/demands/{$locked->id}", $this->validPayload())
+                    ->assertUnprocessable()
+                    ->assertJsonValidationErrors(['status' => 'Só demanda pendente pode ser editada.']);
+            }
+
+            $this->assertDatabaseHas('demands', ['id' => $locked->id, 'title' => 'Travada', 'status' => $locked->status->value]);
         }
-
-        $this->assertDatabaseHas('demands', ['id' => $closed->id, 'title' => 'Fechada', 'status' => 'closed']);
     }
 
     public function test_requester_soft_deletes_own_demand(): void
@@ -148,13 +150,15 @@ class DemandUpdateDeleteTest extends TestCase
         $this->assertSoftDeleted('demands', ['id' => $this->demand->id]);
     }
 
-    public function test_closed_demand_can_be_deleted(): void
+    public function test_demand_can_be_deleted_in_any_status(): void
     {
-        $closed = Demand::factory()->closed()->create(['requester_id' => $this->requester->id]);
+        foreach ([Demand::factory(), Demand::factory()->inProgress(), Demand::factory()->finished()] as $factory) {
+            $demand = $factory->create(['requester_id' => $this->requester->id]);
 
-        $this->actingAsSpa($this->requester)->deleteJson("/api/demands/{$closed->id}")->assertNoContent();
+            $this->actingAsSpa($this->requester)->deleteJson("/api/demands/{$demand->id}")->assertNoContent();
 
-        $this->assertSoftDeleted('demands', ['id' => $closed->id]);
+            $this->assertSoftDeleted('demands', ['id' => $demand->id]);
+        }
     }
 
     // Depois de excluída, a solicitação não existe mais para a API.

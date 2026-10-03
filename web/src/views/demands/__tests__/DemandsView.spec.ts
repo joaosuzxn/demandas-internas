@@ -17,7 +17,7 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
     title: 'Trocar impressora',
     description: 'A do setor 2 não imprime.',
     category: 'it',
-    status: 'open',
+    status: 'pending',
     requester: { id: 1, name: 'Maria Souza' },
     created_at: '2026-10-01T12:00:00+00:00',
     updated_at: '2026-10-01T12:00:00+00:00',
@@ -48,8 +48,10 @@ describe('DemandsView', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     vi.mocked(demandsService.listDemands).mockReset()
     vi.mocked(demandsService.listDemands).mockImplementation(async (params = {}) => {
-      if (params.status === 'closed')
-        return page([makeDemand({ id: 2, title: 'Contrato de limpeza', status: 'closed' })])
+      if (params.status === 'finished')
+        return page([makeDemand({ id: 2, title: 'Contrato de limpeza', status: 'finished' })])
+      if (params.status === 'in_progress')
+        return page([makeDemand({ id: 3, title: 'Pintar sala', status: 'in_progress' })])
       return page([makeDemand({ title: 'Trocar impressora' })])
     })
   })
@@ -58,14 +60,16 @@ describe('DemandsView', () => {
     vi.useRealTimers()
   })
 
-  it('carrega as abertas e as finalizadas ao abrir e mostra cada uma na sua coluna', async () => {
+  it('carrega as três situações ao abrir e mostra cada uma na sua coluna', async () => {
     const wrapper = mountView()
     await flushPromises()
 
-    expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'open' })
-    expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'closed' })
-    expect(wrapper.get('[data-column="open"]').text()).toContain('Trocar impressora')
-    expect(wrapper.get('[data-column="closed"]').text()).toContain('Contrato de limpeza')
+    expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'pending' })
+    expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'in_progress' })
+    expect(demandsService.listDemands).toHaveBeenCalledWith({ status: 'finished' })
+    expect(wrapper.get('[data-column="pending"]').text()).toContain('Trocar impressora')
+    expect(wrapper.get('[data-column="in_progress"]').text()).toContain('Pintar sala')
+    expect(wrapper.get('[data-column="finished"]').text()).toContain('Contrato de limpeza')
   })
 
   it('refaz a busca pelo título, sem espaços nas pontas, depois de uma pausa na digitação', async () => {
@@ -78,11 +82,15 @@ describe('DemandsView', () => {
     await flushPromises()
 
     expect(demandsService.listDemands).toHaveBeenCalledWith({
-      status: 'open',
+      status: 'pending',
       search: 'impressora',
     })
     expect(demandsService.listDemands).toHaveBeenCalledWith({
-      status: 'closed',
+      status: 'in_progress',
+      search: 'impressora',
+    })
+    expect(demandsService.listDemands).toHaveBeenCalledWith({
+      status: 'finished',
       search: 'impressora',
     })
   })

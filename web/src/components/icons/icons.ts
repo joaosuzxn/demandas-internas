@@ -15,6 +15,7 @@ export type IconName =
   | 'plus'
   | 'pencil'
   | 'send'
+  | 'circle-play'
 
 type IconElement = [tag: string, attributes: Record<string, string>]
 
@@ -66,6 +67,10 @@ export const ICONS: Record<IconName, IconElement[]> = {
     ['line', { x1: '14', x2: '14', y1: '11', y2: '17' }],
   ],
   'chevron-down': [['path', { d: 'm6 9 6 6 6-6' }]],
+  'circle-play': [
+    ['circle', { cx: '12', cy: '12', r: '10' }],
+    ['polygon', { points: '10 8 16 12 10 16 10 8' }],
+  ],
   plus: [
     ['path', { d: 'M5 12h14' }],
     ['path', { d: 'M12 5v14' }],

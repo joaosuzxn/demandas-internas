@@ -44,7 +44,7 @@ describe('NewDemandView', () => {
       title: 'Trocar impressora',
       description: 'Não imprime.',
       category: 'it',
-      status: 'open',
+      status: 'pending',
       requester: { id: 1, name: 'Maria Souza' },
       created_at: null,
       updated_at: null,

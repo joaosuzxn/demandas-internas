@@ -11,8 +11,9 @@ import {
 const props = defineProps<{ demand: Demand }>()
 
 const STATUS_TONES: Record<DemandStatus, string> = {
-  open: 'bg-amber-500/15 text-amber-800',
-  closed: 'bg-emerald-500/15 text-emerald-800',
+  pending: 'bg-amber-500/15 text-amber-800',
+  in_progress: 'bg-brand-500/15 text-brand-800',
+  finished: 'bg-emerald-500/15 text-emerald-800',
 }
 
 function formatDateTime(iso: string | null): string | null {

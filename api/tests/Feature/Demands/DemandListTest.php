@@ -89,12 +89,21 @@ class DemandListTest extends TestCase
 
     public function test_filters_by_status(): void
     {
-        $open = Demand::factory()->create();
-        $closed = Demand::factory()->closed()->create();
+        $pending = Demand::factory()->create();
+        $inProgress = Demand::factory()->inProgress()->create();
+        $finished = Demand::factory()->finished()->create();
 
-        $this->listAs($this->employee, '?status=open')->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $open->id);
-        $this->listAs($this->employee, '?status=closed')->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $closed->id);
+        $this->listAs($this->employee, '?status=pending')->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $pending->id);
+        $this->listAs($this->employee, '?status=in_progress')->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $inProgress->id);
+        $this->listAs($this->employee, '?status=finished')->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $finished->id);
         $this->listAs($this->employee, '?status=aberto')->assertUnprocessable()->assertJsonValidationErrors(['status']);
+    }
+
+    // Os valores de antes da troca (item 0022) não existem mais: 422, e não lista vazia sem aviso.
+    public function test_old_status_values_are_rejected(): void
+    {
+        $this->listAs($this->employee, '?status=open')->assertUnprocessable()->assertJsonValidationErrors(['status']);
+        $this->listAs($this->employee, '?status=closed')->assertUnprocessable()->assertJsonValidationErrors(['status']);
     }
 
     public function test_filters_by_category(): void
@@ -164,13 +173,13 @@ class DemandListTest extends TestCase
 
     public function test_filters_combine(): void
     {
-        $match = Demand::factory()->closed()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Monitor']);
+        $match = Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Monitor']);
         Demand::factory()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Monitor']);
-        Demand::factory()->closed()->create(['category' => 'it', 'title' => 'Monitor']);
-        Demand::factory()->closed()->create(['requester_id' => $this->employee->id, 'category' => 'hr', 'title' => 'Monitor']);
-        Demand::factory()->closed()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Cadeira']);
+        Demand::factory()->finished()->create(['category' => 'it', 'title' => 'Monitor']);
+        Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'hr', 'title' => 'Monitor']);
+        Demand::factory()->finished()->create(['requester_id' => $this->employee->id, 'category' => 'it', 'title' => 'Cadeira']);
 
-        $this->listAs($this->employee, '?status=closed&category=it&search=monitor&mine=true')
+        $this->listAs($this->employee, '?status=finished&category=it&search=monitor&mine=true')
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $match->id);
     }

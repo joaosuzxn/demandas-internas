@@ -3,6 +3,7 @@ import { RouterLink } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import {
   DEMAND_CATEGORY_LABELS,
+  DEMAND_STATUS_LABELS,
   type Demand,
   type DemandBoard,
   type DemandStatus,
@@ -22,10 +23,11 @@ const emit = defineEmits<{
   retry: []
 }>()
 
-// Uma coluna por situação, na ordem em que a demanda anda: primeiro a fazer, depois finalizada.
+// Uma coluna por situação, na ordem em que a demanda anda.
 const COLUMNS: readonly { status: DemandStatus; label: string; icon: IconName }[] = [
-  { status: 'open', label: 'A fazer', icon: 'clock' },
-  { status: 'closed', label: 'Finalizado', icon: 'circle-check' },
+  { status: 'pending', label: DEMAND_STATUS_LABELS.pending, icon: 'clock' },
+  { status: 'in_progress', label: DEMAND_STATUS_LABELS.in_progress, icon: 'circle-play' },
+  { status: 'finished', label: DEMAND_STATUS_LABELS.finished, icon: 'circle-check' },
 ]
 
 function formatDate(iso: string | null): string {
@@ -61,7 +63,7 @@ function categoryLabel(demand: Demand): string {
     </div>
 
     <p
-      v-else-if="board.open.total + board.closed.total === 0"
+      v-else-if="COLUMNS.every((column) => board[column.status].total === 0)"
       class="py-6 text-center text-sm text-slate-500"
     >
       {{ searching ? 'Nenhuma demanda corresponde à busca.' : 'Nenhuma demanda registrada ainda.' }}

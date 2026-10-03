@@ -7,6 +7,7 @@ import {
   deleteDemand,
   getDemand,
   reopenDemand,
+  startDemand,
   updateDemand,
   type Demand,
 } from '../demands'
@@ -17,7 +18,7 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
     title: 'Trocar impressora',
     description: 'A do setor 2 não imprime.',
     category: 'it',
-    status: 'open',
+    status: 'pending',
     requester: { id: 1, name: 'Maria Souza' },
     created_at: '2026-10-01T12:00:00+00:00',
     updated_at: '2026-10-01T12:00:00+00:00',
@@ -41,16 +42,19 @@ describe('demands service', () => {
     expect(get).toHaveBeenCalledWith('/demands/12')
   })
 
-  it('finaliza e reabre pelas ações próprias da API', async () => {
+  it('inicia, finaliza e reabre pelas ações próprias da API', async () => {
     const post = vi
       .spyOn(http, 'post')
-      .mockResolvedValueOnce(ok({ data: makeDemand({ status: 'closed' }) }))
-      .mockResolvedValueOnce(ok({ data: makeDemand({ status: 'open' }) }))
+      .mockResolvedValueOnce(ok({ data: makeDemand({ status: 'in_progress' }) }))
+      .mockResolvedValueOnce(ok({ data: makeDemand({ status: 'finished' }) }))
+      .mockResolvedValueOnce(ok({ data: makeDemand({ status: 'pending' }) }))
 
-    expect((await closeDemand(12)).status).toBe('closed')
-    expect((await reopenDemand(12)).status).toBe('open')
-    expect(post).toHaveBeenNthCalledWith(1, '/demands/12/close')
-    expect(post).toHaveBeenNthCalledWith(2, '/demands/12/reopen')
+    expect((await startDemand(12)).status).toBe('in_progress')
+    expect((await closeDemand(12)).status).toBe('finished')
+    expect((await reopenDemand(12)).status).toBe('pending')
+    expect(post).toHaveBeenNthCalledWith(1, '/demands/12/start')
+    expect(post).toHaveBeenNthCalledWith(2, '/demands/12/close')
+    expect(post).toHaveBeenNthCalledWith(3, '/demands/12/reopen')
   })
 
   it('exclui pelo DELETE da demanda', async () => {

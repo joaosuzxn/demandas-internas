@@ -14,21 +14,26 @@ class DemandModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_factory_creates_open_demand_with_requester(): void
+    public function test_factory_creates_pending_demand_with_requester(): void
     {
         $demand = Demand::factory()->create()->fresh();
 
-        $this->assertSame(DemandStatus::Open, $demand->status);
+        $this->assertSame(DemandStatus::Pending, $demand->status);
         $this->assertInstanceOf(DemandCategory::class, $demand->category);
         $this->assertInstanceOf(User::class, $demand->requester);
     }
 
-    public function test_closed_state_creates_closed_demand(): void
+    public function test_finished_state_creates_finished_demand(): void
     {
-        $this->assertSame(DemandStatus::Closed, Demand::factory()->closed()->create()->fresh()->status);
+        $this->assertSame(DemandStatus::Finished, Demand::factory()->finished()->create()->fresh()->status);
     }
 
-    public function test_status_defaults_to_open_in_the_database(): void
+    public function test_in_progress_state_creates_in_progress_demand(): void
+    {
+        $this->assertSame(DemandStatus::InProgress, Demand::factory()->inProgress()->create()->fresh()->status);
+    }
+
+    public function test_status_defaults_to_pending_in_the_database(): void
     {
         $id = DB::table('demands')->insertGetId([
             'title' => 'Sem status',
@@ -39,7 +44,7 @@ class DemandModelTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        $this->assertSame(DemandStatus::Open, Demand::findOrFail($id)->status);
+        $this->assertSame(DemandStatus::Pending, Demand::findOrFail($id)->status);
     }
 
     public function test_status_and_requester_are_not_mass_assignable(): void
@@ -48,7 +53,7 @@ class DemandModelTest extends TestCase
             'title' => 'Título',
             'description' => 'Descrição',
             'category' => 'hr',
-            'status' => 'closed',
+            'status' => 'finished',
             'requester_id' => 99,
         ]);
 

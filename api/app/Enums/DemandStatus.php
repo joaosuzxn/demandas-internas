@@ -2,9 +2,10 @@
 
 namespace App\Enums;
 
-// Toda solicitação nasce aberta; só close e reopen mudam o status (DemandService).
+// Toda demanda nasce pendente; só start, close e reopen mudam o status (DemandService).
 enum DemandStatus: string
 {
-    case Open = 'open';
-    case Closed = 'closed';
+    case Pending = 'pending';
+    case InProgress = 'in_progress';
+    case Finished = 'finished';
 }

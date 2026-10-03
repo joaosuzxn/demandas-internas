@@ -43,6 +43,11 @@ class DemandController extends Controller
         return response()->noContent();
     }
 
+    public function start(Demand $demand): DemandResource
+    {
+        return new DemandResource($this->demands->start($demand));
+    }
+
     public function close(Demand $demand): DemandResource
     {
         return new DemandResource($this->demands->close($demand));

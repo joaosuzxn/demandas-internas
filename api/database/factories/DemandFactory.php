@@ -22,13 +22,18 @@ class DemandFactory extends Factory
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
             'category' => fake()->randomElement(DemandCategory::cases()),
-            'status' => DemandStatus::Open,
+            'status' => DemandStatus::Pending,
             'requester_id' => User::factory(),
         ];
     }
 
-    public function closed(): static
+    public function inProgress(): static
     {
-        return $this->state(fn () => ['status' => DemandStatus::Closed]);
+        return $this->state(fn () => ['status' => DemandStatus::InProgress]);
+    }
+
+    public function finished(): static
+    {
+        return $this->state(fn () => ['status' => DemandStatus::Finished]);
     }
 }

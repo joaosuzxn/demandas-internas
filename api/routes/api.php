@@ -44,6 +44,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsurePasswordIsCh
         Route::get('/demands/{demand}', [DemandController::class, 'show'])->can('view', 'demand')->name('demands.show');
         Route::put('/demands/{demand}', [DemandController::class, 'update'])->can('update', 'demand')->name('demands.update');
         Route::delete('/demands/{demand}', [DemandController::class, 'destroy'])->can('delete', 'demand')->name('demands.destroy');
+        Route::post('/demands/{demand}/start', [DemandController::class, 'start'])->can('start', 'demand')->name('demands.start');
         Route::post('/demands/{demand}/close', [DemandController::class, 'close'])->can('close', 'demand')->name('demands.close');
         Route::post('/demands/{demand}/reopen', [DemandController::class, 'reopen'])->can('reopen', 'demand')->name('demands.reopen');
     });

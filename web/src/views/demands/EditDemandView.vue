@@ -17,15 +17,13 @@ const { demand, loading, error, notFound, canManage, load } = useDemandRecord(id
 const demandRoute = computed(() => ({ name: 'demand', params: { id: id.value } }))
 
 /**
- * Por que o formulário não abre: a API recusaria (403 para quem não é dono nem admin, 422 para a
- * finalizada). `null` quando pode editar.
+ * Por que o formulário não abre: a API recusaria (403 para quem não é dono nem admin, 422 para a que
+ * não está pendente). `null` quando pode editar.
  */
 const blockedReason = computed(() => {
   if (!demand.value) return null
   if (!canManage.value) return 'Só quem pediu a demanda ou o administrador pode editá-la.'
-  if (demand.value.status === 'closed') {
-    return 'Demanda finalizada não pode ser editada. Reabra a demanda antes de editar.'
-  }
+  if (demand.value.status !== 'pending') return 'Só demanda pendente pode ser editada.'
   return null
 })
 

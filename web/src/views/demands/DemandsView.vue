@@ -14,10 +14,18 @@ import {
 const SEARCH_DELAY_MS = 300
 
 const term = ref('')
-const board = ref<DemandBoard>({
-  open: { items: [], total: 0 },
-  closed: { items: [], total: 0 },
-})
+// As situações na ordem do quadro; cada coluna tem a sua consulta e o seu total.
+const STATUSES: readonly DemandStatus[] = ['pending', 'in_progress', 'finished']
+
+function emptyBoard(): DemandBoard {
+  return {
+    pending: { items: [], total: 0 },
+    in_progress: { items: [], total: 0 },
+    finished: { items: [], total: 0 },
+  }
+}
+
+const board = ref<DemandBoard>(emptyBoard())
 const loading = ref(false)
 const error = ref<string | null>(null)
 const searching = computed(() => term.value.trim() !== '')
@@ -42,13 +50,14 @@ async function load(): Promise<void> {
   error.value = null
 
   try {
-    const [open, closed] = await Promise.all([
-      listDemands(paramsFor('open', search)),
-      listDemands(paramsFor('closed', search)),
-    ])
+    const pages = await Promise.all(
+      STATUSES.map((status) => listDemands(paramsFor(status, search))),
+    )
 
     if (request !== latestRequest) return
-    board.value = { open: toColumn(open), closed: toColumn(closed) }
+    const next = emptyBoard()
+    STATUSES.forEach((status, index) => (next[status] = toColumn(pages[index]!)))
+    board.value = next
   } catch {
     if (request !== latestRequest) return
     error.value = 'Não foi possível carregar as demandas.'

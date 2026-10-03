@@ -40,7 +40,7 @@ class DemandService
     public function create(array $data, User $requester): Demand
     {
         $demand = new Demand($data);
-        $demand->status = DemandStatus::Open;
+        $demand->status = DemandStatus::Pending;
         $demand->requester()->associate($requester);
         $demand->save();
 
@@ -52,8 +52,8 @@ class DemandService
      */
     public function update(Demand $demand, array $data): Demand
     {
-        if ($demand->status === DemandStatus::Closed) {
-            throw ValidationException::withMessages(['status' => __('demands.closed_cannot_be_edited')]);
+        if ($demand->status !== DemandStatus::Pending) {
+            throw ValidationException::withMessages(['status' => __('demands.only_pending_can_be_edited')]);
         }
 
         $demand->fill($data)->save();
@@ -67,25 +67,29 @@ class DemandService
         $demand->delete();
     }
 
+    public function start(Demand $demand): Demand
+    {
+        return $this->transition($demand, DemandStatus::Pending, DemandStatus::InProgress, 'demands.start_requires_pending');
+    }
+
     public function close(Demand $demand): Demand
     {
-        if ($demand->status === DemandStatus::Closed) {
-            throw ValidationException::withMessages(['status' => __('demands.already_closed')]);
-        }
-
-        $demand->status = DemandStatus::Closed;
-        $demand->save();
-
-        return $demand;
+        return $this->transition($demand, DemandStatus::InProgress, DemandStatus::Finished, 'demands.close_requires_in_progress');
     }
 
     public function reopen(Demand $demand): Demand
     {
-        if ($demand->status === DemandStatus::Open) {
-            throw ValidationException::withMessages(['status' => __('demands.already_open')]);
+        return $this->transition($demand, DemandStatus::Finished, DemandStatus::Pending, 'demands.reopen_requires_finished');
+    }
+
+    // Cada ação só sai de uma situação e só vai para outra; fora da origem, 422 no campo status.
+    private function transition(Demand $demand, DemandStatus $from, DemandStatus $to, string $message): Demand
+    {
+        if ($demand->status !== $from) {
+            throw ValidationException::withMessages(['status' => __($message)]);
         }
 
-        $demand->status = DemandStatus::Open;
+        $demand->status = $to;
         $demand->save();
 
         return $demand;

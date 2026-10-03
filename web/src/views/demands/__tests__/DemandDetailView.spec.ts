@@ -16,6 +16,7 @@ vi.mock('@/services/demands', async (importOriginal) => ({
   getDemand: vi.fn<(id: number) => Promise<Demand>>(),
   closeDemand: vi.fn<(id: number) => Promise<Demand>>(),
   reopenDemand: vi.fn<(id: number) => Promise<Demand>>(),
+  startDemand: vi.fn<(id: number) => Promise<Demand>>(),
   deleteDemand: vi.fn<(id: number) => Promise<void>>(),
 }))
 
@@ -27,7 +28,7 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
     title: 'Trocar impressora',
     description: 'A do setor 2 não imprime.',
     category: 'it',
-    status: 'open',
+    status: 'pending',
     requester: { id: 1, name: 'Maria Souza' },
     created_at: '2026-10-01T12:00:00+00:00',
     updated_at: '2026-10-01T12:00:00+00:00',
@@ -64,6 +65,7 @@ describe('DemandDetailView', () => {
     vi.mocked(demandsService.getDemand).mockReset().mockResolvedValue(makeDemand())
     vi.mocked(demandsService.closeDemand).mockReset()
     vi.mocked(demandsService.reopenDemand).mockReset()
+    vi.mocked(demandsService.startDemand).mockReset()
     vi.mocked(demandsService.deleteDemand).mockReset()
   })
 
@@ -74,7 +76,7 @@ describe('DemandDetailView', () => {
     expect(wrapper.get('h1').text()).toBe('#12 - Trocar impressora')
     expect(wrapper.get('[data-demand-description]').text()).toContain('A do setor 2 não imprime.')
     const facts = wrapper.get('[data-demand-facts]').text()
-    expect(facts).toContain('A fazer')
+    expect(facts).toContain('Pendente')
     expect(facts).toContain('TI')
     expect(facts).toContain('Maria Souza')
     expect(wrapper.get('a[aria-label="Voltar para Demandas"]').attributes('href')).toBe('/demandas')
@@ -118,28 +120,41 @@ describe('DemandDetailView', () => {
 
     const { wrapper } = await mountView('admin')
 
-    expect(button(wrapper, 'Finalizar')).toBeDefined()
+    expect(button(wrapper, 'Iniciar')).toBeDefined()
     expect(button(wrapper, 'Excluir')).toBeDefined()
   })
 
-  it('finaliza a aberta no clique e passa a mostrar a demanda finalizada', async () => {
-    vi.mocked(demandsService.closeDemand).mockResolvedValue(makeDemand({ status: 'closed' }))
+  it('inicia a pendente no clique e passa a mostrar a demanda em andamento', async () => {
+    vi.mocked(demandsService.startDemand).mockResolvedValue(makeDemand({ status: 'in_progress' }))
 
     const { wrapper } = await mountView()
-    expect(button(wrapper, 'Reabrir')).toBeUndefined()
+    await button(wrapper, 'Iniciar')!.trigger('click')
+    await flushPromises()
 
+    expect(demandsService.startDemand).toHaveBeenCalledWith(12)
+    expect(wrapper.text()).toContain('Demanda iniciada.')
+    expect(wrapper.get('[data-demand-facts]').text()).toContain('Em andamento')
+    expect(button(wrapper, 'Finalizar')).toBeDefined()
+    expect(wrapper.findAll('a').some((link) => link.text() === 'Editar')).toBe(false)
+  })
+
+  it('finaliza a em andamento no clique', async () => {
+    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'in_progress' }))
+    vi.mocked(demandsService.closeDemand).mockResolvedValue(makeDemand({ status: 'finished' }))
+
+    const { wrapper } = await mountView()
+    expect(button(wrapper, 'Iniciar')).toBeUndefined()
     await button(wrapper, 'Finalizar')!.trigger('click')
     await flushPromises()
 
     expect(demandsService.closeDemand).toHaveBeenCalledWith(12)
     expect(wrapper.text()).toContain('Demanda finalizada.')
-    expect(wrapper.get('[data-demand-facts]').text()).toContain('Finalizado')
     expect(button(wrapper, 'Reabrir')).toBeDefined()
   })
 
-  it('reabre a finalizada no clique', async () => {
-    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'closed' }))
-    vi.mocked(demandsService.reopenDemand).mockResolvedValue(makeDemand({ status: 'open' }))
+  it('reabre a finalizada no clique e ela volta a pendente', async () => {
+    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'finished' }))
+    vi.mocked(demandsService.reopenDemand).mockResolvedValue(makeDemand({ status: 'pending' }))
 
     const { wrapper } = await mountView()
     await button(wrapper, 'Reabrir')!.trigger('click')
@@ -147,25 +162,25 @@ describe('DemandDetailView', () => {
 
     expect(demandsService.reopenDemand).toHaveBeenCalledWith(12)
     expect(wrapper.text()).toContain('Demanda reaberta.')
-    expect(button(wrapper, 'Finalizar')).toBeDefined()
+    expect(button(wrapper, 'Iniciar')).toBeDefined()
   })
 
   it('mostra a mensagem da API quando a ação é recusada', async () => {
-    vi.mocked(demandsService.closeDemand).mockRejectedValue(
-      httpError(422, { errors: { status: ['A solicitação já está fechada.'] } }),
+    vi.mocked(demandsService.startDemand).mockRejectedValue(
+      httpError(422, { errors: { status: ['Só demanda pendente pode ser iniciada.'] } }),
     )
 
     const { wrapper } = await mountView()
-    await button(wrapper, 'Finalizar')!.trigger('click')
+    await button(wrapper, 'Iniciar')!.trigger('click')
     await flushPromises()
 
     expect(wrapper.get('[aria-label="Ações da demanda"]').text()).toContain(
-      'A solicitação já está fechada.',
+      'Só demanda pendente pode ser iniciada.',
     )
   })
 
   it('exclui a finalizada só depois de confirmar e volta ao quadro', async () => {
-    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'closed' }))
+    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'finished' }))
     vi.mocked(demandsService.deleteDemand).mockResolvedValue()
 
     const { router, wrapper } = await mountView()
@@ -187,19 +202,28 @@ describe('DemandDetailView', () => {
     await button(wrapper, 'Voltar')!.trigger('click')
 
     expect(wrapper.text()).not.toContain('Excluir esta demanda?')
-    expect(button(wrapper, 'Finalizar')).toBeDefined()
+    expect(button(wrapper, 'Iniciar')).toBeDefined()
     expect(demandsService.deleteDemand).not.toHaveBeenCalled()
   })
 
-  it('mostra Editar só na aberta, levando à tela de editar', async () => {
+  it('mostra Editar só na pendente, levando à tela de editar', async () => {
     const { wrapper } = await mountView()
 
     const edit = wrapper.findAll('a').find((link) => link.text() === 'Editar')
     expect(edit!.attributes('href')).toBe('/demandas/12/editar')
   })
 
+  it('não mostra Editar na em andamento', async () => {
+    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'in_progress' }))
+
+    const { wrapper } = await mountView()
+
+    expect(wrapper.findAll('a').some((link) => link.text() === 'Editar')).toBe(false)
+    expect(button(wrapper, 'Excluir')).toBeDefined()
+  })
+
   it('não mostra Editar na finalizada', async () => {
-    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'closed' }))
+    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'finished' }))
 
     const { wrapper } = await mountView()
 

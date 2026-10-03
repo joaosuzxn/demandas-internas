@@ -41,19 +41,19 @@ class DemandCreateTest extends TestCase
         $this->fromSpa()->getJson('/api/demands/1')->assertUnauthorized();
     }
 
-    public function test_employee_creates_open_demand_as_requester(): void
+    public function test_employee_creates_pending_demand_as_requester(): void
     {
         $response = $this->actingAsSpa($this->employee)->postJson('/api/demands', $this->validPayload())
             ->assertCreated()
             ->assertJsonPath('data.title', 'Trocar o monitor da recepção')
             ->assertJsonPath('data.description', 'O monitor apaga sozinho várias vezes por dia.')
             ->assertJsonPath('data.category', 'it')
-            ->assertJsonPath('data.status', 'open')
+            ->assertJsonPath('data.status', 'pending')
             ->assertJsonPath('data.requester', ['id' => $this->employee->id, 'name' => 'Maria Souza']);
 
         $this->assertDatabaseHas('demands', [
             'id' => $response->json('data.id'),
-            'status' => 'open',
+            'status' => 'pending',
             'requester_id' => $this->employee->id,
             'deleted_at' => null,
         ]);
@@ -64,7 +64,7 @@ class DemandCreateTest extends TestCase
         $other = User::factory()->create();
 
         $this->actingAsSpa($this->employee)
-            ->postJson('/api/demands', $this->validPayload(['status' => 'closed', 'requester_id' => $other->id]))
+            ->postJson('/api/demands', $this->validPayload(['status' => 'finished', 'requester_id' => $other->id]))
             ->assertUnprocessable()
             ->assertJsonValidationErrors([
                 'status' => 'O campo status não é permitido.',

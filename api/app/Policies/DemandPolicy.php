@@ -33,6 +33,11 @@ class DemandPolicy
         return $this->owns($actor, $demand);
     }
 
+    public function start(User $actor, Demand $demand): bool
+    {
+        return $this->owns($actor, $demand);
+    }
+
     public function close(User $actor, Demand $demand): bool
     {
         return $this->owns($actor, $demand);
