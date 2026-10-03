@@ -120,6 +120,17 @@ describe('DemandsBoard', () => {
     expect(wrapper.text()).toContain('João Lima')
   })
 
+  // O número é o protocolo da solicitação, no mesmo formato do título da tela da demanda.
+  it('mostra o número antes do título no cartão', () => {
+    const wrapper = mountBoard({
+      board: makeBoard([makeDemand({ id: 12, title: 'Trocar impressora' })]),
+    })
+
+    expect(wrapper.get('[data-demand="12"] [data-demand-title]').text()).toBe(
+      '#12 - Trocar impressora',
+    )
+  })
+
   it('leva à tela da demanda ao clicar no cartão', () => {
     const wrapper = mountBoard({ board: makeBoard([makeDemand({ id: 12 })]) })
 

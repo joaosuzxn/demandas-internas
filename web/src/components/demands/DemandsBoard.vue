@@ -119,7 +119,10 @@ function categoryLabel(demand: Demand): string {
               :to="{ name: 'demand', params: { id: demand.id } }"
               class="bg-surface-item hover:bg-surface-item-hover flex flex-col gap-2 rounded-2xl p-3.5 shadow-sm shadow-slate-900/5 transition"
             >
-              <p class="text-sm font-semibold wrap-break-word text-slate-900">{{ demand.title }}</p>
+              <!-- O número é o protocolo da solicitação: o mesmo `#id - título` da tela da demanda. -->
+              <p data-demand-title class="text-sm font-semibold wrap-break-word text-slate-900">
+                #{{ demand.id }} - {{ demand.title }}
+              </p>
               <p class="text-xs text-slate-600">
                 {{ categoryLabel(demand) }} · {{ demand.requester.name }}
               </p>
