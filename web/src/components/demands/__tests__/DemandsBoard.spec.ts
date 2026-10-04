@@ -52,11 +52,11 @@ function column(
 
 const Stub = defineComponent({ render: () => null })
 
-// O cartão é link para a tela da demanda: o quadro precisa de um router com a rota `demand`.
+// O cartão é link para a tela da solicitação: o quadro precisa de um router com a rota `demand`.
 function mountBoard(props: Partial<InstanceType<typeof DemandsBoard>['$props']> = {}) {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/demandas/:id', name: 'demand', component: Stub }],
+    routes: [{ path: '/solicitacoes/:id', name: 'demand', component: Stub }],
   })
   return mount(DemandsBoard, {
     props: { board: makeBoard(), ...props },
@@ -86,7 +86,7 @@ describe('DemandsBoard', () => {
     expect(wrapper.get('[data-column="finished"]').text()).toContain('3')
   })
 
-  it('põe cada demanda na coluna do seu status', () => {
+  it('põe cada solicitação na coluna do seu status', () => {
     const wrapper = mountBoard({
       board: makeBoard(
         [makeDemand({ id: 1, title: 'Trocar impressora' })],
@@ -102,10 +102,10 @@ describe('DemandsBoard', () => {
   })
 
   // Foco de revisão 4: o vazio do quadro soma as três colunas.
-  it('com demandas só em andamento, mostra o quadro e não o vazio', () => {
+  it('com solicitações só em andamento, mostra o quadro e não o vazio', () => {
     const wrapper = mountBoard({ board: makeBoard([], [makeDemand({ status: 'in_progress' })]) })
 
-    expect(wrapper.text()).not.toContain('Nenhuma demanda registrada ainda.')
+    expect(wrapper.text()).not.toContain('Nenhuma solicitação registrada ainda.')
     expect(wrapper.get('[data-column="in_progress"]').text()).toContain('Trocar impressora')
   })
 
@@ -120,7 +120,7 @@ describe('DemandsBoard', () => {
     expect(wrapper.text()).toContain('João Lima')
   })
 
-  // O número é o protocolo da solicitação, no mesmo formato do título da tela da demanda.
+  // O número é o protocolo da solicitação, no mesmo formato do título da tela da solicitação.
   it('mostra o número antes do título no cartão', () => {
     const wrapper = mountBoard({
       board: makeBoard([makeDemand({ id: 12, title: 'Trocar impressora' })]),
@@ -131,10 +131,10 @@ describe('DemandsBoard', () => {
     )
   })
 
-  it('leva à tela da demanda ao clicar no cartão', () => {
+  it('leva à tela da solicitação ao clicar no cartão', () => {
     const wrapper = mountBoard({ board: makeBoard([makeDemand({ id: 12 })]) })
 
-    expect(wrapper.get('[data-demand="12"] a').attributes('href')).toBe('/demandas/12')
+    expect(wrapper.get('[data-demand="12"] a').attributes('href')).toBe('/solicitacoes/12')
   })
 
   it('pede a página seguinte quando a rolagem da coluna chega ao fim', () => {
@@ -204,16 +204,16 @@ describe('DemandsBoard', () => {
     expect(wrapper.emitted('load-more')).toEqual([['pending'], ['pending']])
   })
 
-  it('diz que não há demandas quando o quadro inteiro está vazio', () => {
+  it('diz que não há solicitações quando o quadro inteiro está vazio', () => {
     const wrapper = mountBoard()
 
-    expect(wrapper.text()).toContain('Nenhuma demanda registrada ainda.')
+    expect(wrapper.text()).toContain('Nenhuma solicitação registrada ainda.')
   })
 
   it('diz que os filtros não acharam nada quando há filtro em vigor', () => {
     const wrapper = mountBoard({ filtering: true })
 
-    expect(wrapper.text()).toContain('Nenhuma demanda corresponde aos filtros.')
+    expect(wrapper.text()).toContain('Nenhuma solicitação corresponde aos filtros.')
   })
 
   it('mostra o estado de carregamento sem as colunas', () => {
@@ -223,7 +223,7 @@ describe('DemandsBoard', () => {
   })
 
   it('mostra o erro com botão para tentar de novo', async () => {
-    const wrapper = mountBoard({ error: 'Não foi possível carregar as demandas.' })
+    const wrapper = mountBoard({ error: 'Não foi possível carregar as solicitações.' })
 
     expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar')
 

@@ -13,9 +13,9 @@ class DemandStatusTest extends TestCase
     use RefreshDatabase;
 
     private const MESSAGES = [
-        'start' => 'Só demanda pendente pode ser iniciada.',
-        'close' => 'Só demanda em andamento pode ser finalizada.',
-        'reopen' => 'Só demanda finalizada pode ser reaberta.',
+        'start' => 'Só solicitação pendente pode ser iniciada.',
+        'close' => 'Só solicitação em andamento pode ser finalizada.',
+        'reopen' => 'Só solicitação finalizada pode ser reaberta.',
     ];
 
     // Ação → [situação de origem, situação de destino].
@@ -149,7 +149,7 @@ class DemandStatusTest extends TestCase
             ->assertJsonPath('data.title', 'Depois de reabrir');
     }
 
-    // Demanda excluída não muda de situação.
+    // Solicitação excluída não muda de situação.
     public function test_deleted_demand_is_not_found(): void
     {
         foreach (self::TRANSITIONS as $action => [$from]) {

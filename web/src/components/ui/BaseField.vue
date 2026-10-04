@@ -43,14 +43,14 @@ const hintId = `${fieldId}-hint`
 
 /** Mesma pintura nos três controles: o vidro claro do app, legível nos dois temas. */
 const CONTROL_CLASS =
-  'w-full rounded-2xl border bg-surface-field px-4 py-2.5 text-sm text-slate-900 shadow-sm shadow-slate-900/5 transition placeholder:text-slate-400 focus:bg-white/80 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60'
+  'w-full rounded-2xl border bg-surface-field px-4 py-2.5 text-sm text-slate-900 shadow-sm shadow-slate-900/5 transition placeholder:text-slate-400 focus:bg-white/80 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 dark:text-white dark:shadow-black/20 dark:placeholder:text-slate-500 dark:focus:bg-white/10'
 </script>
 
 <template>
   <div class="flex flex-col gap-1.5">
-    <label :for="fieldId" class="text-xs font-medium text-slate-600">
+    <label :for="fieldId" class="text-xs font-medium text-slate-600 dark:text-slate-300">
       {{ label }}
-      <span v-if="required" class="text-red-600" aria-hidden="true">*</span>
+      <span v-if="required" class="text-red-600 dark:text-red-300" aria-hidden="true">*</span>
     </label>
 
     <textarea
@@ -67,7 +67,7 @@ const CONTROL_CLASS =
       :class="[
         CONTROL_CLASS,
         'resize-y',
-        error ? 'border-red-400' : 'focus:border-brand-400 border-white/60 hover:border-white/80',
+        error ? 'border-red-400 dark:border-red-400/70' : 'focus:border-brand-400 border-white/60 hover:border-white/80 dark:border-white/10 dark:hover:border-white/20',
       ]"
     ></textarea>
 
@@ -84,7 +84,7 @@ const CONTROL_CLASS =
       :describedby="error ? errorId : hint ? hintId : undefined"
       :class="[
         CONTROL_CLASS,
-        error ? 'border-red-400' : 'focus:border-brand-400 border-white/60 hover:border-white/80',
+        error ? 'border-red-400 dark:border-red-400/70' : 'focus:border-brand-400 border-white/60 hover:border-white/80 dark:border-white/10 dark:hover:border-white/20',
       ]"
     />
 
@@ -102,14 +102,14 @@ const CONTROL_CLASS =
       :aria-describedby="error ? errorId : hint ? hintId : undefined"
       :class="[
         CONTROL_CLASS,
-        error ? 'border-red-400' : 'focus:border-brand-400 border-white/60 hover:border-white/80',
+        error ? 'border-red-400 dark:border-red-400/70' : 'focus:border-brand-400 border-white/60 hover:border-white/80 dark:border-white/10 dark:hover:border-white/20',
       ]"
     />
 
-    <p v-if="error" :id="errorId" role="alert" class="text-xs text-red-600">
+    <p v-if="error" :id="errorId" role="alert" class="text-xs text-red-600 dark:text-red-300">
       {{ error }}
     </p>
-    <p v-else-if="hint" :id="hintId" class="text-xs text-slate-500">
+    <p v-else-if="hint" :id="hintId" class="text-xs text-slate-500 dark:text-slate-400">
       {{ hint }}
     </p>
   </div>

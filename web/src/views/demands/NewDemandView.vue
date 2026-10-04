@@ -11,26 +11,26 @@ const router = useRouter()
 // O quadro com os filtros da última visita (lidos ao abrir a tela).
 const boardRoute = demandsBoardRoute()
 
-/** Criada: abre a tela da demanda, como no Órbita. O aviso vai no estado da navegação, para o F5 não repeti-lo. */
+/** Criada: abre a tela da solicitação, como no Órbita. O aviso vai no estado da navegação, para o F5 não repeti-lo. */
 function onSaved(demand: Demand): void {
   void router.push({
     name: 'demand',
     params: { id: demand.id },
-    state: { notice: 'Demanda criada.' },
+    state: { notice: 'Solicitação criada.' },
   })
 }
 </script>
 
 <template>
   <div class="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
-    <PageHeader title="Nova demanda" subtitle="O que precisa ser feito e por qual área.">
+    <PageHeader title="Nova solicitação" subtitle="O que precisa ser feito e por qual área.">
       <template #media>
-        <BackLink :to="boardRoute" label="Demandas" />
+        <BackLink :to="boardRoute" label="Solicitações" />
       </template>
     </PageHeader>
 
-    <GlassPanel title="Dados da demanda">
-      <DemandForm :cancel-to="boardRoute" submit-label="Criar demanda" @saved="onSaved" />
+    <GlassPanel title="Dados da solicitação">
+      <DemandForm :cancel-to="boardRoute" submit-label="Criar solicitação" @saved="onSaved" />
     </GlassPanel>
   </div>
 </template>

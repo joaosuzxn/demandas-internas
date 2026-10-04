@@ -15,9 +15,9 @@ import {
 const props = defineProps<{ demand: Demand }>()
 
 const emit = defineEmits<{
-  /** A situação mudou: a tela passa a mostrar a demanda que a API devolveu. */
+  /** A situação mudou: a tela passa a mostrar a solicitação que a API devolveu. */
   updated: [demand: Demand]
-  /** A demanda foi excluída: quem ouve sai da tela. */
+  /** A solicitação foi excluída: quem ouve sai da tela. */
   deleted: []
 }>()
 
@@ -27,7 +27,7 @@ const running = ref<'status' | 'delete' | null>(null)
 const success = ref<string | null>(null)
 const error = ref<string | null>(null)
 
-// Outra demanda na mesma tela não herda o aviso nem a confirmação da anterior.
+// Outra solicitação na mesma tela não herda o aviso nem a confirmação da anterior.
 watch(
   () => props.demand.id,
   () => {
@@ -50,19 +50,19 @@ const STATUS_ACTIONS: Record<Demand['status'], StatusAction> = {
   pending: {
     label: 'Iniciar',
     icon: 'circle-play',
-    success: 'Demanda iniciada.',
+    success: 'Solicitação iniciada.',
     run: startDemand,
   },
   in_progress: {
     label: 'Finalizar',
     icon: 'circle-check',
-    success: 'Demanda finalizada.',
+    success: 'Solicitação finalizada.',
     run: closeDemand,
   },
   finished: {
     label: 'Reabrir',
     icon: 'rotate-ccw',
-    success: 'Demanda reaberta.',
+    success: 'Solicitação reaberta.',
     run: reopenDemand,
   },
 }
@@ -107,31 +107,31 @@ async function confirmDelete(): Promise<void> {
 }
 
 const BUTTON =
-  'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium shadow-sm shadow-slate-900/5 transition disabled:cursor-not-allowed disabled:opacity-60'
-const PRIMARY = 'bg-sidebar-active text-white hover:opacity-90'
-const SECONDARY = 'bg-surface-item hover:bg-surface-item-hover text-slate-700'
+  'inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium shadow-sm shadow-slate-900/5 transition disabled:cursor-not-allowed disabled:opacity-60 dark:shadow-black/20'
+const PRIMARY = 'bg-sidebar-active text-white hover:opacity-90 dark:bg-white dark:text-slate-950'
+const SECONDARY = 'bg-surface-item hover:bg-surface-item-hover text-slate-700 dark:text-slate-200'
 const DANGER = 'bg-red-600 text-white hover:bg-red-700'
 // Excluir na linha de botões: discreto, o vermelho forte fica para a confirmação.
-const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700'
+const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700 dark:text-red-300'
 </script>
 
 <template>
-  <section aria-label="Ações da demanda" class="flex flex-col gap-3">
+  <section aria-label="Ações da solicitação" class="flex flex-col gap-3">
     <p
       v-if="success"
       role="status"
-      class="rounded-2xl bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-800"
+      class="rounded-2xl bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-800 dark:text-emerald-300"
     >
       {{ success }}
     </p>
-    <p v-if="error" role="alert" class="rounded-2xl bg-red-500/10 px-3.5 py-2 text-sm text-red-700">
+    <p v-if="error" role="alert" class="rounded-2xl bg-red-500/10 px-3.5 py-2 text-sm text-red-700 dark:text-red-300">
       {{ error }}
     </p>
 
     <!-- A confirmação toma o lugar dos botões, como no Órbita: um ato por vez. -->
     <div v-if="confirming" class="flex flex-col gap-3">
-      <p class="text-sm text-slate-700">
-        <span class="font-semibold text-slate-900">Excluir esta demanda?</span>
+      <p class="text-sm text-slate-700 dark:text-slate-200">
+        <span class="font-semibold text-slate-900 dark:text-white">Excluir esta solicitação?</span>
         Ela some do quadro para todos.
       </p>
       <div class="flex flex-wrap gap-2">

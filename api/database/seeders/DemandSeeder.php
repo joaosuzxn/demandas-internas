@@ -10,8 +10,8 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 
 /**
- * Demandas de exemplo para ver o quadro no navegador. Só no ambiente local (o Faker é dev-only,
- * e prod não pode ter dados de teste). Idempotente: não roda se já há demandas.
+ * Solicitações de exemplo para ver o quadro no navegador. Só no ambiente local (o Faker é dev-only,
+ * e prod não pode ter dados de teste). Idempotente: não roda se já há solicitações.
  */
 class DemandSeeder extends Seeder
 {

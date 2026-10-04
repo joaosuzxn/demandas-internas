@@ -294,13 +294,13 @@ const CHOICE_CLASS = 'cursor-pointer px-4 py-3 text-sm transition-colors'
     <!-- Quem desenha o gatilho de outro jeito usa o slot. -->
     <slot :selected="selected" :placeholder="placeholderOption ?? ''">
       <span v-if="selected" class="truncate">{{ selected.label }}</span>
-      <span v-else data-select-placeholder class="truncate text-slate-400">
+      <span v-else data-select-placeholder class="truncate text-slate-400 dark:text-slate-500">
         {{ placeholderOption ?? '' }}
       </span>
     </slot>
     <AppIcon
       name="chevron-down"
-      class="text-silk-indigo size-4 shrink-0 transition-transform duration-200"
+      class="text-silk-indigo dark:text-dusk-300 size-4 shrink-0 transition-transform duration-200"
       :class="{ 'rotate-180': open }"
     />
   </button>
@@ -313,7 +313,7 @@ const CHOICE_CLASS = 'cursor-pointer px-4 py-3 text-sm transition-colors'
       role="listbox"
       tabindex="-1"
       :style="position"
-      class="shadow-dusk-500/25 fixed z-60 overflow-y-auto rounded-2xl border border-white/70 bg-white/95 shadow-2xl backdrop-blur-xl"
+      class="shadow-dusk-500/25 fixed z-60 overflow-y-auto rounded-2xl border border-white/70 bg-white/95 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-ink-950/95 dark:shadow-black/40"
     >
       <!-- `mousedown.prevent`: o foco não sai do gatilho, que é quem fala com o leitor de tela. -->
       <li
@@ -327,12 +327,12 @@ const CHOICE_CLASS = 'cursor-pointer px-4 py-3 text-sm transition-colors'
           CHOICE_CLASS,
           option.value === model && 'font-medium',
           index === active
-            ? 'bg-dusk-50 text-slate-900'
+            ? 'bg-dusk-50 text-slate-900 dark:bg-white/10 dark:text-white'
             : option.value === model
-              ? 'text-dusk-700'
+              ? 'text-dusk-700 dark:text-dusk-300'
               : option.value === ''
-                ? 'text-slate-500'
-                : 'text-slate-700',
+                ? 'text-slate-500 dark:text-slate-400'
+                : 'text-slate-700 dark:text-slate-200',
         ]"
         @mousedown.prevent
         @mousemove="active = index"

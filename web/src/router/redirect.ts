@@ -14,8 +14,8 @@ export function safeRedirect(value: unknown): string {
   return '/'
 }
 
-// Destinos padrão depois do login: a home e o dashboard, para onde ela redireciona antes da guarda (item 0030).
-const DEFAULT_DESTINATIONS = ['/', '/dashboard']
+// Destinos padrão depois do login: a home e o quadro de solicitações, para onde ela redireciona antes da guarda (item 0034).
+const DEFAULT_DESTINATIONS = ['/', '/solicitacoes']
 
 // O login, guardando para onde a pessoa queria ir (o destino padrão não precisa ir na URL).
 export function loginLocation(fullPath: string): RouteLocationRaw {

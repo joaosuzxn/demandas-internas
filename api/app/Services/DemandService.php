@@ -123,8 +123,8 @@ class DemandService
         });
     }
 
-    // Relê a demanda travando a linha até o fim da transação: a situação conferida é a do banco agora, e não a de
-    // quando a requisição carregou a demanda. Duas ações ao mesmo tempo (duas abas, duas pessoas) passam uma de cada
+    // Relê a solicitação travando a linha até o fim da transação: a situação conferida é a do banco agora, e não a de
+    // quando a requisição carregou a solicitação. Duas ações ao mesmo tempo (duas abas, duas pessoas) passam uma de cada
     // vez, e a segunda recebe o 422 — sem movimentação duplicada ou fora de ordem no histórico.
     private function lock(Demand $demand): Demand
     {

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// Histórico da demanda (item 0026): uma linha por ato, só de inserção — por isso só created_at.
+// Histórico da solicitação (item 0026): uma linha por ato, só de inserção — por isso só created_at.
 return new class extends Migration
 {
     public function up(): void

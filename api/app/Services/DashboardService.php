@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-// Números do dashboard (item 0030). Contam as demandas criadas no período (situação atual), sem as excluídas.
+// Números do dashboard (item 0030). Contam as solicitações criadas no período (situação atual), sem as excluídas.
 class DashboardService
 {
     /**
@@ -83,7 +83,7 @@ class DashboardService
             'demands.created_at', $granularity, $timezone,
         );
 
-        // whereHas leva o SoftDeletes da demanda: conclusão de demanda excluída não conta.
+        // whereHas leva o SoftDeletes da solicitação: conclusão de solicitação excluída não conta.
         $finished = $this->bucketCounts(
             DemandMovement::query()
                 ->where('type', DemandMovementType::Finished)
@@ -104,7 +104,7 @@ class DashboardService
         return ['granularity' => $granularity, 'points' => $points];
     }
 
-    // O dia (no fuso do negócio) da demanda mais antiga da categoria; null sem nenhuma demanda.
+    // O dia (no fuso do negócio) da solicitação mais antiga da categoria; null sem nenhuma solicitação.
     private function oldestDay(?string $category): ?Carbon
     {
         $oldest = Demand::query()
@@ -153,7 +153,7 @@ class DashboardService
     }
 
     /**
-     * Demandas do recorte: categoria e período de criação. As excluídas ficam fora pelo SoftDeletes.
+     * Solicitações do recorte: categoria e período de criação. As excluídas ficam fora pelo SoftDeletes.
      *
      * @param  array<string, mixed>  $filters
      * @return Builder<Demand>

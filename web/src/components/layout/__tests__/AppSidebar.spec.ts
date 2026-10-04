@@ -6,30 +6,30 @@ import AppSidebar from '../AppSidebar.vue'
 
 const Stub = defineComponent({ render: () => null })
 
-async function mountSidebar(activeRouteName: string | null = 'demands') {
+async function mountSidebar(activeRouteName: string | null = 'demands', isDark = false) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
       { path: '/dashboard', name: 'dashboard', component: Stub },
-      { path: '/demandas', name: 'demands', component: Stub },
+      { path: '/solicitacoes', name: 'demands', component: Stub },
     ],
   })
-  await router.push('/demandas')
+  await router.push('/solicitacoes')
 
   return mount(AppSidebar, {
-    props: { activeRouteName },
+    props: { activeRouteName, isDark },
     global: { plugins: [router] },
   })
 }
 
 describe('AppSidebar', () => {
-  it('lista Dashboard e Demandas, e marca a tela aberta', async () => {
+  it('lista Solicitações e Dashboard, e marca a tela aberta', async () => {
     const wrapper = await mountSidebar('demands')
 
     const links = wrapper.findAll('nav a')
-    expect(links.map((link) => link.text())).toEqual(['Dashboard', 'Demandas'])
-    expect(links[1]!.attributes('aria-current')).toBe('page')
-    expect(links[0]!.attributes('aria-current')).toBeUndefined()
+    expect(links.map((link) => link.text())).toEqual(['Solicitações', 'Dashboard'])
+    expect(links[0]!.attributes('aria-current')).toBe('page')
+    expect(links[1]!.attributes('aria-current')).toBeUndefined()
   })
 
   it('não marca item nenhum quando a tela aberta não está no menu', async () => {
@@ -39,7 +39,7 @@ describe('AppSidebar', () => {
     expect(links.every((link) => link.attributes('aria-current') === undefined)).toBe(true)
   })
 
-  it('põe Meu perfil logo acima de Sair, no fim da barra', async () => {
+  it('põe o botão de tema logo acima de Sair, no lugar de Meu perfil', async () => {
     const wrapper = await mountSidebar()
 
     // O botão de fechar do mobile não tem texto: fica de fora da conta.
@@ -47,7 +47,17 @@ describe('AppSidebar', () => {
       .findAll('button')
       .map((button) => button.text())
       .filter(Boolean)
-    expect(labels).toEqual(['Meu perfil', 'Sair'])
+    expect(labels).toEqual(['Modo escuro', 'Sair'])
+    expect(wrapper.text()).not.toContain('Meu perfil')
+  })
+
+  it('no escuro, o botão oferece o modo claro; o clique emite toggle-theme', async () => {
+    const wrapper = await mountSidebar('demands', true)
+
+    const toggle = wrapper.findAll('button').find((button) => button.text() === 'Modo claro')!
+    expect(toggle.attributes('aria-pressed')).toBe('true')
+    await toggle.trigger('click')
+    expect(wrapper.emitted('toggle-theme')).toHaveLength(1)
   })
 
   it('emite logout ao clicar em Sair', async () => {

@@ -33,6 +33,6 @@ describe('DashboardCategoriesCard', () => {
     const zeros = CATEGORIES.map((entry) => ({ ...entry, total: 0 }))
     const wrapper = mount(DashboardCategoriesCard, { props: { categories: zeros } })
 
-    expect(wrapper.text()).toContain('Nenhuma demanda no período.')
+    expect(wrapper.text()).toContain('Nenhuma solicitação no período.')
   })
 })

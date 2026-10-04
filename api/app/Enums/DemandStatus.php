@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-// Toda demanda nasce pendente; só start, close e reopen mudam o status (DemandService).
+// Toda solicitação nasce pendente; só start, close e reopen mudam o status (DemandService).
 enum DemandStatus: string
 {
     case Pending = 'pending';

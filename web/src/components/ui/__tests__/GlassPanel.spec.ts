@@ -31,8 +31,8 @@ describe('GlassPanel', () => {
   })
 
   it('vazio: mensagem no lugar do conteúdo', () => {
-    const wrapper = mountPanel({ empty: true, emptyMessage: 'Nenhuma demanda no período.' })
-    expect(wrapper.text()).toContain('Nenhuma demanda no período.')
+    const wrapper = mountPanel({ empty: true, emptyMessage: 'Nenhuma solicitação no período.' })
+    expect(wrapper.text()).toContain('Nenhuma solicitação no período.')
     expect(wrapper.text()).not.toContain('conteúdo')
   })
 

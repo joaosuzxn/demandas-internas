@@ -45,21 +45,21 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
   }
 }
 
-// Quem entra é a usuária 1, dona das demandas com requester.id 1.
+// Quem entra é a usuária 1, dona das solicitações com requester.id 1.
 async function mountView(role: Role = 'employee', notice?: string) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: '/demandas', name: 'demands', component: Stub },
-      { path: '/demandas/:id', name: 'demand', component: DemandDetailView },
-      { path: '/demandas/:id/editar', name: 'demand-edit', component: Stub },
+      { path: '/solicitacoes', name: 'demands', component: Stub },
+      { path: '/solicitacoes/:id', name: 'demand', component: DemandDetailView },
+      { path: '/solicitacoes/:id/editar', name: 'demand-edit', component: Stub },
     ],
   })
   const pinia = createPinia()
   setActivePinia(pinia)
   useAuthStore().user = makeUser({ id: 1, role })
 
-  await router.push(notice ? { path: '/demandas/12', state: { notice } } : '/demandas/12')
+  await router.push(notice ? { path: '/solicitacoes/12', state: { notice } } : '/solicitacoes/12')
   const wrapper = mount(DemandDetailView, { global: { plugins: [pinia, router] } })
   await flushPromises()
   return { router, wrapper }
@@ -79,7 +79,7 @@ describe('DemandDetailView', () => {
     vi.mocked(demandsService.deleteDemand).mockReset()
   })
 
-  it('carrega a demanda do endereço e mostra título, descrição e informações', async () => {
+  it('carrega a solicitação do endereço e mostra título, descrição e informações', async () => {
     const { wrapper } = await mountView()
 
     expect(demandsService.getDemand).toHaveBeenCalledWith(12)
@@ -89,7 +89,7 @@ describe('DemandDetailView', () => {
     expect(facts).toContain('Pendente')
     expect(facts).toContain('TI')
     expect(facts).toContain('Maria Souza')
-    expect(wrapper.get('a[aria-label="Voltar para Demandas"]').attributes('href')).toBe('/demandas')
+    expect(wrapper.get('a[aria-label="Voltar para Solicitações"]').attributes('href')).toBe('/solicitacoes')
   })
 
   it('o voltar e a exclusão levam ao quadro com os filtros da última visita', async () => {
@@ -98,23 +98,23 @@ describe('DemandDetailView', () => {
     vi.mocked(demandsService.deleteDemand).mockResolvedValue()
 
     const { router, wrapper } = await mountView()
-    expect(wrapper.get('a[aria-label="Voltar para Demandas"]').attributes('href')).toBe(
-      '/demandas?search=monitor&category=hr',
+    expect(wrapper.get('a[aria-label="Voltar para Solicitações"]').attributes('href')).toBe(
+      '/solicitacoes?search=monitor&category=hr',
     )
 
     await button(wrapper, 'Excluir')!.trigger('click')
     await button(wrapper, 'Excluir')!.trigger('click')
     await flushPromises()
 
-    expect(router.currentRoute.value.fullPath).toBe('/demandas?search=monitor&category=hr')
+    expect(router.currentRoute.value.fullPath).toBe('/solicitacoes?search=monitor&category=hr')
   })
 
-  it('avisa quando a demanda não existe (404)', async () => {
+  it('avisa quando a solicitação não existe (404)', async () => {
     vi.mocked(demandsService.getDemand).mockRejectedValue(httpError(404))
 
     const { wrapper } = await mountView()
 
-    expect(wrapper.text()).toContain('Demanda não encontrada')
+    expect(wrapper.text()).toContain('Solicitação não encontrada')
     expect(button(wrapper, 'Tentar de novo')).toBeUndefined()
   })
 
@@ -122,7 +122,7 @@ describe('DemandDetailView', () => {
     vi.mocked(demandsService.getDemand).mockRejectedValueOnce(networkError())
 
     const { wrapper } = await mountView()
-    expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar a demanda.')
+    expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar a solicitação.')
 
     await button(wrapper, 'Tentar de novo')!.trigger('click')
     await flushPromises()
@@ -137,10 +137,10 @@ describe('DemandDetailView', () => {
 
     const { wrapper } = await mountView('employee')
 
-    expect(wrapper.find('[aria-label="Ações da demanda"]').exists()).toBe(false)
+    expect(wrapper.find('[aria-label="Ações da solicitação"]').exists()).toBe(false)
   })
 
-  it('admin vê as ações na demanda de outra pessoa', async () => {
+  it('admin vê as ações na solicitação de outra pessoa', async () => {
     vi.mocked(demandsService.getDemand).mockResolvedValue(
       makeDemand({ requester: { id: 9, name: 'Joana' } }),
     )
@@ -151,7 +151,7 @@ describe('DemandDetailView', () => {
     expect(button(wrapper, 'Excluir')).toBeDefined()
   })
 
-  it('inicia a pendente no clique e passa a mostrar a demanda em andamento', async () => {
+  it('inicia a pendente no clique e passa a mostrar a solicitação em andamento', async () => {
     vi.mocked(demandsService.startDemand).mockResolvedValue(makeDemand({ status: 'in_progress' }))
 
     const { wrapper } = await mountView()
@@ -159,7 +159,7 @@ describe('DemandDetailView', () => {
     await flushPromises()
 
     expect(demandsService.startDemand).toHaveBeenCalledWith(12)
-    expect(wrapper.text()).toContain('Demanda iniciada.')
+    expect(wrapper.text()).toContain('Solicitação iniciada.')
     expect(wrapper.get('[data-demand-facts]').text()).toContain('Em andamento')
     expect(button(wrapper, 'Finalizar')).toBeDefined()
     expect(wrapper.findAll('a').some((link) => link.text() === 'Editar')).toBe(false)
@@ -175,7 +175,7 @@ describe('DemandDetailView', () => {
     await flushPromises()
 
     expect(demandsService.closeDemand).toHaveBeenCalledWith(12)
-    expect(wrapper.text()).toContain('Demanda finalizada.')
+    expect(wrapper.text()).toContain('Solicitação finalizada.')
     expect(button(wrapper, 'Reabrir')).toBeDefined()
   })
 
@@ -188,21 +188,21 @@ describe('DemandDetailView', () => {
     await flushPromises()
 
     expect(demandsService.reopenDemand).toHaveBeenCalledWith(12)
-    expect(wrapper.text()).toContain('Demanda reaberta.')
+    expect(wrapper.text()).toContain('Solicitação reaberta.')
     expect(button(wrapper, 'Iniciar')).toBeDefined()
   })
 
   it('mostra a mensagem da API quando a ação é recusada', async () => {
     vi.mocked(demandsService.startDemand).mockRejectedValue(
-      httpError(422, { errors: { status: ['Só demanda pendente pode ser iniciada.'] } }),
+      httpError(422, { errors: { status: ['Só solicitação pendente pode ser iniciada.'] } }),
     )
 
     const { wrapper } = await mountView()
     await button(wrapper, 'Iniciar')!.trigger('click')
     await flushPromises()
 
-    expect(wrapper.get('[aria-label="Ações da demanda"]').text()).toContain(
-      'Só demanda pendente pode ser iniciada.',
+    expect(wrapper.get('[aria-label="Ações da solicitação"]').text()).toContain(
+      'Só solicitação pendente pode ser iniciada.',
     )
   })
 
@@ -214,7 +214,7 @@ describe('DemandDetailView', () => {
     await button(wrapper, 'Excluir')!.trigger('click')
 
     expect(demandsService.deleteDemand).not.toHaveBeenCalled()
-    expect(wrapper.text()).toContain('Excluir esta demanda?')
+    expect(wrapper.text()).toContain('Excluir esta solicitação?')
 
     await button(wrapper, 'Excluir')!.trigger('click')
     await flushPromises()
@@ -228,7 +228,7 @@ describe('DemandDetailView', () => {
     await button(wrapper, 'Excluir')!.trigger('click')
     await button(wrapper, 'Voltar')!.trigger('click')
 
-    expect(wrapper.text()).not.toContain('Excluir esta demanda?')
+    expect(wrapper.text()).not.toContain('Excluir esta solicitação?')
     expect(button(wrapper, 'Iniciar')).toBeDefined()
     expect(demandsService.deleteDemand).not.toHaveBeenCalled()
   })
@@ -237,7 +237,7 @@ describe('DemandDetailView', () => {
     const { wrapper } = await mountView()
 
     const edit = wrapper.findAll('a').find((link) => link.text() === 'Editar')
-    expect(edit!.attributes('href')).toBe('/demandas/12/editar')
+    expect(edit!.attributes('href')).toBe('/solicitacoes/12/editar')
   })
 
   it('não mostra Editar na em andamento', async () => {
@@ -257,7 +257,7 @@ describe('DemandDetailView', () => {
     expect(wrapper.findAll('a').some((link) => link.text() === 'Editar')).toBe(false)
   })
 
-  it('mostra a movimentação da demanda abaixo da descrição', async () => {
+  it('mostra a movimentação da solicitação abaixo da descrição', async () => {
     const { wrapper } = await mountView()
 
     expect(wrapper.get('[data-demand-timeline]').text()).toContain('Criada')
@@ -299,15 +299,15 @@ describe('DemandDetailView', () => {
     })
 
     it('mostra o aviso uma vez e o apaga do estado da navegação', async () => {
-      const { router, wrapper } = await mountView('employee', 'Demanda criada.')
+      const { router, wrapper } = await mountView('employee', 'Solicitação criada.')
 
-      expect(wrapper.get('[data-arrival-notice]').text()).toContain('Demanda criada.')
+      expect(wrapper.get('[data-arrival-notice]').text()).toContain('Solicitação criada.')
       expect(router.options.history.state.notice).toBeNull()
     })
 
     it('o aviso se recolhe sozinho', async () => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-      const { wrapper } = await mountView('employee', 'Demanda atualizada.')
+      const { wrapper } = await mountView('employee', 'Solicitação atualizada.')
 
       vi.advanceTimersByTime(NOTICE_TIMEOUT_MS)
       await flushPromises()

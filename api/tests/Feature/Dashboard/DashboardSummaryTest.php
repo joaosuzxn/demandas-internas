@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
-// Indicadores do dashboard (item 0030): GET /api/dashboard/summary conta as demandas por situação atual.
+// Indicadores do dashboard (item 0030): GET /api/dashboard/summary conta as solicitações por situação atual.
 class DashboardSummaryTest extends TestCase
 {
     use RefreshDatabase;

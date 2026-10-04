@@ -4,7 +4,6 @@ export type IconName =
   | 'clipboard-list'
   | 'clock'
   | 'circle-check'
-  | 'user'
   | 'log-out'
   | 'menu'
   | 'x'
@@ -18,10 +17,24 @@ export type IconName =
   | 'circle-play'
   | 'sliders-horizontal'
   | 'layout-dashboard'
+  | 'moon'
+  | 'sun'
 
 type IconElement = [tag: string, attributes: Record<string, string>]
 
 export const ICONS: Record<IconName, IconElement[]> = {
+  moon: [['path', { d: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z' }]],
+  sun: [
+    ['circle', { cx: '12', cy: '12', r: '4' }],
+    ['path', { d: 'M12 2v2' }],
+    ['path', { d: 'M12 20v2' }],
+    ['path', { d: 'm4.93 4.93 1.41 1.41' }],
+    ['path', { d: 'm17.66 17.66 1.41 1.41' }],
+    ['path', { d: 'M2 12h2' }],
+    ['path', { d: 'M20 12h2' }],
+    ['path', { d: 'm6.34 17.66-1.41 1.41' }],
+    ['path', { d: 'm19.07 4.93-1.41 1.41' }],
+  ],
   'layout-dashboard': [
     ['rect', { width: '7', height: '9', x: '3', y: '3', rx: '1' }],
     ['rect', { width: '7', height: '5', x: '14', y: '3', rx: '1' }],
@@ -43,10 +56,6 @@ export const ICONS: Record<IconName, IconElement[]> = {
   'circle-check': [
     ['circle', { cx: '12', cy: '12', r: '10' }],
     ['path', { d: 'm9 12 2 2 4-4' }],
-  ],
-  user: [
-    ['circle', { cx: '12', cy: '8', r: '5' }],
-    ['path', { d: 'M20 21a8 8 0 0 0-16 0' }],
   ],
   'log-out': [
     ['path', { d: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4' }],

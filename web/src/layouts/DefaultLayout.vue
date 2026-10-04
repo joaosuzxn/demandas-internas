@@ -4,14 +4,16 @@ import { RouterView, useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useUiStore } from '@/stores/ui'
 
 const auth = useAuthStore()
+const ui = useUiStore()
 const route = useRoute()
 const router = useRouter()
 
 const sidebarId = useId()
 // O destaque vem da rota aberta, não do último clique: vale também para voltar no navegador.
-// Tela fora do menu (a de uma demanda) diz pelo `meta.sidebarItem` qual item segue destacado.
+// Tela fora do menu (a de uma solicitação) diz pelo `meta.sidebarItem` qual item segue destacado.
 const activeRouteName = computed(
   () => route.meta.sidebarItem ?? (route.name ? String(route.name) : null),
 )
@@ -27,20 +29,27 @@ async function logout(): Promise<void> {
   await router.replace({ name: 'login' })
 }
 
-onMounted(() => document.addEventListener('keydown', onKeydown))
-onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
+// O tema escuro só vale enquanto este layout (as telas com sidebar) está montado: o login fica sempre claro.
+onMounted(() => {
+  document.addEventListener('keydown', onKeydown)
+  ui.enterThemedScreen()
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', onKeydown)
+  ui.leaveThemedScreen()
+})
 </script>
 
 <template>
   <!-- `isolate`: mantém o conteúdo de vidro acima do fundo, sem o `body` engolir o efeito. -->
-  <div class="bg-surface-page isolate min-h-svh text-slate-800">
+  <div class="bg-surface-page isolate min-h-svh text-slate-800 dark:text-slate-100">
     <!-- Barra do mobile: a sidebar fica guardada atrás do botão. -->
     <header
-      class="sticky top-0 z-20 flex items-center gap-3 border-b border-white/60 bg-white/60 px-4 py-3 backdrop-blur-xl lg:hidden"
+      class="sticky top-0 z-20 flex items-center gap-3 border-b border-white/60 bg-white/60 px-4 py-3 backdrop-blur-xl lg:hidden dark:border-white/5 dark:bg-ink-950/60"
     >
       <button
         type="button"
-        class="rounded-lg p-1.5 text-slate-600 hover:bg-white/60"
+        class="rounded-lg p-1.5 text-slate-600 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-white/10"
         aria-label="Abrir menu"
         :aria-expanded="isSidebarOpen"
         :aria-controls="sidebarId"
@@ -49,7 +58,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
         <AppIcon name="menu" class="size-6" />
       </button>
 
-      <span class="text-base font-semibold text-slate-900">Demandas Internas</span>
+      <span class="text-base font-semibold text-slate-900 dark:text-white">Demandas Internas</span>
     </header>
 
     <!-- Fundo escurecido do drawer: clicar fora fecha. -->
@@ -66,6 +75,8 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
       class="fixed inset-y-4 left-4 z-40 w-64 transition-all duration-300 motion-reduce:transition-none lg:visible lg:translate-x-0 lg:opacity-100"
       :class="isSidebarOpen ? 'translate-x-0' : 'invisible -translate-x-full opacity-0'"
       :active-route-name="activeRouteName"
+      :is-dark="ui.isDark"
+      @toggle-theme="ui.toggleTheme"
       @navigate="isSidebarOpen = false"
       @logout="logout"
       @close="isSidebarOpen = false"

@@ -15,12 +15,12 @@ describe('DashboardTrendCard', () => {
   it('mostra a legenda com os totais e o eixo por dia', () => {
     const wrapper = mount(DashboardTrendCard, { props: { trend: DAILY } })
 
-    expect(wrapper.get('h2').text()).toBe('Evolução das demandas')
+    expect(wrapper.get('h2').text()).toBe('Evolução das solicitações')
     expect(wrapper.text()).toContain('Criadas')
     expect(wrapper.text()).toContain('Concluídas')
     expect(wrapper.text()).toContain('01/10')
     expect(wrapper.get('svg[role="img"]').attributes('aria-label')).toBe(
-      'Evolução das demandas: 3 criadas e 3 concluídas no período.',
+      'Evolução das solicitações: 3 criadas e 3 concluídas no período.',
     )
     expect(wrapper.get('ul.sr-only').text()).toContain('02/10/2026: 1 criadas, 3 concluídas.')
   })
@@ -46,11 +46,11 @@ describe('DashboardTrendCard', () => {
     }
 
     expect(mount(DashboardTrendCard, { props: { trend: zeros } }).text()).toContain(
-      'Sem demandas no período escolhido.',
+      'Sem solicitações no período escolhido.',
     )
     expect(
       mount(DashboardTrendCard, { props: { trend: { granularity: 'day', points: [] } } }).text(),
-    ).toContain('Sem demandas no período escolhido.')
+    ).toContain('Sem solicitações no período escolhido.')
   })
 
   it('erro repassa o retry', async () => {

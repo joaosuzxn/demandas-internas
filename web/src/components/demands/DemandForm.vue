@@ -13,15 +13,15 @@ import {
 } from '@/services/demands'
 
 const props = defineProps<{
-  /** Demanda a editar; sem ela, o formulário cria uma nova. */
+  /** Solicitação a editar; sem ela, o formulário cria uma nova. */
   editing?: Demand | null
-  /** Para onde o "Cancelar" leva: o quadro na criação, a demanda na edição. */
+  /** Para onde o "Cancelar" leva: o quadro na criação, a solicitação na edição. */
   cancelTo: RouteLocationRaw
   submitLabel: string
 }>()
 
 const emit = defineEmits<{
-  /** Criada ou salva: quem ouve navega para a tela da demanda. */
+  /** Criada ou salva: quem ouve navega para a tela da solicitação. */
   saved: [demand: Demand]
 }>()
 
@@ -33,7 +33,7 @@ const CATEGORY_OPTIONS: FieldOption[] = Object.entries(DEMAND_CATEGORY_LABELS).m
   ([value, label]) => ({ value, label }),
 )
 
-// Nasce com a demanda que se edita, ou vazio. A categoria não vem escolhida: escolher é parte do pedido.
+// Nasce com a solicitação que se edita, ou vazio. A categoria não vem escolhida: escolher é parte do pedido.
 const fields = reactive<DemandPayload>({
   title: props.editing?.title ?? '',
   description: props.editing?.description ?? '',
@@ -82,7 +82,7 @@ async function onSubmit(): Promise<void> {
       v-if="formError"
       data-form-error
       role="alert"
-      class="rounded-2xl bg-red-500/10 px-3.5 py-2 text-sm text-red-700"
+      class="rounded-2xl bg-red-500/10 px-3.5 py-2 text-sm text-red-700 dark:text-red-300"
     >
       {{ formError }}
     </p>
@@ -124,14 +124,14 @@ async function onSubmit(): Promise<void> {
     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
       <RouterLink
         :to="cancelTo"
-        class="inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-900/5"
+        class="inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-900/5 dark:text-slate-200"
       >
         Cancelar
       </RouterLink>
       <button
         type="submit"
         :disabled="busy"
-        class="bg-sidebar-active inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium text-white shadow-sm shadow-slate-950/20 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        class="bg-sidebar-active inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium text-white shadow-sm shadow-slate-950/20 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950"
       >
         <AppIcon name="send" class="size-4" />
         {{ busy ? 'Enviando…' : submitLabel }}

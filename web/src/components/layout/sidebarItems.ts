@@ -7,8 +7,8 @@ export interface SidebarItem {
   routeName: string
 }
 
-// Dashboard e Demandas; as demais opções do menu ainda não foram definidas.
+// Solicitações e Dashboard; as demais opções do menu ainda não foram definidas.
 export const SIDEBAR_ITEMS: readonly SidebarItem[] = [
+  { label: 'Solicitações', icon: 'clipboard-list', routeName: 'demands' },
   { label: 'Dashboard', icon: 'layout-dashboard', routeName: 'dashboard' },
-  { label: 'Demandas', icon: 'clipboard-list', routeName: 'demands' },
 ]

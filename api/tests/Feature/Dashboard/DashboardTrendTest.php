@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
-// Gráfico "Evolução das demandas" (item 0030): criadas por data de criação, concluídas por data da conclusão.
+// Gráfico "Evolução das solicitações" (item 0030): criadas por data de criação, concluídas por data da conclusão.
 class DashboardTrendTest extends TestCase
 {
     use RefreshDatabase;
@@ -68,8 +68,8 @@ class DashboardTrendTest extends TestCase
             ->assertJsonPath('data.points.1.created', 0);
     }
 
-    // Uma demanda reaberta e concluída de novo conta uma vez por conclusão; a conclusão conta no dia em que
-    // aconteceu, mesmo que a demanda tenha sido criada antes do período.
+    // Uma solicitação reaberta e concluída de novo conta uma vez por conclusão; a conclusão conta no dia em que
+    // aconteceu, mesmo que a solicitação tenha sido criada antes do período.
     public function test_finished_counts_each_finish_on_its_own_day(): void
     {
         $old = Demand::factory()->finished()->create(['created_at' => '2026-09-01 12:00:00']);
@@ -129,7 +129,7 @@ class DashboardTrendTest extends TestCase
         ]]);
     }
 
-    // "Tudo": sem created_from, começa no dia da demanda mais antiga e termina hoje.
+    // "Tudo": sem created_from, começa no dia da solicitação mais antiga e termina hoje.
     public function test_without_dates_starts_at_the_oldest_demand_and_ends_today(): void
     {
         Demand::factory()->create(['created_at' => '2026-10-02 12:00:00']);

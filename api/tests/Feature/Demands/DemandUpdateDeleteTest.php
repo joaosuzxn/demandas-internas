@@ -128,7 +128,7 @@ class DemandUpdateDeleteTest extends TestCase
             foreach ([$this->requester, $this->admin] as $actor) {
                 $this->actingAsSpa($actor)->putJson("/api/demands/{$locked->id}", $this->validPayload())
                     ->assertUnprocessable()
-                    ->assertJsonValidationErrors(['status' => 'Só demanda pendente pode ser editada.']);
+                    ->assertJsonValidationErrors(['status' => 'Só solicitação pendente pode ser editada.']);
             }
 
             $this->assertDatabaseHas('demands', ['id' => $locked->id, 'title' => 'Travada', 'status' => $locked->status->value]);

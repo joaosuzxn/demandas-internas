@@ -6,7 +6,7 @@ declare module 'vue-router' {
     requiresAuth?: boolean
     // Só sem sessão: quem já entrou é mandado para a home.
     guestOnly?: boolean
-    // Item da sidebar que fica destacado numa tela que não está no menu (ex.: a de uma demanda).
+    // Item da sidebar que fica destacado numa tela que não está no menu (ex.: a de uma solicitação).
     sidebarItem?: string
   }
 }
@@ -23,8 +23,8 @@ const EditDemandView = () => import('@/views/demands/EditDemandView.vue')
 
 // Nunca começar um caminho com /api ou /sanctum: são da API (ADR 0001).
 export const routes: RouteRecordRaw[] = [
-  // A entrada do sistema é o dashboard (item 0030); os destinos que mandam para "home" caem nele.
-  { path: '/', name: 'home', redirect: { name: 'dashboard' } },
+  // A entrada do sistema é o quadro de solicitações (item 0034); os destinos que mandam para "home" caem nele.
+  { path: '/', name: 'home', redirect: { name: 'demands' } },
   { path: '/login', name: 'login', component: LoginView, meta: { guestOnly: true } },
   {
     path: '/change-password',
@@ -40,7 +40,7 @@ export const routes: RouteRecordRaw[] = [
     children: [{ path: '', name: 'dashboard', component: DashboardView }],
   },
   {
-    path: '/demandas',
+    path: '/solicitacoes',
     component: DefaultLayout,
     meta: { requiresAuth: true },
     children: [

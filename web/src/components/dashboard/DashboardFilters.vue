@@ -58,7 +58,7 @@ const endError = computed(() => {
 
 <template>
   <div
-    class="bg-surface-panel flex flex-col gap-4 rounded-3xl border border-white/60 p-5 shadow-xl shadow-slate-900/10 backdrop-blur-lg sm:p-6"
+    class="bg-surface-panel flex flex-col gap-4 rounded-3xl border border-white/60 p-5 shadow-xl shadow-slate-900/10 backdrop-blur-lg sm:p-6 dark:border-white/10 dark:shadow-black/40"
   >
     <h2 class="sr-only">Filtros do painel</h2>
 
@@ -73,7 +73,7 @@ const endError = computed(() => {
       />
 
       <div class="flex flex-col gap-1.5">
-        <span id="dashboard-range-label" class="text-xs font-medium text-slate-600">
+        <span id="dashboard-range-label" class="text-xs font-medium text-slate-600 dark:text-slate-300">
           Intervalo
         </span>
 
@@ -86,7 +86,7 @@ const endError = computed(() => {
           <!-- Decoração: quem diz qual intervalo está escolhido é o `aria-pressed` do botão. -->
           <span
             v-show="settled"
-            class="bg-sidebar-active pointer-events-none absolute rounded-full shadow-sm shadow-slate-950/20 transition-all duration-400 ease-out motion-reduce:transition-none"
+            class="bg-sidebar-active pointer-events-none absolute rounded-full shadow-sm shadow-slate-950/20 transition-all duration-400 ease-out motion-reduce:transition-none dark:bg-white"
             :style="{
               left: `${pill.left}px`,
               top: `${pill.top}px`,
@@ -104,8 +104,8 @@ const endError = computed(() => {
             class="relative inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition duration-400"
             :class="
               range === option
-                ? 'text-white'
-                : 'bg-surface-item hover:bg-surface-item-hover text-slate-700'
+                ? 'text-white dark:text-slate-950'
+                : 'bg-surface-item hover:bg-surface-item-hover text-slate-700 dark:text-slate-200'
             "
             @click="select(option)"
           >
@@ -121,8 +121,8 @@ const endError = computed(() => {
       <BaseField v-model="customEnd" type="date" label="Até" :error="endError" />
     </div>
 
-    <p class="text-xs text-slate-500">
-      <span class="font-medium text-slate-600">Período:</span>
+    <p class="text-xs text-slate-500 dark:text-slate-400">
+      <span class="font-medium text-slate-600 dark:text-slate-300">Período:</span>
       {{ periodLabel }}
     </p>
   </div>

@@ -12,9 +12,9 @@ import {
 const props = defineProps<{ demand: Demand }>()
 
 const STATUS_TONES: Record<DemandStatus, string> = {
-  pending: 'bg-amber-500/15 text-amber-800',
-  in_progress: 'bg-brand-500/15 text-brand-800',
-  finished: 'bg-emerald-500/15 text-emerald-800',
+  pending: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
+  in_progress: 'bg-brand-500/15 text-brand-800 dark:text-brand-300',
+  finished: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
 }
 
 type Fact = { label: string; value: string }
@@ -37,7 +37,7 @@ const facts = computed<Fact[]>(() => {
 })
 
 const TILE =
-  'bg-surface-item flex min-w-0 flex-col rounded-2xl px-3.5 py-2.5 shadow-sm shadow-slate-900/5'
+  'bg-surface-item flex min-w-0 flex-col rounded-2xl px-3.5 py-2.5 shadow-sm shadow-slate-900/5 dark:shadow-black/20'
 </script>
 
 <template>
@@ -45,7 +45,7 @@ const TILE =
     <dl class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
       <!-- A situação abre a ficha: é o que se procura primeiro. -->
       <div :class="TILE" class="sm:col-span-2 lg:col-span-1">
-        <dt class="text-xs text-slate-500">Situação</dt>
+        <dt class="text-xs text-slate-500 dark:text-slate-400">Situação</dt>
         <dd>
           <span
             data-demand-status
@@ -58,8 +58,8 @@ const TILE =
       </div>
 
       <div v-for="fact in facts" :key="fact.label" :class="TILE">
-        <dt class="text-xs text-slate-500">{{ fact.label }}</dt>
-        <dd class="text-sm wrap-break-word text-slate-900">{{ fact.value }}</dd>
+        <dt class="text-xs text-slate-500 dark:text-slate-400">{{ fact.label }}</dt>
+        <dd class="text-sm wrap-break-word text-slate-900 dark:text-white">{{ fact.value }}</dd>
       </div>
     </dl>
   </DemandSection>

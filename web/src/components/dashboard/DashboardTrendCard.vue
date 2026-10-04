@@ -4,7 +4,7 @@ import GlassPanel from '@/components/ui/GlassPanel.vue'
 import type { DashboardTrend } from '@/services/dashboard'
 import { buildSeriesPath, formatAxisLabel, formatPointLabel, pickAxisTicks } from '@/utils/dashboard'
 
-// "Evolução das demandas" (item 0030), no molde do gráfico do Órbita: criadas (pela data de criação) e concluídas
+// "Evolução das solicitações" (item 0030), no molde do gráfico do Órbita: criadas (pela data de criação) e concluídas
 // (pela data de cada conclusão), por dia ou por mês conforme a API decidiu.
 const props = defineProps<{
   trend: DashboardTrend | null
@@ -84,42 +84,42 @@ const totals = computed(() => ({
 /** O gráfico é imagem: o resumo abaixo é o que o leitor de tela recebe no lugar dele. */
 const chartLabel = computed(
   () =>
-    `Evolução das demandas: ${totals.value.created} criadas e ` +
+    `Evolução das solicitações: ${totals.value.created} criadas e ` +
     `${totals.value.finished} concluídas no período.`,
 )
 </script>
 
 <template>
   <GlassPanel
-    title="Evolução das demandas"
+    title="Evolução das solicitações"
     :loading="loading"
     :error="error"
     :empty="isEmpty"
-    empty-message="Sem demandas no período escolhido."
+    empty-message="Sem solicitações no período escolhido."
     @retry="emit('retry')"
   >
     <div class="flex flex-col gap-4">
       <!-- Legenda por traço: a cor aqui é o que separa as duas séries. -->
       <ul class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
-        <li class="flex items-center gap-2 text-slate-600">
-          <span class="bg-brand-500 h-0.5 w-5 rounded-full" aria-hidden="true"></span>
+        <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+          <span class="bg-brand-500 h-0.5 w-5 rounded-full dark:bg-brand-400" aria-hidden="true"></span>
           Concluídas
-          <span class="font-semibold text-slate-900 tabular-nums">{{ totals.finished }}</span>
+          <span class="font-semibold text-slate-900 tabular-nums dark:text-white">{{ totals.finished }}</span>
         </li>
-        <li class="flex items-center gap-2 text-slate-600">
+        <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
           <span
-            class="h-0.5 w-5 rounded-full border-t-2 border-dashed border-slate-400"
+            class="h-0.5 w-5 rounded-full border-t-2 border-dashed border-slate-400 dark:border-slate-500"
             aria-hidden="true"
           ></span>
           Criadas
-          <span class="font-semibold text-slate-900 tabular-nums">{{ totals.created }}</span>
+          <span class="font-semibold text-slate-900 tabular-nums dark:text-white">{{ totals.created }}</span>
         </li>
       </ul>
 
       <div class="flex gap-3">
         <!-- Escala vertical em HTML: dentro do SVG esticado o texto sairia deformado. -->
         <div
-          class="flex shrink-0 flex-col justify-between py-0.5 text-xs text-slate-500 tabular-nums"
+          class="flex shrink-0 flex-col justify-between py-0.5 text-xs text-slate-500 tabular-nums dark:text-slate-400"
           aria-hidden="true"
         >
           <span>{{ domain.max }}</span>
@@ -143,12 +143,12 @@ const chartLabel = computed(
               :x2="WIDTH"
               :y1="(row * HEIGHT) / 2"
               :y2="(row * HEIGHT) / 2"
-              class="stroke-slate-900/10"
+              class="stroke-slate-900/10 dark:stroke-white/10"
               stroke-width="1"
               vector-effect="non-scaling-stroke"
             />
 
-            <path :d="finishedPath.area" class="fill-brand-500/15" />
+            <path :d="finishedPath.area" class="fill-brand-500/15 dark:fill-brand-400/15" />
 
             <path
               :d="createdPath.line"
@@ -157,7 +157,7 @@ const chartLabel = computed(
               stroke-width="2"
               stroke-linecap="round"
               vector-effect="non-scaling-stroke"
-              class="stroke-slate-400"
+              class="stroke-slate-400 dark:stroke-slate-500"
             />
 
             <path
@@ -167,7 +167,7 @@ const chartLabel = computed(
               stroke-linecap="round"
               stroke-linejoin="round"
               vector-effect="non-scaling-stroke"
-              class="stroke-brand-500"
+              class="stroke-brand-500 dark:stroke-brand-400"
             />
           </svg>
 
@@ -175,7 +175,7 @@ const chartLabel = computed(
             <span
               v-for="tick in ticks"
               :key="tick.index"
-              class="absolute text-xs whitespace-nowrap text-slate-500 tabular-nums"
+              class="absolute text-xs whitespace-nowrap text-slate-500 tabular-nums dark:text-slate-400"
               :style="tick.style"
             >
               {{ tick.label }}

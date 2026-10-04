@@ -56,7 +56,7 @@ describe('demands service', () => {
     expect(get).toHaveBeenLastCalledWith('/demands/search', { params: filters })
   })
 
-  it('busca uma demanda pelo id e devolve o que vem em data', async () => {
+  it('busca uma solicitação pelo id e devolve o que vem em data', async () => {
     const get = vi.spyOn(http, 'get').mockResolvedValue(ok({ data: makeDemand() }))
 
     expect(await getDemand(12)).toEqual(makeDemand())
@@ -78,7 +78,7 @@ describe('demands service', () => {
     expect(post).toHaveBeenNthCalledWith(3, '/demands/12/reopen')
   })
 
-  it('exclui pelo DELETE da demanda', async () => {
+  it('exclui pelo DELETE da solicitação', async () => {
     const del = vi.spyOn(http, 'delete').mockResolvedValue({ status: 204 } as AxiosResponse)
 
     await deleteDemand(12)

@@ -18,14 +18,14 @@ const router = useRouter()
 
 const id = computed(() => Number(route.params.id))
 const { demand, loading, error, notFound, canManage, load } = useDemandRecord(id)
-// "Demanda criada." / "Demanda atualizada.", de quem chega do formulário.
+// "Solicitação criada." / "Solicitação atualizada.", de quem chega do formulário.
 const notice = useArrivalNotice()
 // O quadro com os filtros da última visita (lidos ao abrir a tela).
 const boardRoute = demandsBoardRoute()
 
 /** O número abre o título (`#12 - Título`); enquanto o dado não chega, fica o rótulo genérico. */
 const title = computed(() =>
-  demand.value ? `#${demand.value.id} - ${demand.value.title}` : 'Demanda',
+  demand.value ? `#${demand.value.id} - ${demand.value.title}` : 'Solicitação',
 )
 
 function onDeleted(): void {
@@ -37,7 +37,7 @@ function onDeleted(): void {
   <div class="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
     <PageHeader :title="title">
       <template #media>
-        <BackLink :to="boardRoute" label="Demandas" />
+        <BackLink :to="boardRoute" label="Solicitações" />
       </template>
     </PageHeader>
 
@@ -45,7 +45,7 @@ function onDeleted(): void {
       v-if="notice"
       data-arrival-notice
       role="status"
-      class="flex items-center justify-between gap-3 rounded-2xl bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-800"
+      class="flex items-center justify-between gap-3 rounded-2xl bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-800 dark:text-emerald-300"
     >
       {{ notice }}
       <button
@@ -71,7 +71,7 @@ function onDeleted(): void {
           <!-- No celular, a barra de ações fica presa no rodapé da tela; no painel, é mais um bloco. -->
           <DemandActions
             v-if="canManage"
-            class="lg:bg-surface-panel sticky bottom-0 z-10 order-3 -mx-4 border-t border-white/60 bg-white/70 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:rounded-3xl lg:border lg:p-3.5 lg:shadow-xl lg:shadow-slate-900/10"
+            class="lg:bg-surface-panel sticky bottom-0 z-10 order-3 -mx-4 border-t border-white/60 bg-white/70 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:rounded-3xl lg:border lg:p-3.5 lg:shadow-xl lg:shadow-slate-900/10 dark:border-white/10 dark:bg-white/10"
             :demand="demand"
             @updated="demand = $event"
             @deleted="onDeleted"
@@ -80,8 +80,8 @@ function onDeleted(): void {
 
         <div class="order-2 flex flex-col gap-3 lg:col-span-2 lg:col-start-1 lg:row-start-1">
           <DemandSection title="Descrição" data-demand-description>
-            <div class="bg-surface-item rounded-2xl px-3.5 py-3 shadow-sm shadow-slate-900/5">
-              <p class="text-sm wrap-break-word whitespace-pre-line text-slate-700">
+            <div class="bg-surface-item rounded-2xl px-3.5 py-3 shadow-sm shadow-slate-900/5 dark:shadow-black/20">
+              <p class="text-sm wrap-break-word whitespace-pre-line text-slate-700 dark:text-slate-200">
                 {{ demand.description }}
               </p>
             </div>

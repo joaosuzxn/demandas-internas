@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 export const NOTICE_TIMEOUT_MS = 5000
 
 /**
- * O aviso de quem chega de outra tela (ex.: "Demanda criada."), como no Órbita: vem no estado da
+ * O aviso de quem chega de outra tela (ex.: "Solicitação criada."), como no Órbita: vem no estado da
  * navegação, e não na URL, e vale uma vez — é apagado na hora, para o F5 e o voltar do navegador
  * não o repetirem. Chamar no `setup` da tela que recebe.
  */

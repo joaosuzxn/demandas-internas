@@ -39,7 +39,7 @@ const showCategories = computed(() => category.value === '')
 
 <template>
   <div class="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
-    <PageHeader title="Dashboard" subtitle="Como estão as demandas no período escolhido." />
+    <PageHeader title="Dashboard" subtitle="Como estão as solicitações no período escolhido." />
 
     <DashboardFilters
       v-model:range="range"
@@ -52,7 +52,7 @@ const showCategories = computed(() => category.value === '')
 
     <p
       v-if="!filters"
-      class="bg-surface-item rounded-3xl px-4 py-8 text-center text-sm text-slate-600"
+      class="bg-surface-item rounded-3xl px-4 py-8 text-center text-sm text-slate-600 dark:text-slate-300"
     >
       Escolha as duas datas para ver os números.
     </p>
@@ -85,10 +85,10 @@ const showCategories = computed(() => category.value === '')
           role="alert"
           class="bg-surface-item flex flex-col items-center gap-3 rounded-3xl px-4 py-8 text-center"
         >
-          <p class="text-sm text-red-700">{{ store.summary.error }}</p>
+          <p class="text-sm text-red-700 dark:text-red-300">{{ store.summary.error }}</p>
           <button
             type="button"
-            class="bg-surface-item hover:bg-surface-item-hover inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition"
+            class="bg-surface-item hover:bg-surface-item-hover inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition dark:text-slate-200"
             @click="store.loadSummary()"
           >
             Tentar de novo

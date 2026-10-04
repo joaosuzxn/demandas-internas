@@ -26,7 +26,7 @@ const highest = computed(() =>
     :loading="loading"
     :error="error"
     :empty="highest === 0"
-    empty-message="Nenhuma demanda no período."
+    empty-message="Nenhuma solicitação no período."
     @retry="emit('retry')"
   >
     <ul class="flex flex-col gap-2.5">
@@ -38,21 +38,21 @@ const highest = computed(() =>
           @click="emit('select', entry.category)"
         >
           <div class="flex min-w-0 items-baseline justify-between gap-3">
-            <span class="truncate text-sm font-semibold text-slate-900">
+            <span class="truncate text-sm font-semibold text-slate-900 dark:text-white">
               {{ DEMAND_CATEGORY_LABELS[entry.category] }}
             </span>
-            <span class="shrink-0 text-sm font-semibold text-slate-900 tabular-nums">
+            <span class="shrink-0 text-sm font-semibold text-slate-900 tabular-nums dark:text-white">
               {{ entry.total }}
             </span>
           </div>
           <!-- A barra repete, em tamanho, o número ao lado: é decoração. -->
           <span
-            class="block h-1.5 w-full overflow-hidden rounded-full bg-slate-900/10"
+            class="block h-1.5 w-full overflow-hidden rounded-full bg-slate-900/10 dark:bg-white/10"
             aria-hidden="true"
           >
             <span
               data-bar
-              class="bg-sidebar-active block h-full rounded-full transition-all duration-400 ease-out motion-reduce:transition-none"
+              class="bg-sidebar-active block h-full rounded-full transition-all duration-400 ease-out motion-reduce:transition-none dark:bg-white"
               :style="{ width: `${toPercentage(entry.total, highest)}%` }"
             ></span>
           </span>

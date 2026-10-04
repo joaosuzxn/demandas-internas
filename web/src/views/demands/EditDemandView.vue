@@ -22,37 +22,37 @@ const demandRoute = computed(() => ({ name: 'demand', params: { id: id.value } }
  */
 const blockedReason = computed(() => {
   if (!demand.value) return null
-  if (!canManage.value) return 'Só quem pediu a demanda ou o administrador pode editá-la.'
-  if (demand.value.status !== 'pending') return 'Só demanda pendente pode ser editada.'
+  if (!canManage.value) return 'Só quem pediu a solicitação ou o administrador pode editá-la.'
+  if (demand.value.status !== 'pending') return 'Só solicitação pendente pode ser editada.'
   return null
 })
 
-/** Salva: volta à demanda com o aviso no estado da navegação, para o F5 não repeti-lo. */
+/** Salva: volta à solicitação com o aviso no estado da navegação, para o F5 não repeti-lo. */
 function onSaved(): void {
-  void router.push({ ...demandRoute.value, state: { notice: 'Demanda atualizada.' } })
+  void router.push({ ...demandRoute.value, state: { notice: 'Solicitação atualizada.' } })
 }
 </script>
 
 <template>
   <div class="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
     <PageHeader
-      title="Editar demanda"
+      title="Editar solicitação"
       subtitle="A alteração vale na hora, para todos que veem o quadro."
     >
       <template #media>
-        <BackLink :to="demandRoute" label="a demanda" />
+        <BackLink :to="demandRoute" label="a solicitação" />
       </template>
     </PageHeader>
 
     <DemandRecordState :loading="loading" :error="error" :not-found="notFound" @retry="load">
-      <GlassPanel v-if="demand" title="Dados da demanda">
-        <div v-if="blockedReason" class="flex flex-col gap-2 text-sm text-slate-600">
+      <GlassPanel v-if="demand" title="Dados da solicitação">
+        <div v-if="blockedReason" class="flex flex-col gap-2 text-sm text-slate-600 dark:text-slate-300">
           <p>{{ blockedReason }}</p>
           <RouterLink
             :to="demandRoute"
-            class="text-brand-600 self-start rounded-md px-1 font-semibold"
+            class="text-brand-600 self-start rounded-md px-1 font-semibold dark:text-brand-300"
           >
-            Voltar à demanda
+            Voltar à solicitação
           </RouterLink>
         </div>
 
