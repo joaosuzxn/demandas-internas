@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ChangePasswordRequest;
-use App\Http\Requests\UpdatePhotoRequest;
 use App\Http\Resources\UserResource;
 use App\Services\ProfileService;
 use Illuminate\Http\Request;
@@ -17,11 +16,6 @@ class ProfileController extends Controller
     public function show(Request $request): UserResource
     {
         return new UserResource($request->user());
-    }
-
-    public function updatePhoto(UpdatePhotoRequest $request): UserResource
-    {
-        return new UserResource($this->profile->updatePhoto($request->user(), $request->validated('photo')));
     }
 
     public function updatePassword(ChangePasswordRequest $request): Response

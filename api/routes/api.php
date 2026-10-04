@@ -28,8 +28,6 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsurePasswordIsCh
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     });
 
-    Route::put('/me/photo', [ProfileController::class, 'updatePhoto'])->name('me.photo');
-
     Route::get('/users', [UserController::class, 'index'])->can('viewAny', User::class)->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->can('create', User::class)->name('users.store');
     Route::get('/users/{user}', [UserController::class, 'show'])->can('view', 'user')->name('users.show');

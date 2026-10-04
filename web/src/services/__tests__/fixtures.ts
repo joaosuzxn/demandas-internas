@@ -13,7 +13,6 @@ export function makeUser(overrides: Partial<User> = {}): User {
     username: 'maria.souza',
     cpf: '12345678909',
     email: 'maria@example.com',
-    photo: null,
     role: 'employee',
     is_active: true,
     must_change_password: false,

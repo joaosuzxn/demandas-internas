@@ -38,7 +38,7 @@ class ChangePasswordTest extends TestCase
         $this->app['auth']->forgetGuards();
 
         // Liberado na mesma sessão, sem novo login.
-        $this->fromSpa()->putJson('/api/me/photo', ['photo' => null])->assertOk();
+        $this->fromSpa()->getJson('/api/dashboard/summary')->assertOk();
     }
 
     public function test_login_works_with_new_password(): void

@@ -3,7 +3,6 @@
 namespace App\Validation;
 
 use App\Models\User;
-use App\Rules\Base64Image;
 use App\Rules\Cpf;
 use Illuminate\Validation\Rule;
 
@@ -47,7 +46,6 @@ final class UserRules
             'email' => ['bail', 'required', 'string', 'max:255', 'email:rfc', Rule::unique('users', 'email')->ignore($ignore)],
             // O perfil não vem da API: todo usuário criado por ela é employee.
             'role' => ['prohibited'],
-            'photo' => ['sometimes', 'nullable', 'string', new Base64Image],
         ];
     }
 }

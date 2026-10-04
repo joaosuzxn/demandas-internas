@@ -9,7 +9,6 @@ export type User = {
   username: string
   cpf: string
   email: string
-  photo: string | null
   role: Role
   is_active: boolean
   must_change_password: boolean

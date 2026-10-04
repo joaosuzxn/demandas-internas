@@ -125,7 +125,7 @@ class RememberMeTest extends TestCase
         $user = User::factory()->mustChangePassword()->create(['password' => '123@Senha']);
         $recaller = $this->loginRemembered($user, '123@Senha');
 
-        $this->asReturningBrowser($recaller)->fromSpa()->putJson('/api/me/photo', ['photo' => null])
+        $this->asReturningBrowser($recaller)->fromSpa()->getJson('/api/dashboard/summary')
             ->assertForbidden()
             ->assertJsonPath('code', 'PASSWORD_CHANGE_REQUIRED');
     }

@@ -14,7 +14,7 @@ class PasswordChangeRequiredTest extends TestCase
     {
         $this->actingAs(User::factory()->mustChangePassword()->create());
 
-        $this->fromSpa()->putJson('/api/me/photo', ['photo' => null])
+        $this->fromSpa()->getJson('/api/dashboard/summary')
             ->assertForbidden()
             ->assertExactJson([
                 'message' => 'Troque a senha padrão para continuar.',
@@ -41,7 +41,7 @@ class PasswordChangeRequiredTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.must_change_password', true);
 
-        $this->fromSpa()->putJson('/api/me/photo', ['photo' => null])
+        $this->fromSpa()->getJson('/api/dashboard/summary')
             ->assertForbidden()
             ->assertJsonPath('code', 'PASSWORD_CHANGE_REQUIRED');
     }

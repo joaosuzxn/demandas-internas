@@ -12,7 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 // password, role, is_active e must_change_password ficam fora do Fillable: só os Services os definem.
-#[Fillable(['name', 'username', 'cpf', 'email', 'photo'])]
+#[Fillable(['name', 'username', 'cpf', 'email'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {

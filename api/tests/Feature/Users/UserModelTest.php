@@ -48,7 +48,6 @@ class UserModelTest extends TestCase
         $this->assertSame(Role::Employee, $user->role);
         $this->assertTrue($user->is_active);
         $this->assertTrue($user->must_change_password);
-        $this->assertNull($user->photo);
     }
 
     public function test_factory_generates_fictitious_valid_unique_cpfs_and_usernames(): void
