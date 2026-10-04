@@ -204,6 +204,17 @@ class UserManagementTest extends TestCase
         $this->asAdmin()->getJson('/api/users/999999')->assertNotFound();
     }
 
+    public function test_non_numeric_or_out_of_range_id_returns_404(): void
+    {
+        foreach (['abc', '1.5', '-1', '99999999999999999999'] as $id) {
+            $this->asAdmin()->getJson("/api/users/{$id}")
+                ->assertNotFound()
+                ->assertJson(['message' => 'Registro não encontrado.']);
+            $this->asAdmin()->putJson("/api/users/{$id}", $this->validPayload())->assertNotFound();
+            $this->asAdmin()->postJson("/api/users/{$id}/deactivate")->assertNotFound();
+        }
+    }
+
     public function test_update_rejects_cpf_of_another_user(): void
     {
         User::factory()->create(['cpf' => FictitiousCpf::SECOND]);

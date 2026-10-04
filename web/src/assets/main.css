@@ -103,6 +103,21 @@
   &::-webkit-scrollbar-thumb:hover {
     background-color: rgb(15 23 42 / 0.4);
   }
+
+  /* No escuro o polegar é claro: o slate sobre o fundo escuro some (item 0032). */
+  @variant dark {
+    &:hover {
+      scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+    }
+
+    &:hover::-webkit-scrollbar-thumb {
+      background-color: rgb(255 255 255 / 0.2);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: rgb(255 255 255 / 0.35);
+    }
+  }
 }
 
 /* Tema escuro por classe no <html>, controlado pela store `ui` (item 0032). */
@@ -117,6 +132,8 @@
     --color-surface-item: rgb(255 255 255 / 0.05);
     --color-surface-item-hover: rgb(255 255 255 / 0.1);
     --color-surface-field: rgb(255 255 255 / 0.05);
+    /* Controles nativos (ícone do campo de data, barra de rolagem) no tom escuro: sem isso o calendário some. */
+    color-scheme: dark;
   }
 
   body {

@@ -6,23 +6,38 @@ import AppSidebar from '../AppSidebar.vue'
 
 const Stub = defineComponent({ render: () => null })
 
-async function mountSidebar(activeRouteName: string | null = 'demands', isDark = false) {
+async function mountSidebar(
+  activeRouteName: string | null = 'demands',
+  isDark = false,
+  isAdmin = false,
+) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
       { path: '/dashboard', name: 'dashboard', component: Stub },
       { path: '/solicitacoes', name: 'demands', component: Stub },
+      { path: '/admin', name: 'admin', component: Stub },
     ],
   })
   await router.push('/solicitacoes')
 
   return mount(AppSidebar, {
-    props: { activeRouteName, isDark },
+    props: { activeRouteName, isDark, isAdmin },
     global: { plugins: [router] },
   })
 }
 
 describe('AppSidebar', () => {
+  it('mostra a logo "Solicitações internas" no lugar do nome antigo', async () => {
+    const wrapper = await mountSidebar()
+
+    const logo = wrapper.find('[data-testid="app-logo"]')
+    expect(logo.exists()).toBe(true)
+    expect(logo.find('svg').attributes('aria-hidden')).toBe('true')
+    expect(logo.text().replace(/\s+/g, ' ')).toBe('Solicitações internas')
+    expect(wrapper.text()).not.toContain('Demandas Internas')
+  })
+
   it('lista Solicitações e Dashboard, e marca a tela aberta', async () => {
     const wrapper = await mountSidebar('demands')
 
@@ -30,6 +45,16 @@ describe('AppSidebar', () => {
     expect(links.map((link) => link.text())).toEqual(['Solicitações', 'Dashboard'])
     expect(links[0]!.attributes('aria-current')).toBe('page')
     expect(links[1]!.attributes('aria-current')).toBeUndefined()
+  })
+
+  it('mostra Administração só para o administrador', async () => {
+    const employee = await mountSidebar('demands', false, false)
+    expect(employee.findAll('nav a').map((link) => link.text())).toEqual(['Solicitações', 'Dashboard'])
+
+    const admin = await mountSidebar('admin', false, true)
+    const links = admin.findAll('nav a')
+    expect(links.map((link) => link.text())).toEqual(['Solicitações', 'Dashboard', 'Administração'])
+    expect(links[2]!.attributes('aria-current')).toBe('page')
   })
 
   it('não marca item nenhum quando a tela aberta não está no menu', async () => {
@@ -56,6 +81,8 @@ describe('AppSidebar', () => {
 
     const toggle = wrapper.findAll('button').find((button) => button.text() === 'Modo claro')!
     expect(toggle.attributes('aria-pressed')).toBe('true')
+    // Nome fixo: com o rótulo que muda, o leitor de tela diria "Modo claro, pressionado" com o escuro ligado.
+    expect(toggle.attributes('aria-label')).toBe('Alternar tema escuro')
     await toggle.trigger('click')
     expect(wrapper.emitted('toggle-theme')).toHaveLength(1)
   })

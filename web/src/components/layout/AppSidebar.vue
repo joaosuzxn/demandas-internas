@@ -1,14 +1,20 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
+import AppLogo from './AppLogo.vue'
 import { SIDEBAR_ITEMS } from './sidebarItems'
 
-defineProps<{
+const props = defineProps<{
   /** Nome da rota aberta; o item dela ganha o destaque. */
   activeRouteName: string | null
   /** Tema escuro em vigor: o botão de tema oferece o claro (item 0032). */
   isDark: boolean
+  /** O usuário logado é o administrador: mostra os itens `adminOnly`. */
+  isAdmin: boolean
 }>()
+
+const items = computed(() => SIDEBAR_ITEMS.filter((item) => !item.adminOnly || props.isAdmin))
 
 const emit = defineEmits<{
   /** Um item foi clicado; a navegação em si fica com o link. */
@@ -34,7 +40,7 @@ const ITEM_ACTIVE =
     aria-label="Barra lateral"
   >
     <div class="flex items-center justify-between gap-2 px-2">
-      <span class="text-base font-semibold text-slate-900 dark:text-white">Demandas Internas</span>
+      <AppLogo />
 
       <button
         type="button"
@@ -48,7 +54,7 @@ const ITEM_ACTIVE =
 
     <nav class="mt-10 flex-1 overflow-y-auto" aria-label="Menu principal">
       <ul class="flex flex-col gap-1">
-        <li v-for="item in SIDEBAR_ITEMS" :key="item.routeName">
+        <li v-for="item in items" :key="item.routeName">
           <RouterLink
             :to="{ name: item.routeName }"
             :class="[ITEM, item.routeName === activeRouteName ? ITEM_ACTIVE : ITEM_IDLE]"
@@ -68,6 +74,7 @@ const ITEM_ACTIVE =
         type="button"
         :class="[ITEM, ITEM_IDLE]"
         :aria-pressed="isDark"
+        aria-label="Alternar tema escuro"
         @click="emit('toggle-theme')"
       >
         <AppIcon :name="isDark ? 'sun' : 'moon'" class="size-5 shrink-0" />

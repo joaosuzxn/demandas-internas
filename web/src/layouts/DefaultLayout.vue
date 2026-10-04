@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, useId } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
+import AppLogo from '@/components/layout/AppLogo.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
@@ -58,7 +59,7 @@ onBeforeUnmount(() => {
         <AppIcon name="menu" class="size-6" />
       </button>
 
-      <span class="text-base font-semibold text-slate-900 dark:text-white">Demandas Internas</span>
+      <AppLogo />
     </header>
 
     <!-- Fundo escurecido do drawer: clicar fora fecha. -->
@@ -76,6 +77,7 @@ onBeforeUnmount(() => {
       :class="isSidebarOpen ? 'translate-x-0' : 'invisible -translate-x-full opacity-0'"
       :active-route-name="activeRouteName"
       :is-dark="ui.isDark"
+      :is-admin="auth.isAdmin"
       @toggle-theme="ui.toggleTheme"
       @navigate="isSidebarOpen = false"
       @logout="logout"

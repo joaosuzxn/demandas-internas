@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { useId } from 'vue'
+import { computed, useId } from 'vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
+import { maskCpf } from '@/utils/cpf'
 
 export interface FieldOption {
   value: string
   label: string
 }
 
-// Campo do Órbita (item 0021), sem máscaras e sem modo escuro: rótulo, controle, dica e erro.
-withDefaults(
+// Campo do Órbita (item 0021), só com a máscara de CPF e sem modo escuro: rótulo, controle, dica e erro.
+const props = withDefaults(
   defineProps<{
     /** Rótulo exibido acima do campo. */
     label: string
@@ -30,11 +31,28 @@ withDefaults(
     autocomplete?: string
     /** Teto de caracteres, o mesmo do backend. */
     maxlength?: number
+    /** Máscara aplicada enquanto se digita (só no campo de uma linha). */
+    mask?: 'cpf'
   }>(),
   { control: 'input', type: 'text', rows: 3 },
 )
 
 const model = defineModel<string>({ default: '' })
+
+/** A máscara manda no tamanho: o CPF formatado tem 14 caracteres. */
+const inputMaxlength = computed(() => (props.mask === 'cpf' ? 14 : props.maxlength))
+
+// Com máscara, o valor é reescrito no próprio campo, para o cursor não ver o texto cru.
+function onInput(event: Event): void {
+  const target = event.target as HTMLInputElement
+  if (props.mask === 'cpf') {
+    const masked = maskCpf(target.value)
+    if (masked !== target.value) target.value = masked
+    model.value = masked
+    return
+  }
+  model.value = target.value
+}
 
 // Liga <label>, controle e mensagens sem exigir um id manual em cada uso.
 const fieldId = useId()
@@ -91,19 +109,21 @@ const CONTROL_CLASS =
     <input
       v-else
       :id="fieldId"
-      v-model="model"
+      :value="model"
       :type="type"
       :placeholder="placeholder"
       :disabled="disabled"
       :required="required"
       :autocomplete="autocomplete"
-      :maxlength="maxlength"
+      :maxlength="inputMaxlength"
+      :inputmode="mask === 'cpf' ? 'numeric' : undefined"
       :aria-invalid="error ? 'true' : undefined"
       :aria-describedby="error ? errorId : hint ? hintId : undefined"
       :class="[
         CONTROL_CLASS,
         error ? 'border-red-400 dark:border-red-400/70' : 'focus:border-brand-400 border-white/60 hover:border-white/80 dark:border-white/10 dark:hover:border-white/20',
       ]"
+      @input="onInput"
     />
 
     <p v-if="error" :id="errorId" role="alert" class="text-xs text-red-600 dark:text-red-300">

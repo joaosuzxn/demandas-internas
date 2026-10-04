@@ -2,7 +2,7 @@ import type { RouteLocationNormalized, RouteLocationRaw, Router } from 'vue-rout
 import { useAuthStore } from '@/stores/auth'
 import { loginLocation } from './redirect'
 
-type AuthState = { isAuthenticated: boolean; mustChangePassword: boolean }
+type AuthState = { isAuthenticated: boolean; mustChangePassword: boolean; isAdmin: boolean }
 
 export function installAuthGuard(router: Router): void {
   router.beforeEach(async (to) => {
@@ -25,6 +25,11 @@ function destinationFor(to: RouteLocationNormalized, auth: AuthState): RouteLoca
   }
 
   if (to.name === 'change-password' || to.meta.guestOnly) {
+    return { name: 'home' }
+  }
+
+  // Tela de administração para quem não é admin: volta à home, sem aviso.
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
     return { name: 'home' }
   }
 

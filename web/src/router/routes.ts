@@ -8,6 +8,8 @@ declare module 'vue-router' {
     guestOnly?: boolean
     // Item da sidebar que fica destacado numa tela que não está no menu (ex.: a de uma solicitação).
     sidebarItem?: string
+    // Só o administrador; os demais vão para a home (a API responderia 403).
+    requiresAdmin?: boolean
   }
 }
 
@@ -20,6 +22,9 @@ const DemandsView = () => import('@/views/demands/DemandsView.vue')
 const DemandDetailView = () => import('@/views/demands/DemandDetailView.vue')
 const NewDemandView = () => import('@/views/demands/NewDemandView.vue')
 const EditDemandView = () => import('@/views/demands/EditDemandView.vue')
+const AdminUsersView = () => import('@/views/admin/AdminUsersView.vue')
+const NewUserView = () => import('@/views/admin/NewUserView.vue')
+const EditUserView = () => import('@/views/admin/EditUserView.vue')
 
 // Nunca começar um caminho com /api ou /sanctum: são da API (ADR 0001).
 export const routes: RouteRecordRaw[] = [
@@ -63,6 +68,26 @@ export const routes: RouteRecordRaw[] = [
         name: 'demand-edit',
         component: EditDemandView,
         meta: { sidebarItem: 'demands' },
+      },
+    ],
+  },
+  {
+    path: '/admin',
+    component: DefaultLayout,
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      { path: '', name: 'admin', component: AdminUsersView },
+      {
+        path: 'usuarios/novo',
+        name: 'admin-user-new',
+        component: NewUserView,
+        meta: { sidebarItem: 'admin' },
+      },
+      {
+        path: 'usuarios/:id(\\d+)/editar',
+        name: 'admin-user-edit',
+        component: EditUserView,
+        meta: { sidebarItem: 'admin' },
       },
     ],
   },

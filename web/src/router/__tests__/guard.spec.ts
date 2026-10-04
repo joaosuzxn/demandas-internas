@@ -123,6 +123,41 @@ describe('guarda de autenticação', () => {
     expect(router.currentRoute.value.name).toBe('demands')
   })
 
+  it('deixa o administrador abrir as telas da administração', async () => {
+    withSession({ role: 'admin' })
+    const router = makeRouter()
+
+    await router.push('/admin')
+    expect(router.currentRoute.value.name).toBe('admin')
+
+    await router.push('/admin/usuarios/novo')
+    expect(router.currentRoute.value.name).toBe('admin-user-new')
+
+    await router.push('/admin/usuarios/3/editar')
+    expect(router.currentRoute.value.name).toBe('admin-user-edit')
+  })
+
+  it.each(['/admin', '/admin/usuarios/novo', '/admin/usuarios/3/editar'])(
+    'manda o colaborador que abre %s para a home',
+    async (path) => {
+      withSession({ role: 'employee' })
+      const router = makeRouter()
+
+      await router.push(path)
+
+      expect(router.currentRoute.value.name).toBe('demands')
+    },
+  )
+
+  it('admin com senha pendente continua indo para a troca', async () => {
+    withSession({ role: 'admin', must_change_password: true })
+    const router = makeRouter()
+
+    await router.push('/admin')
+
+    expect(router.currentRoute.value.name).toBe('change-password')
+  })
+
   it('consulta a sessão uma vez só em várias navegações', async () => {
     withSession()
     const router = makeRouter()
