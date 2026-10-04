@@ -103,24 +103,24 @@ describe('guarda de autenticação', () => {
   })
 
   it.each([['/login'], ['/change-password'], ['/nao-existe']])(
-    'com a senha já trocada, manda %s para a home',
+    'com a senha já trocada, manda %s para o dashboard (a home)',
     async (path) => {
       withSession()
       const router = makeRouter()
 
       await router.push(path)
 
-      expect(router.currentRoute.value.name).toBe('home')
+      expect(router.currentRoute.value.name).toBe('dashboard')
     },
   )
 
-  it('com a senha já trocada, deixa abrir a home', async () => {
+  it('com a senha já trocada, a home abre o dashboard', async () => {
     withSession()
     const router = makeRouter()
 
     await router.push('/')
 
-    expect(router.currentRoute.value.name).toBe('home')
+    expect(router.currentRoute.value.name).toBe('dashboard')
   })
 
   it('consulta a sessão uma vez só em várias navegações', async () => {

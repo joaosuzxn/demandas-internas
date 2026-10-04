@@ -17,10 +17,17 @@ export type IconName =
   | 'send'
   | 'circle-play'
   | 'sliders-horizontal'
+  | 'layout-dashboard'
 
 type IconElement = [tag: string, attributes: Record<string, string>]
 
 export const ICONS: Record<IconName, IconElement[]> = {
+  'layout-dashboard': [
+    ['rect', { width: '7', height: '9', x: '3', y: '3', rx: '1' }],
+    ['rect', { width: '7', height: '5', x: '14', y: '3', rx: '1' }],
+    ['rect', { width: '7', height: '9', x: '14', y: '12', rx: '1' }],
+    ['rect', { width: '7', height: '5', x: '3', y: '16', rx: '1' }],
+  ],
   'clipboard-list': [
     ['rect', { width: '8', height: '4', x: '8', y: '2', rx: '1', ry: '1' }],
     ['path', { d: 'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2' }],

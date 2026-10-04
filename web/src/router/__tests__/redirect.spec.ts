@@ -31,4 +31,13 @@ describe('loginLocation', () => {
   it('não leva redirect quando o caminho pedido é a home', () => {
     expect(loginLocation('/')).toEqual({ name: 'login', query: {} })
   })
+
+  // A home redireciona para o dashboard (item 0030) antes da guarda: ele também é o destino padrão.
+  it('não leva redirect quando o caminho pedido é o dashboard', () => {
+    expect(loginLocation('/dashboard')).toEqual({ name: 'login', query: {} })
+    expect(loginLocation('/dashboard?range=month')).toEqual({
+      name: 'login',
+      query: { redirect: '/dashboard?range=month' },
+    })
+  })
 })

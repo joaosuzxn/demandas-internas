@@ -1,5 +1,4 @@
 import type { RouteRecordRaw } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -16,6 +15,7 @@ declare module 'vue-router' {
 // para a outra, então o card fica montado e só troca o conteúdo, com animação.
 const LoginView = () => import('@/views/login/LoginView.vue')
 const DefaultLayout = () => import('@/layouts/DefaultLayout.vue')
+const DashboardView = () => import('@/views/dashboard/DashboardView.vue')
 const DemandsView = () => import('@/views/demands/DemandsView.vue')
 const DemandDetailView = () => import('@/views/demands/DemandDetailView.vue')
 const NewDemandView = () => import('@/views/demands/NewDemandView.vue')
@@ -23,7 +23,8 @@ const EditDemandView = () => import('@/views/demands/EditDemandView.vue')
 
 // Nunca começar um caminho com /api ou /sanctum: são da API (ADR 0001).
 export const routes: RouteRecordRaw[] = [
-  { path: '/', name: 'home', component: HomeView, meta: { requiresAuth: true } },
+  // A entrada do sistema é o dashboard (item 0030); os destinos que mandam para "home" caem nele.
+  { path: '/', name: 'home', redirect: { name: 'dashboard' } },
   { path: '/login', name: 'login', component: LoginView, meta: { guestOnly: true } },
   {
     path: '/change-password',
@@ -31,7 +32,13 @@ export const routes: RouteRecordRaw[] = [
     component: LoginView,
     meta: { requiresAuth: true },
   },
-  // Telas com a sidebar: o layout é o pai, a tela de demandas é a filha.
+  // Telas com a sidebar: o layout é o pai, a tela é a filha.
+  {
+    path: '/dashboard',
+    component: DefaultLayout,
+    meta: { requiresAuth: true },
+    children: [{ path: '', name: 'dashboard', component: DashboardView }],
+  },
   {
     path: '/demandas',
     component: DefaultLayout,

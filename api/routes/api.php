@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemandController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ProfileController;
@@ -36,6 +37,10 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsurePasswordIsCh
     Route::post('/users/{user}/deactivate', [UserController::class, 'deactivate'])->can('deactivate', 'user')->name('users.deactivate');
     Route::post('/users/{user}/activate', [UserController::class, 'activate'])->can('activate', 'user')->name('users.activate');
     Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->can('resetPassword', 'user')->name('users.reset-password');
+
+    Route::get('/dashboard/summary', [DashboardController::class, 'summary'])->can('viewAny', Demand::class)->name('dashboard.summary');
+    Route::get('/dashboard/categories', [DashboardController::class, 'categories'])->can('viewAny', Demand::class)->name('dashboard.categories');
+    Route::get('/dashboard/trend', [DashboardController::class, 'trend'])->can('viewAny', Demand::class)->name('dashboard.trend');
 
     // Só dígitos (até 18) no id: texto ou número fora do bigint dá 404 em vez de erro do PostgreSQL.
     Route::where(['demand' => '[0-9]{1,18}'])->group(function () {

@@ -22,6 +22,7 @@ async function mountLayout(path = '/demandas') {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
+      { path: '/dashboard', name: 'dashboard', component: Stub },
       {
         path: '/demandas',
         component: DefaultLayout,

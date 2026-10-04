@@ -9,7 +9,10 @@ const Stub = defineComponent({ render: () => null })
 async function mountSidebar(activeRouteName: string | null = 'demands') {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/demandas', name: 'demands', component: Stub }],
+    routes: [
+      { path: '/dashboard', name: 'dashboard', component: Stub },
+      { path: '/demandas', name: 'demands', component: Stub },
+    ],
   })
   await router.push('/demandas')
 
@@ -20,18 +23,20 @@ async function mountSidebar(activeRouteName: string | null = 'demands') {
 }
 
 describe('AppSidebar', () => {
-  it('lista Demandas como único item e marca a tela aberta', async () => {
+  it('lista Dashboard e Demandas, e marca a tela aberta', async () => {
     const wrapper = await mountSidebar('demands')
 
-    const link = wrapper.get('nav a')
-    expect(link.text()).toBe('Demandas')
-    expect(link.attributes('aria-current')).toBe('page')
+    const links = wrapper.findAll('nav a')
+    expect(links.map((link) => link.text())).toEqual(['Dashboard', 'Demandas'])
+    expect(links[1]!.attributes('aria-current')).toBe('page')
+    expect(links[0]!.attributes('aria-current')).toBeUndefined()
   })
 
   it('não marca item nenhum quando a tela aberta não está no menu', async () => {
     const wrapper = await mountSidebar(null)
 
-    expect(wrapper.get('nav a').attributes('aria-current')).toBeUndefined()
+    const links = wrapper.findAll('nav a')
+    expect(links.every((link) => link.attributes('aria-current') === undefined)).toBe(true)
   })
 
   it('põe Meu perfil logo acima de Sair, no fim da barra', async () => {

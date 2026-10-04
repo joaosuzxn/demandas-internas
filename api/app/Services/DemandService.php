@@ -7,9 +7,9 @@ use App\Enums\DemandStatus;
 use App\Models\Demand;
 use App\Models\DemandMovement;
 use App\Models\User;
+use App\Support\BusinessDay;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -33,18 +33,11 @@ class DemandService
             ->when($filters['category'] ?? null, fn (Builder $query, string $category) => $query->where('category', $category))
             ->when($term !== '', fn (Builder $query) => $query->where('title', 'ilike', "%{$escaped}%"))
             ->when($filters['mine'] ?? false, fn (Builder $query) => $query->where('requester_id', $actor->id))
-            ->when($filters['created_from'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '>=', $this->startOfBusinessDay($day)->utc()))
-            ->when($filters['created_to'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '<', $this->startOfBusinessDay($day)->addDay()->utc()))
+            ->when($filters['created_from'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '>=', BusinessDay::start($day)->utc()))
+            ->when($filters['created_to'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '<', BusinessDay::start($day)->addDay()->utc()))
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(self::PER_PAGE);
-    }
-
-    // A meia-noite do dia no fuso do negócio. Quem usa converte para UTC (o fuso em que o banco grava) depois de
-    // somar dias: somar antes, em UTC, erraria o fim do dia num fuso com horário de verão.
-    private function startOfBusinessDay(string $day): Carbon
-    {
-        return Carbon::createFromFormat('Y-m-d', $day, config('app.business_timezone'))->startOfDay();
     }
 
     /**
