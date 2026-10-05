@@ -8,6 +8,7 @@ import type { IconName } from '@/components/icons/icons'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import { useDashboardFilters } from '@/composables/useDashboardFilters'
 import type { DashboardSummary } from '@/services/dashboard'
+import { DEMAND_STATUS_TOTAL_LABELS } from '@/services/demands'
 import { useDashboardStore } from '@/stores/dashboard'
 
 // Dashboard (item 0030), no molde da DashboardView do Órbita, sem o bloco de permissão: todo logado vê.
@@ -25,12 +26,12 @@ watch(
   { immediate: true },
 )
 
-/** Os quatro números, na ordem e com os rótulos das colunas do quadro. */
+/** Os quatro números, na ordem das colunas do quadro e com os mesmos termos, no plural. */
 const STATS: { key: keyof DashboardSummary; label: string; icon: IconName }[] = [
   { key: 'total', label: 'Total', icon: 'clipboard-list' },
-  { key: 'pending', label: 'Pendentes', icon: 'clock' },
-  { key: 'in_progress', label: 'Em atendimento', icon: 'circle-play' },
-  { key: 'finished', label: 'Concluídas', icon: 'circle-check' },
+  { key: 'pending', label: DEMAND_STATUS_TOTAL_LABELS.pending, icon: 'clock' },
+  { key: 'in_progress', label: DEMAND_STATUS_TOTAL_LABELS.in_progress, icon: 'circle-play' },
+  { key: 'finished', label: DEMAND_STATUS_TOTAL_LABELS.finished, icon: 'circle-check' },
 ]
 
 /** O comparativo entre categorias só faz sentido quando nenhuma está em foco. */

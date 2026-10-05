@@ -89,7 +89,14 @@ export const DEMAND_CATEGORY_LABELS: Record<DemandCategory, string> = {
 export const DEMAND_STATUS_LABELS: Record<DemandStatus, string> = {
   pending: 'Pendente',
   in_progress: 'Em andamento',
-  finished: 'Finalizado',
+  finished: 'Finalizada',
+}
+
+/** Os mesmos termos no plural, para os totais do Dashboard (item 0044). */
+export const DEMAND_STATUS_TOTAL_LABELS: Record<DemandStatus, string> = {
+  pending: 'Pendentes',
+  in_progress: 'Em andamento',
+  finished: 'Finalizadas',
 }
 
 // Corpo de criar e editar. A categoria vazia (nada escolhido) vai assim mesmo: quem recusa é a API, com 422.

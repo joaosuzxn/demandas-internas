@@ -18,7 +18,7 @@ final class DemandRules
             'title' => ['required', 'string', 'max:150'],
             'description' => ['required', 'string', 'max:5000'],
             'category' => ['required', Rule::enum(DemandCategory::class)],
-            // O status só muda por close e reopen; o solicitante é sempre quem criou.
+            // O status só muda por start, close e reopen; o solicitante é sempre quem criou.
             'status' => ['prohibited'],
             'requester_id' => ['prohibited'],
         ];

@@ -2,9 +2,10 @@
 import { computed } from 'vue'
 import GlassPanel from '@/components/ui/GlassPanel.vue'
 import type { DashboardTrend } from '@/services/dashboard'
+import { DEMAND_STATUS_TOTAL_LABELS } from '@/services/demands'
 import { buildSeriesPath, formatAxisLabel, formatPointLabel, pickAxisTicks } from '@/utils/dashboard'
 
-// "Evolução das solicitações" (item 0030), no molde do gráfico do Órbita: criadas (pela data de criação) e concluídas
+// "Evolução das solicitações" (item 0030), no molde do gráfico do Órbita: criadas (pela data de criação) e finalizadas
 // (pela data de cada conclusão), por dia ou por mês conforme a API decidiu.
 const props = defineProps<{
   trend: DashboardTrend | null
@@ -85,7 +86,7 @@ const totals = computed(() => ({
 const chartLabel = computed(
   () =>
     `Evolução das solicitações: ${totals.value.created} criadas e ` +
-    `${totals.value.finished} concluídas no período.`,
+    `${totals.value.finished} finalizadas no período.`,
 )
 </script>
 
@@ -103,7 +104,7 @@ const chartLabel = computed(
       <ul class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
         <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
           <span class="bg-brand-500 h-0.5 w-5 rounded-full dark:bg-brand-400" aria-hidden="true"></span>
-          Concluídas
+          {{ DEMAND_STATUS_TOTAL_LABELS.finished }}
           <span class="font-semibold text-slate-900 tabular-nums dark:text-white">{{ totals.finished }}</span>
         </li>
         <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
@@ -188,7 +189,7 @@ const chartLabel = computed(
       <ul class="sr-only">
         <li v-for="point in points" :key="point.date">
           {{ formatPointLabel(point.date, granularity) }}: {{ point.created }} criadas,
-          {{ point.finished }} concluídas.
+          {{ point.finished }} finalizadas.
         </li>
       </ul>
     </div>

@@ -141,7 +141,7 @@ O projeto tem **um único `.env`, na raiz**. Ele abastece a API, o frontend e o 
 | `APP_LOCALE` / `APP_FALLBACK_LOCALE` | Idioma das mensagens da API | `pt_BR` / `en` |
 | `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` | Nome do banco, usuário e senha do PostgreSQL | `demandas` / `demandas` / `demandas` |
 | `SANCTUM_STATEFUL_DOMAINS` | Origem autorizada a usar a sessão por cookie | `localhost:8080` |
-| `VITE_APP_TITLE` | Título exibido pelo frontend (público: vai para o navegador) | `"Demandas Internas"` |
+| `VITE_APP_TITLE` | Título exibido pelo frontend (público: vai para o navegador) | `"Solicitações internas"` |
 | `DEFAULT_PASSWORD` | Senha inicial de todo usuário cadastrado ou com senha redefinida | `123@Senha` |
 
 O endereço do banco (`DB_HOST`), o ambiente (`APP_ENV`) e o modo de depuração (`APP_DEBUG`) ficam fixos em cada

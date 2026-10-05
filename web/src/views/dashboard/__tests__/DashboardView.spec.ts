@@ -71,7 +71,7 @@ describe('DashboardView', () => {
     await flushPromises()
     expect(wrapper.get('h1').text()).toBe('Dashboard')
     const cards = wrapper.findAll('h3').map((title) => title.text())
-    expect(cards).toEqual(['Total', 'Pendentes', 'Em atendimento', 'Concluídas'])
+    expect(cards).toEqual(['Total', 'Pendentes', 'Em andamento', 'Finalizadas'])
     expect(wrapper.text()).toContain('10')
     expect(service.getDashboardSummary).toHaveBeenCalledWith({})
   })
