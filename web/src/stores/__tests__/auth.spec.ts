@@ -36,6 +36,17 @@ describe('auth store', () => {
     expect(auth.mustChangePassword).toBe(false)
   })
 
+  it('sabe quando quem está logado é o administrador', () => {
+    const auth = useAuthStore()
+    expect(auth.isAdmin).toBe(false)
+
+    auth.user = makeUser({ role: 'employee' })
+    expect(auth.isAdmin).toBe(false)
+
+    auth.user = makeUser({ role: 'admin' })
+    expect(auth.isAdmin).toBe(true)
+  })
+
   it('carrega o usuário da sessão', async () => {
     vi.mocked(authService.fetchMe).mockResolvedValue(makeUser({ must_change_password: true }))
     const auth = useAuthStore()

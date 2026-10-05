@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-// O que aconteceu com a demanda (item 0026). Os rótulos ficam na SPA, como os de DemandStatus.
+// O que aconteceu com a solicitação (item 0026). Os rótulos ficam na SPA, como os de DemandStatus.
 enum DemandMovementType: string
 {
     case Created = 'created';

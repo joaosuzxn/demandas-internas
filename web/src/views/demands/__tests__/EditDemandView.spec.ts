@@ -32,21 +32,21 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
   }
 }
 
-// Quem entra é a usuária 1, dona das demandas com requester.id 1.
+// Quem entra é a usuária 1, dona das solicitações com requester.id 1.
 async function mountView(role: Role = 'employee') {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: '/demandas', name: 'demands', component: Stub },
-      { path: '/demandas/:id', name: 'demand', component: Stub },
-      { path: '/demandas/:id/editar', name: 'demand-edit', component: EditDemandView },
+      { path: '/solicitacoes', name: 'demands', component: Stub },
+      { path: '/solicitacoes/:id', name: 'demand', component: Stub },
+      { path: '/solicitacoes/:id/editar', name: 'demand-edit', component: EditDemandView },
     ],
   })
   const pinia = createPinia()
   setActivePinia(pinia)
   useAuthStore().user = makeUser({ id: 1, role })
 
-  await router.push('/demandas/12/editar')
+  await router.push('/solicitacoes/12/editar')
   const wrapper = mount(EditDemandView, {
     global: { plugins: [pinia, router], stubs: { teleport: true } },
   })
@@ -60,24 +60,24 @@ describe('EditDemandView', () => {
     vi.mocked(demandsService.updateDemand).mockReset()
   })
 
-  it('carrega a demanda e abre o formulário preenchido, com o voltar para ela', async () => {
+  it('carrega a solicitação e abre o formulário preenchido, com o voltar para ela', async () => {
     const { wrapper } = await mountView()
 
     expect(demandsService.getDemand).toHaveBeenCalledWith(12)
-    expect(wrapper.get('h1').text()).toBe('Editar demanda')
+    expect(wrapper.get('h1').text()).toBe('Editar solicitação')
     expect((wrapper.get('input').element as HTMLInputElement).value).toBe('Trocar impressora')
-    expect(wrapper.get('a[aria-label="Voltar para a demanda"]').attributes('href')).toBe(
-      '/demandas/12',
+    expect(wrapper.get('a[aria-label="Voltar para a solicitação"]').attributes('href')).toBe(
+      '/solicitacoes/12',
     )
     expect(
       wrapper
         .findAll('a')
         .find((link) => link.text() === 'Cancelar')!
         .attributes('href'),
-    ).toBe('/demandas/12')
+    ).toBe('/solicitacoes/12')
   })
 
-  it('salva e volta à demanda com o aviso no estado da navegação', async () => {
+  it('salva e volta à solicitação com o aviso no estado da navegação', async () => {
     vi.mocked(demandsService.updateDemand).mockResolvedValue(makeDemand())
     const { router, wrapper } = await mountView()
 
@@ -86,10 +86,10 @@ describe('EditDemandView', () => {
 
     expect(demandsService.updateDemand).toHaveBeenCalledWith(12, expect.any(Object))
     expect(router.currentRoute.value.name).toBe('demand')
-    expect(router.options.history.state.notice).toBe('Demanda atualizada.')
+    expect(router.options.history.state.notice).toBe('Solicitação atualizada.')
   })
 
-  it('admin edita a demanda de outra pessoa', async () => {
+  it('admin edita a solicitação de outra pessoa', async () => {
     vi.mocked(demandsService.getDemand).mockResolvedValue(
       makeDemand({ requester: { id: 9, name: 'Joana' } }),
     )
@@ -107,40 +107,40 @@ describe('EditDemandView', () => {
     const { wrapper } = await mountView('employee')
 
     expect(wrapper.find('form').exists()).toBe(false)
-    expect(wrapper.text()).toContain('Só quem pediu a demanda ou o administrador pode editá-la.')
+    expect(wrapper.text()).toContain('Só quem pediu a solicitação ou o administrador pode editá-la.')
     expect(
       wrapper
         .findAll('a')
-        .find((link) => link.text() === 'Voltar à demanda')!
+        .find((link) => link.text() === 'Voltar à solicitação')!
         .attributes('href'),
-    ).toBe('/demandas/12')
+    ).toBe('/solicitacoes/12')
   })
 
   it.each(['in_progress', 'finished'] as const)(
-    'demanda %s não abre o formulário',
+    'solicitação %s não abre o formulário',
     async (status) => {
       vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status }))
 
       const { wrapper } = await mountView()
 
       expect(wrapper.find('form').exists()).toBe(false)
-      expect(wrapper.text()).toContain('Só demanda pendente pode ser editada.')
+      expect(wrapper.text()).toContain('Só solicitação pendente pode ser editada.')
     },
   )
 
-  it('avisa quando a demanda não existe (404)', async () => {
+  it('avisa quando a solicitação não existe (404)', async () => {
     vi.mocked(demandsService.getDemand).mockRejectedValue(httpError(404))
 
     const { wrapper } = await mountView()
 
-    expect(wrapper.text()).toContain('Demanda não encontrada')
+    expect(wrapper.text()).toContain('Solicitação não encontrada')
   })
 
   it('mostra o erro e tenta de novo quando a API não responde', async () => {
     vi.mocked(demandsService.getDemand).mockRejectedValueOnce(networkError())
 
     const { wrapper } = await mountView()
-    expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar a demanda.')
+    expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar a solicitação.')
 
     await wrapper
       .findAll('button')

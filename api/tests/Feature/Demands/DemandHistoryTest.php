@@ -61,7 +61,7 @@ class DemandHistoryTest extends TestCase
         $this->assertSame([
             ['created', $this->requester->id],
             ['edited', $this->requester->id],
-            // Foco de revisão 1: quem age é o autor, mesmo na demanda de outra pessoa.
+            // Foco de revisão 1: quem age é o autor, mesmo na solicitação de outra pessoa.
             ['started', $this->admin->id],
             ['finished', $this->admin->id],
             ['reopened', $this->requester->id],
@@ -102,8 +102,7 @@ class DemandHistoryTest extends TestCase
     {
         $demand = Demand::factory()->create(['requester_id' => $this->requester->id]);
 
-        // 403: estranho. 422: situação errada (finalizar uma pendente) e edição de não pendente.
-        $this->actingAsSpa($this->stranger)->postJson("/api/demands/{$demand->id}/start")->assertForbidden();
+        // 403: estranho editando. 422: situação errada (finalizar uma pendente) e edição de não pendente.
         $this->actingAsSpa($this->stranger)->putJson("/api/demands/{$demand->id}", $this->payload())->assertForbidden();
         $this->actingAsSpa($this->requester)->postJson("/api/demands/{$demand->id}/close")->assertUnprocessable();
         $this->actingAsSpa($this->requester)->postJson("/api/demands/{$demand->id}/reopen")->assertUnprocessable();
@@ -173,7 +172,7 @@ class DemandHistoryTest extends TestCase
             ->assertJsonPath('data.history.0.actor.name', $this->requester->name);
     }
 
-    // Revisão final (I1): uma segunda aba com a demanda carregada antes não pode passar pela checagem
+    // Revisão final (I1): uma segunda aba com a solicitação carregada antes não pode passar pela checagem
     // de situação com dados velhos — senão o histórico grava "Iniciada" duas vezes, para sempre.
     public function test_stale_copy_cannot_start_an_already_started_demand(): void
     {
@@ -193,8 +192,8 @@ class DemandHistoryTest extends TestCase
         $this->assertSame([['started', $this->requester->id]], $this->movementsOf($demand));
     }
 
-    // Revisão final (I1): edição vinda de uma cópia de quando a demanda ainda era pendente não grava
-    // numa demanda já iniciada, nem deixa "Editada" depois de "Iniciada".
+    // Revisão final (I1): edição vinda de uma cópia de quando a solicitação ainda era pendente não grava
+    // numa solicitação já iniciada, nem deixa "Editada" depois de "Iniciada".
     public function test_stale_copy_cannot_edit_a_started_demand(): void
     {
         $demand = Demand::factory()->create(['requester_id' => $this->requester->id, 'title' => 'Original']);
@@ -205,7 +204,7 @@ class DemandHistoryTest extends TestCase
 
         try {
             $service->update($stale, $this->payload(['title' => 'Editada depois']), $this->requester);
-            $this->fail('A cópia velha não deveria editar uma demanda iniciada.');
+            $this->fail('A cópia velha não deveria editar uma solicitação iniciada.');
         } catch (ValidationException) {
             // esperado
         }

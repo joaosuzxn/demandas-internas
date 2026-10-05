@@ -32,10 +32,10 @@ function makeDemand(overrides: Partial<Demand> = {}): Demand {
 function mountForm(props: Partial<InstanceType<typeof DemandForm>['$props']> = {}) {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/demandas', name: 'demands', component: Stub }],
+    routes: [{ path: '/solicitacoes', name: 'demands', component: Stub }],
   })
   return mount(DemandForm, {
-    props: { cancelTo: { name: 'demands' }, submitLabel: 'Criar demanda', ...props },
+    props: { cancelTo: { name: 'demands' }, submitLabel: 'Criar solicitação', ...props },
     // A lista do select vai para o body pelo Teleport; com o stub ela fica no wrapper.
     global: { plugins: [router], stubs: { teleport: true } },
     attachTo: document.body,
@@ -78,7 +78,7 @@ describe('DemandForm', () => {
     expect(wrapper.emitted('saved')).toEqual([[makeDemand()]])
   })
 
-  it('na edição, abre preenchido e salva na demanda certa', async () => {
+  it('na edição, abre preenchido e salva na solicitação certa', async () => {
     vi.mocked(demandsService.updateDemand).mockResolvedValue(makeDemand({ title: 'Novo título' }))
     const wrapper = mountForm({ editing: makeDemand(), submitLabel: 'Salvar alterações' })
 
@@ -148,6 +148,6 @@ describe('DemandForm', () => {
     const wrapper = mountForm()
 
     expect(wrapper.get('a').text()).toBe('Cancelar')
-    expect(wrapper.get('a').attributes('href')).toBe('/demandas')
+    expect(wrapper.get('a').attributes('href')).toBe('/solicitacoes')
   })
 })

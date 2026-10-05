@@ -103,24 +103,59 @@ describe('guarda de autenticação', () => {
   })
 
   it.each([['/login'], ['/change-password'], ['/nao-existe']])(
-    'com a senha já trocada, manda %s para a home',
+    'com a senha já trocada, manda %s para as solicitações (a home)',
     async (path) => {
       withSession()
       const router = makeRouter()
 
       await router.push(path)
 
-      expect(router.currentRoute.value.name).toBe('home')
+      expect(router.currentRoute.value.name).toBe('demands')
     },
   )
 
-  it('com a senha já trocada, deixa abrir a home', async () => {
+  it('com a senha já trocada, a home abre as solicitações', async () => {
     withSession()
     const router = makeRouter()
 
     await router.push('/')
 
-    expect(router.currentRoute.value.name).toBe('home')
+    expect(router.currentRoute.value.name).toBe('demands')
+  })
+
+  it('deixa o administrador abrir as telas da administração', async () => {
+    withSession({ role: 'admin' })
+    const router = makeRouter()
+
+    await router.push('/admin')
+    expect(router.currentRoute.value.name).toBe('admin')
+
+    await router.push('/admin/usuarios/novo')
+    expect(router.currentRoute.value.name).toBe('admin-user-new')
+
+    await router.push('/admin/usuarios/3/editar')
+    expect(router.currentRoute.value.name).toBe('admin-user-edit')
+  })
+
+  it.each(['/admin', '/admin/usuarios/novo', '/admin/usuarios/3/editar'])(
+    'manda o colaborador que abre %s para a home',
+    async (path) => {
+      withSession({ role: 'employee' })
+      const router = makeRouter()
+
+      await router.push(path)
+
+      expect(router.currentRoute.value.name).toBe('demands')
+    },
+  )
+
+  it('admin com senha pendente continua indo para a troca', async () => {
+    withSession({ role: 'admin', must_change_password: true })
+    const router = makeRouter()
+
+    await router.push('/admin')
+
+    expect(router.currentRoute.value.name).toBe('change-password')
   })
 
   it('consulta a sessão uma vez só em várias navegações', async () => {

@@ -33,10 +33,6 @@ return [
 
     // Regras próprias (app/Rules).
     'cpf' => 'O :attribute informado é inválido.',
-    'base64_image' => [
-        'format' => 'A :attribute deve ser uma imagem JPEG, PNG ou WebP em base64.',
-        'size' => 'A :attribute não pode ter mais de 512 KB.',
-    ],
 
     'regex' => 'O formato do campo :attribute é inválido.',
 
@@ -63,7 +59,6 @@ return [
         'name' => 'nome',
         'page' => 'página',
         'password' => 'senha',
-        'photo' => 'foto',
         'remember' => 'lembrar-me',
         'requester_id' => 'solicitante',
         'role' => 'perfil',

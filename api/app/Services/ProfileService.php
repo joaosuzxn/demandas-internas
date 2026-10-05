@@ -9,14 +9,6 @@ use Illuminate\Support\Str;
 
 class ProfileService
 {
-    public function updatePhoto(User $user, ?string $photo): User
-    {
-        $user->photo = $photo;
-        $user->save();
-
-        return $user;
-    }
-
     // A troca derruba o "lembrar" de todos os aparelhos. O aparelho que trocou a senha continua
     // lembrado, mas só se o cookie que ele mandou ($recallerCookie) ainda valia.
     public function changePassword(User $user, string $password, ?string $recallerCookie = null): void

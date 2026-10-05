@@ -31,4 +31,17 @@ describe('loginLocation', () => {
   it('não leva redirect quando o caminho pedido é a home', () => {
     expect(loginLocation('/')).toEqual({ name: 'login', query: {} })
   })
+
+  // A home redireciona para as solicitações (item 0034) antes da guarda: elas também são o destino padrão.
+  it('não leva redirect quando o caminho pedido é o quadro de solicitações', () => {
+    expect(loginLocation('/solicitacoes')).toEqual({ name: 'login', query: {} })
+    expect(loginLocation('/solicitacoes?status=pending')).toEqual({
+      name: 'login',
+      query: { redirect: '/solicitacoes?status=pending' },
+    })
+  })
+
+  it('leva redirect quando o caminho pedido é o dashboard', () => {
+    expect(loginLocation('/dashboard')).toEqual({ name: 'login', query: { redirect: '/dashboard' } })
+  })
 })

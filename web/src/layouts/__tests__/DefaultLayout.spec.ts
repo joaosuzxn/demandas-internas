@@ -18,12 +18,13 @@ vi.mock('@/services/auth', () => ({
 
 const Stub = defineComponent({ render: () => null })
 
-async function mountLayout(path = '/demandas') {
+async function mountLayout(path = '/solicitacoes') {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
+      { path: '/dashboard', name: 'dashboard', component: Stub },
       {
-        path: '/demandas',
+        path: '/solicitacoes',
         component: DefaultLayout,
         children: [
           { path: '', name: 'demands', component: Stub },
@@ -50,6 +51,32 @@ describe('DefaultLayout', () => {
   beforeEach(() => {
     vi.mocked(authService.logout).mockReset()
     vi.mocked(authService.logout).mockResolvedValue()
+    localStorage.clear()
+    document.documentElement.classList.remove('dark')
+  })
+
+  // Item 0032: o tema escuro só vale com o layout das telas internas montado.
+  it('liga o tema escuro salvo nas telas internas e desliga ao sair delas', async () => {
+    localStorage.setItem('demandas.theme', 'dark')
+    const { wrapper } = await mountLayout()
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+
+    // Ir para o login desmonta o layout (o roteador troca o componente da rota).
+    wrapper.unmount()
+    expect(document.documentElement.classList.contains('dark')).toBe(false)
+  })
+
+  it('o botão da sidebar alterna o tema e grava a escolha', async () => {
+    localStorage.setItem('demandas.theme', 'light')
+    const { wrapper } = await mountLayout()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text() === 'Modo escuro')!
+      .trigger('click')
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+    expect(localStorage.getItem('demandas.theme')).toBe('dark')
+    wrapper.unmount()
   })
 
   it('ao sair, encerra a sessão e vai para o login', async () => {
@@ -65,9 +92,9 @@ describe('DefaultLayout', () => {
     expect(router.currentRoute.value.name).toBe('login')
   })
 
-  it('mantém Demandas destacado na tela de uma demanda', async () => {
-    const { wrapper } = await mountLayout('/demandas/12')
+  it('mantém Solicitações destacado na tela de uma solicitação', async () => {
+    const { wrapper } = await mountLayout('/solicitacoes/12')
 
-    expect(wrapper.get('a[aria-current="page"]').text()).toContain('Demandas')
+    expect(wrapper.get('a[aria-current="page"]').text()).toContain('Solicitações')
   })
 })

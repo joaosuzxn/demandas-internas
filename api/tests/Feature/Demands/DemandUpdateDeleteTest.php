@@ -128,7 +128,7 @@ class DemandUpdateDeleteTest extends TestCase
             foreach ([$this->requester, $this->admin] as $actor) {
                 $this->actingAsSpa($actor)->putJson("/api/demands/{$locked->id}", $this->validPayload())
                     ->assertUnprocessable()
-                    ->assertJsonValidationErrors(['status' => 'Só demanda pendente pode ser editada.']);
+                    ->assertJsonValidationErrors(['status' => 'Só solicitação pendente pode ser editada.']);
             }
 
             $this->assertDatabaseHas('demands', ['id' => $locked->id, 'title' => 'Travada', 'status' => $locked->status->value]);
@@ -150,14 +150,19 @@ class DemandUpdateDeleteTest extends TestCase
         $this->assertSoftDeleted('demands', ['id' => $this->demand->id]);
     }
 
-    public function test_demand_can_be_deleted_in_any_status(): void
+    // Como editar: em andamento ou finalizada, a solicitação fica — nem o administrador exclui (item 0041).
+    public function test_only_pending_demand_can_be_deleted(): void
     {
-        foreach ([Demand::factory(), Demand::factory()->inProgress(), Demand::factory()->finished()] as $factory) {
-            $demand = $factory->create(['requester_id' => $this->requester->id]);
+        foreach ([Demand::factory()->inProgress(), Demand::factory()->finished()] as $factory) {
+            $locked = $factory->create(['requester_id' => $this->requester->id]);
 
-            $this->actingAsSpa($this->requester)->deleteJson("/api/demands/{$demand->id}")->assertNoContent();
+            foreach ([$this->requester, $this->admin] as $actor) {
+                $this->actingAsSpa($actor)->deleteJson("/api/demands/{$locked->id}")
+                    ->assertUnprocessable()
+                    ->assertJsonValidationErrors(['status' => 'Só solicitação pendente pode ser excluída.']);
+            }
 
-            $this->assertSoftDeleted('demands', ['id' => $demand->id]);
+            $this->assertDatabaseHas('demands', ['id' => $locked->id, 'deleted_at' => null]);
         }
     }
 

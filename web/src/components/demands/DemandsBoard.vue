@@ -13,7 +13,7 @@ import {
 import type { IconName } from '@/components/icons/icons'
 
 defineProps<{
-  /** As demandas já repartidas por situação — uma coluna para cada. */
+  /** As solicitações já repartidas por situação — uma coluna para cada. */
   board: DemandBoard
   loading?: boolean
   error?: string | null
@@ -32,7 +32,7 @@ function canLoadMore(column: DemandBoardColumn): boolean {
   return column.page < column.lastPage && !column.loadingMore && column.loadMoreError === null
 }
 
-// Uma coluna por situação, na ordem em que a demanda anda.
+// Uma coluna por situação, na ordem em que a solicitação anda.
 const COLUMNS: readonly { status: DemandStatus; label: string; icon: IconName }[] = [
   { status: 'pending', label: DEMAND_STATUS_LABELS.pending, icon: 'clock' },
   { status: 'in_progress', label: DEMAND_STATUS_LABELS.in_progress, icon: 'circle-play' },
@@ -51,20 +51,20 @@ function categoryLabel(demand: Demand): string {
 
 <template>
   <section
-    aria-label="Quadro de demandas por situação"
-    class="bg-surface-panel flex flex-col gap-4 rounded-3xl border border-white/60 p-5 shadow-xl shadow-slate-900/10 backdrop-blur-lg sm:p-6"
+    aria-label="Quadro de solicitações por situação"
+    class="bg-surface-panel flex flex-col gap-4 rounded-3xl border border-white/60 p-5 shadow-xl shadow-slate-900/10 backdrop-blur-lg sm:p-6 dark:border-white/10 dark:shadow-black/40"
   >
     <div v-if="loading" role="status" class="flex flex-col gap-3">
-      <span class="sr-only">Carregando demandas…</span>
-      <div class="h-4 w-40 animate-pulse rounded-full bg-slate-900/5" aria-hidden="true"></div>
-      <div class="h-24 animate-pulse rounded-2xl bg-slate-900/5" aria-hidden="true"></div>
+      <span class="sr-only">Carregando solicitações…</span>
+      <div class="h-4 w-40 animate-pulse rounded-full bg-slate-900/5 dark:bg-white/10" aria-hidden="true"></div>
+      <div class="h-24 animate-pulse rounded-2xl bg-slate-900/5 dark:bg-white/10" aria-hidden="true"></div>
     </div>
 
     <div v-else-if="error" role="alert" class="flex flex-wrap items-center justify-between gap-3">
-      <p class="text-sm text-red-600">{{ error }}</p>
+      <p class="text-sm text-red-600 dark:text-red-300">{{ error }}</p>
       <button
         type="button"
-        class="bg-surface-item hover:bg-surface-item-hover rounded-full px-3.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm shadow-slate-900/5"
+        class="bg-surface-item hover:bg-surface-item-hover rounded-full px-3.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm shadow-slate-900/5 dark:text-slate-200 dark:shadow-black/20"
         @click="emit('retry')"
       >
         Tentar de novo
@@ -73,9 +73,9 @@ function categoryLabel(demand: Demand): string {
 
     <p
       v-else-if="COLUMNS.every((column) => board[column.status].total === 0)"
-      class="py-6 text-center text-sm text-slate-500"
+      class="py-6 text-center text-sm text-slate-500 dark:text-slate-400"
     >
-      {{ filtering ? 'Nenhuma demanda corresponde aos filtros.' : 'Nenhuma demanda registrada ainda.' }}
+      {{ filtering ? 'Nenhuma solicitação corresponde aos filtros.' : 'Nenhuma solicitação registrada ainda.' }}
     </p>
 
     <!-- As situações ficam à vista ao mesmo tempo, como num quadro: a leitura é a comparação
@@ -88,14 +88,14 @@ function categoryLabel(demand: Demand): string {
         class="bg-surface-sunken flex min-w-72 flex-1 flex-col gap-2.5 rounded-2xl p-3"
       >
         <header class="flex items-center gap-2">
-          <AppIcon :name="column.icon" class="size-4 shrink-0 text-slate-500" />
-          <h3 class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">
+          <AppIcon :name="column.icon" class="size-4 shrink-0 text-slate-500 dark:text-slate-400" />
+          <h3 class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900 dark:text-white">
             {{ column.label }}
           </h3>
 
           <!-- A contagem é do total da API, não do que chegou a esta página. -->
           <span
-            class="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-slate-900/10 px-1.5 text-xs font-semibold text-slate-600 tabular-nums"
+            class="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-slate-900/10 px-1.5 text-xs font-semibold text-slate-600 tabular-nums dark:bg-white/10 dark:text-slate-300"
           >
             {{ board[column.status].total }}
           </span>
@@ -114,19 +114,19 @@ function categoryLabel(demand: Demand): string {
             :key="demand.id"
             :data-demand="demand.id"
           >
-            <!-- O cartão inteiro abre a tela da demanda, onde ficam as ações. -->
+            <!-- O cartão inteiro abre a tela da solicitação, onde ficam as ações. -->
             <RouterLink
               :to="{ name: 'demand', params: { id: demand.id } }"
-              class="bg-surface-item hover:bg-surface-item-hover flex flex-col gap-2 rounded-2xl p-3.5 shadow-sm shadow-slate-900/5 transition"
+              class="bg-surface-item hover:bg-surface-item-hover flex flex-col gap-2 rounded-2xl p-3.5 shadow-sm shadow-slate-900/5 transition dark:shadow-black/20"
             >
-              <!-- O número é o protocolo da solicitação: o mesmo `#id - título` da tela da demanda. -->
-              <p data-demand-title class="text-sm font-semibold wrap-break-word text-slate-900">
+              <!-- O número é o protocolo da solicitação: o mesmo `#id - título` da tela da solicitação. -->
+              <p data-demand-title class="text-sm font-semibold wrap-break-word text-slate-900 dark:text-white">
                 #{{ demand.id }} - {{ demand.title }}
               </p>
-              <p class="text-xs text-slate-600">
+              <p class="text-xs text-slate-600 dark:text-slate-300">
                 {{ categoryLabel(demand) }} · {{ demand.requester.name }}
               </p>
-              <p class="text-xs text-slate-500">Criada em {{ formatDate(demand.created_at) }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Criada em {{ formatDate(demand.created_at) }}</p>
             </RouterLink>
           </li>
 
@@ -140,7 +140,7 @@ function categoryLabel(demand: Demand): string {
           <li
             v-if="board[column.status].loadingMore"
             role="status"
-            class="px-1 py-2 text-center text-xs text-slate-500"
+            class="px-1 py-2 text-center text-xs text-slate-500 dark:text-slate-400"
           >
             Carregando mais…
           </li>
@@ -149,10 +149,10 @@ function categoryLabel(demand: Demand): string {
             role="alert"
             class="flex flex-wrap items-center justify-between gap-2 px-1 py-2"
           >
-            <span class="text-xs text-red-600">{{ board[column.status].loadMoreError }}</span>
+            <span class="text-xs text-red-600 dark:text-red-300">{{ board[column.status].loadMoreError }}</span>
             <button
               type="button"
-              class="bg-surface-item hover:bg-surface-item-hover rounded-full px-3 py-1 text-xs font-medium text-slate-700 shadow-sm shadow-slate-900/5"
+              class="bg-surface-item hover:bg-surface-item-hover rounded-full px-3 py-1 text-xs font-medium text-slate-700 shadow-sm shadow-slate-900/5 dark:text-slate-200 dark:shadow-black/20"
               @click="emit('load-more', column.status)"
             >
               Tentar de novo
@@ -160,7 +160,7 @@ function categoryLabel(demand: Demand): string {
           </li>
         </ul>
 
-        <p v-else class="px-1 py-3 text-xs text-slate-500">Nenhuma demanda aqui.</p>
+        <p v-else class="px-1 py-3 text-xs text-slate-500 dark:text-slate-400">Nenhuma solicitação aqui.</p>
       </section>
     </div>
   </section>

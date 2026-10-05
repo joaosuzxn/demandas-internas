@@ -1,7 +1,7 @@
 import type { LocationQuery, LocationQueryRaw, RouteLocationRaw } from 'vue-router'
 import { DEMAND_CATEGORY_LABELS, type DemandCategory, type DemandFilters } from '@/services/demands'
 
-// Os filtros do quadro moram na URL (`/demandas?category=hr&created_from=…`), com os nomes da API (item 0027):
+// Os filtros do quadro moram na URL (`/solicitacoes?category=hr&created_from=…`), com os nomes da API (item 0027):
 // o filtro se compartilha, sobrevive ao F5 e o voltar do navegador o desfaz.
 
 /** Mesmo teto do `ListDemandsRequest`. */
@@ -55,7 +55,7 @@ export function toBoardQuery(filters: DemandFilters): LocationQueryRaw {
   return Object.fromEntries(Object.entries(filters).filter(([, value]) => value))
 }
 
-// O último quadro fica na sessão do navegador (a aba): o "voltar" das telas da demanda volta para ele.
+// O último quadro fica na sessão do navegador (a aba): o "voltar" das telas da solicitação volta para ele.
 // O armazenamento pode faltar (modo privado, bloqueado): sem ele, o voltar só perde os filtros.
 export function rememberBoardQuery(filters: DemandFilters): void {
   try {
@@ -74,7 +74,7 @@ function rememberedFilters(): DemandFilters {
   }
 }
 
-/** O quadro de demandas com os filtros da última visita — destino do "voltar" das telas da demanda. */
+/** O quadro de solicitações com os filtros da última visita — destino do "voltar" das telas da solicitação. */
 export function demandsBoardRoute(): RouteLocationRaw {
   return { name: 'demands', query: toBoardQuery(rememberedFilters()) }
 }

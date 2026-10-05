@@ -31,6 +31,8 @@
 
   /* Superfícies das telas com sidebar, trazidas do Órbita (tema claro). Cor nova entra aqui. */
   --color-haze-100: oklch(0.94 0.014 250);
+  /* Fundo do tema escuro (Órbita, item 0032). */
+  --color-ink-950: oklch(0.155 0.018 275);
   --color-surface-page: var(--color-haze-100);
   --color-surface-panel: rgb(255 255 255 / 0.4);
   --color-surface-sunken: color-mix(in oklab, var(--color-slate-900) 6%, transparent);
@@ -101,11 +103,41 @@
   &::-webkit-scrollbar-thumb:hover {
     background-color: rgb(15 23 42 / 0.4);
   }
+
+  /* No escuro o polegar é claro: o slate sobre o fundo escuro some (item 0032). */
+  @variant dark {
+    &:hover {
+      scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+    }
+
+    &:hover::-webkit-scrollbar-thumb {
+      background-color: rgb(255 255 255 / 0.2);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: rgb(255 255 255 / 0.35);
+    }
+  }
 }
 
+/* Tema escuro por classe no <html>, controlado pela store `ui` (item 0032). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
+  /* As superfícies no tema escuro: mesmos nomes do `@theme`, outros tons (valores do Órbita). */
+  .dark {
+    --color-surface-page: var(--color-ink-950);
+    --color-surface-panel: rgb(255 255 255 / 0.05);
+    --color-surface-sunken: rgb(0 0 0 / 0.25);
+    --color-surface-item: rgb(255 255 255 / 0.05);
+    --color-surface-item-hover: rgb(255 255 255 / 0.1);
+    --color-surface-field: rgb(255 255 255 / 0.05);
+    /* Controles nativos (ícone do campo de data, barra de rolagem) no tom escuro: sem isso o calendário some. */
+    color-scheme: dark;
+  }
+
   body {
-    @apply antialiased;
+    @apply antialiased dark:bg-surface-page dark:text-slate-100;
   }
 
   /* Mãozinha em tudo que é clicável (o Tailwind 4 devolveu os botões ao cursor padrão). */

@@ -9,7 +9,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Tests\Support\FictitiousCpf;
-use Tests\Support\ImageFixtures;
 use Tests\TestCase;
 
 class UserManagementTest extends TestCase
@@ -148,13 +147,11 @@ class UserManagementTest extends TestCase
         $this->assertTrue(Hash::check('123@Senha', $user->password));
     }
 
-    public function test_creates_user_with_photo(): void
+    public function test_ignores_photo_on_create(): void
     {
-        $photo = ImageFixtures::dataUri('image/jpeg', ImageFixtures::jpeg());
-
-        $this->asAdmin()->postJson('/api/users', $this->validPayload(['photo' => $photo]))
+        $this->asAdmin()->postJson('/api/users', $this->validPayload(['photo' => 'data:image/png;base64,AAAA']))
             ->assertCreated()
-            ->assertJsonPath('data.photo', $photo);
+            ->assertJsonMissingPath('data.photo');
     }
 
     public function test_rejects_duplicate_username_cpf_and_email(): void
@@ -207,29 +204,15 @@ class UserManagementTest extends TestCase
         $this->asAdmin()->getJson('/api/users/999999')->assertNotFound();
     }
 
-    public function test_updates_user_keeping_photo_when_omitted(): void
+    public function test_non_numeric_or_out_of_range_id_returns_404(): void
     {
-        $photo = ImageFixtures::dataUri('image/png', ImageFixtures::png());
-        $user = User::factory()->create(['cpf' => FictitiousCpf::DEFAULT, 'email' => 'maria@example.com', 'photo' => $photo]);
-
-        $this->asAdmin()->putJson("/api/users/{$user->id}", $this->validPayload(['name' => 'Maria S. Lima']))
-            ->assertOk()
-            ->assertJsonPath('data.name', 'Maria S. Lima')
-            ->assertJsonPath('data.role', 'employee')
-            ->assertJsonPath('data.photo', $photo);
-    }
-
-    public function test_update_removes_photo_with_null(): void
-    {
-        $user = User::factory()->create([
-            'cpf' => FictitiousCpf::DEFAULT,
-            'email' => 'maria@example.com',
-            'photo' => ImageFixtures::dataUri('image/png', ImageFixtures::png()),
-        ]);
-
-        $this->asAdmin()->putJson("/api/users/{$user->id}", $this->validPayload(['photo' => null]))
-            ->assertOk()
-            ->assertJsonPath('data.photo', null);
+        foreach (['abc', '1.5', '-1', '99999999999999999999'] as $id) {
+            $this->asAdmin()->getJson("/api/users/{$id}")
+                ->assertNotFound()
+                ->assertJson(['message' => 'Registro não encontrado.']);
+            $this->asAdmin()->putJson("/api/users/{$id}", $this->validPayload())->assertNotFound();
+            $this->asAdmin()->postJson("/api/users/{$id}/deactivate")->assertNotFound();
+        }
     }
 
     public function test_update_rejects_cpf_of_another_user(): void

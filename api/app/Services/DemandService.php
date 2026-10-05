@@ -7,9 +7,9 @@ use App\Enums\DemandStatus;
 use App\Models\Demand;
 use App\Models\DemandMovement;
 use App\Models\User;
+use App\Support\BusinessDay;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -33,18 +33,11 @@ class DemandService
             ->when($filters['category'] ?? null, fn (Builder $query, string $category) => $query->where('category', $category))
             ->when($term !== '', fn (Builder $query) => $query->where('title', 'ilike', "%{$escaped}%"))
             ->when($filters['mine'] ?? false, fn (Builder $query) => $query->where('requester_id', $actor->id))
-            ->when($filters['created_from'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '>=', $this->startOfBusinessDay($day)->utc()))
-            ->when($filters['created_to'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '<', $this->startOfBusinessDay($day)->addDay()->utc()))
+            ->when($filters['created_from'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '>=', BusinessDay::start($day)->utc()))
+            ->when($filters['created_to'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '<', BusinessDay::start($day)->addDay()->utc()))
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(self::PER_PAGE);
-    }
-
-    // A meia-noite do dia no fuso do negócio. Quem usa converte para UTC (o fuso em que o banco grava) depois de
-    // somar dias: somar antes, em UTC, erraria o fim do dia num fuso com horário de verão.
-    private function startOfBusinessDay(string $day): Carbon
-    {
-        return Carbon::createFromFormat('Y-m-d', $day, config('app.business_timezone'))->startOfDay();
     }
 
     /**
@@ -90,10 +83,18 @@ class DemandService
         });
     }
 
-    // Soft delete: a linha fica no banco com deleted_at e some das consultas.
+    // Soft delete: a linha fica no banco com deleted_at e some das consultas. Como editar, só a pendente (item 0041).
     public function delete(Demand $demand): void
     {
-        $demand->delete();
+        DB::transaction(function () use ($demand) {
+            $locked = $this->lock($demand);
+
+            if ($locked->status !== DemandStatus::Pending) {
+                throw ValidationException::withMessages(['status' => __('demands.only_pending_can_be_deleted')]);
+            }
+
+            $locked->delete();
+        });
     }
 
     public function start(Demand $demand, User $actor): Demand
@@ -130,8 +131,8 @@ class DemandService
         });
     }
 
-    // Relê a demanda travando a linha até o fim da transação: a situação conferida é a do banco agora, e não a de
-    // quando a requisição carregou a demanda. Duas ações ao mesmo tempo (duas abas, duas pessoas) passam uma de cada
+    // Relê a solicitação travando a linha até o fim da transação: a situação conferida é a do banco agora, e não a de
+    // quando a requisição carregou a solicitação. Duas ações ao mesmo tempo (duas abas, duas pessoas) passam uma de cada
     // vez, e a segunda recebe o 422 — sem movimentação duplicada ou fora de ordem no histórico.
     private function lock(Demand $demand): Demand
     {

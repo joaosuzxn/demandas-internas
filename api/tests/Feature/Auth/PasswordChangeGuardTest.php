@@ -40,6 +40,6 @@ class PasswordChangeGuardTest extends TestCase
         foreach (self::ALLOWED_WHILE_PENDING as $name) {
             $this->assertContains($name, $checked, "A rota liberada {$name} não existe ou não é autenticada.");
         }
-        $this->assertContains('me.photo', $checked);
+        $this->assertContains('dashboard.summary', $checked);
     }
 }

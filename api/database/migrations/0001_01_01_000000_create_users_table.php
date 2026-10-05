@@ -18,10 +18,11 @@ return new class extends Migration
             $table->char('cpf', 11)->unique();
             $table->string('email')->unique();
             $table->string('password');
-            $table->text('photo')->nullable();
             $table->string('role', 20)->default('employee');
             $table->boolean('is_active')->default(true);
             $table->boolean('must_change_password')->default(true);
+            // "Lembrar-me": token do cookie de login longo.
+            $table->rememberToken();
             $table->timestamps();
         });
 

@@ -57,7 +57,7 @@ class UserService
     }
 
     /**
-     * @param  array<string, mixed>  $data  dados já validados (UserRules); photo ausente mantém a atual
+     * @param  array<string, mixed>  $data  dados já validados (UserRules)
      */
     public function update(User $user, array $data): User
     {

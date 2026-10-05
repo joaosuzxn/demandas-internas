@@ -15,6 +15,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => user.value !== null)
   const mustChangePassword = computed(() => user.value?.must_change_password === true)
+  const isAdmin = computed(() => user.value?.role === 'admin')
 
   // Consulta a sessão uma vez. Nunca rejeita: com a API fora, segue como "sem sessão" e
   // tenta de novo na próxima chamada, para a tela de login aparecer em vez de uma página em branco.
@@ -92,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
     loginPassword,
     isAuthenticated,
     mustChangePassword,
+    isAdmin,
     ensureLoaded,
     login,
     changePassword,

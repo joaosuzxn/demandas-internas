@@ -148,7 +148,7 @@ async function load(filters: DemandFilters): Promise<void> {
     board.value = next
   } catch {
     if (request !== latestRequest) return
-    error.value = 'Não foi possível carregar as demandas.'
+    error.value = 'Não foi possível carregar as solicitações.'
   } finally {
     if (request === latestRequest) loading.value = false
   }
@@ -167,7 +167,7 @@ async function loadMore(status: DemandStatus): Promise<void> {
     const next = await fetchPage(status, activeFilters, column.page + 1)
     if (request !== latestRequest) return
 
-    // Demanda criada enquanto se rola empurra as páginas: a que já está na coluna não entra de novo.
+    // Solicitação criada enquanto se rola empurra as páginas: a que já está na coluna não entra de novo.
     const known = new Set(column.items.map((demand) => demand.id))
     column.items.push(...next.data.filter((demand) => !known.has(demand.id)))
     column.total = next.meta.total
@@ -245,28 +245,28 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
 
 <template>
   <div class="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
-    <PageHeader title="Demandas" subtitle="O que foi pedido, por situação.">
+    <PageHeader title="Solicitações" subtitle="O que foi pedido, por situação.">
       <template #actions>
-        <PillLink :to="{ name: 'demand-new' }" label="Criar demanda" icon="plus" />
+        <PillLink :to="{ name: 'demand-new' }" label="Criar solicitação" icon="plus" />
       </template>
     </PageHeader>
 
     <!-- Sem `gap` aqui: o espaço até o painel mora dentro dele (`pt-3`) e anima junto. -->
-    <section role="search" aria-label="Filtros das demandas" class="flex flex-col">
+    <section role="search" aria-label="Filtros das solicitações" class="flex flex-col">
       <div class="flex flex-wrap items-center gap-3">
-        <label for="demand-search" class="sr-only">Buscar demanda por título</label>
+        <label for="demand-search" class="sr-only">Buscar solicitação por título</label>
         <input
           id="demand-search"
           v-model="term"
           type="search"
           :maxlength="SEARCH_MAX"
           placeholder="Buscar por título…"
-          class="bg-surface-field min-w-60 flex-1 rounded-2xl border border-white/60 px-4 py-2.5 text-sm text-slate-900 shadow-sm shadow-slate-900/5 placeholder:text-slate-400 focus-visible:outline-2"
+          class="bg-surface-field min-w-60 flex-1 rounded-2xl border border-white/60 px-4 py-2.5 text-sm text-slate-900 shadow-sm shadow-slate-900/5 placeholder:text-slate-400 focus-visible:outline-2 dark:border-white/10 dark:text-white dark:shadow-black/20 dark:placeholder:text-slate-500"
         />
 
         <button
           type="button"
-          class="bg-surface-item hover:bg-surface-item-hover inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm shadow-slate-900/5 transition"
+          class="bg-surface-item hover:bg-surface-item-hover inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm shadow-slate-900/5 transition dark:text-slate-200 dark:shadow-black/20"
           :aria-expanded="filtersOpen"
           :aria-controls="filtersPanelId"
           @click="filtersOpen = !filtersOpen"
@@ -283,7 +283,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
         <button
           v-if="filtering"
           type="button"
-          class="text-brand-700 text-sm font-medium hover:underline"
+          class="text-brand-700 text-sm font-medium hover:underline dark:text-brand-300"
           @click="clearFilters"
         >
           Limpar filtros

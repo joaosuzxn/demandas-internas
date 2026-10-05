@@ -18,12 +18,12 @@ async function mountView() {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: '/demandas', name: 'demands', component: Stub },
-      { path: '/demandas/nova', name: 'demand-new', component: NewDemandView },
-      { path: '/demandas/:id', name: 'demand', component: Stub },
+      { path: '/solicitacoes', name: 'demands', component: Stub },
+      { path: '/solicitacoes/nova', name: 'demand-new', component: NewDemandView },
+      { path: '/solicitacoes/:id', name: 'demand', component: Stub },
     ],
   })
-  await router.push('/demandas/nova')
+  await router.push('/solicitacoes/nova')
   const wrapper = mount(NewDemandView, {
     global: { plugins: [router], stubs: { teleport: true } },
   })
@@ -37,20 +37,20 @@ describe('NewDemandView', () => {
     rememberBoardQuery({ created_from: '2026-10-01' })
     const { wrapper } = await mountView()
 
-    const board = '/demandas?created_from=2026-10-01'
-    expect(wrapper.get('a[aria-label="Voltar para Demandas"]').attributes('href')).toBe(board)
+    const board = '/solicitacoes?created_from=2026-10-01'
+    expect(wrapper.get('a[aria-label="Voltar para Solicitações"]').attributes('href')).toBe(board)
     expect(wrapper.findAll('a').some((link) => link.text() === 'Cancelar' && link.attributes('href') === board)).toBe(true)
   })
 
   it('mostra o título, o voltar ao quadro e o formulário vazio', async () => {
     const { wrapper } = await mountView()
 
-    expect(wrapper.get('h1').text()).toBe('Nova demanda')
-    expect(wrapper.get('a[aria-label="Voltar para Demandas"]').attributes('href')).toBe('/demandas')
-    expect(wrapper.get('button[type="submit"]').text()).toContain('Criar demanda')
+    expect(wrapper.get('h1').text()).toBe('Nova solicitação')
+    expect(wrapper.get('a[aria-label="Voltar para Solicitações"]').attributes('href')).toBe('/solicitacoes')
+    expect(wrapper.get('button[type="submit"]').text()).toContain('Criar solicitação')
   })
 
-  it('criada, abre a tela da demanda com o aviso no estado da navegação', async () => {
+  it('criada, abre a tela da solicitação com o aviso no estado da navegação', async () => {
     vi.mocked(demandsService.createDemand).mockResolvedValue({
       id: 12,
       title: 'Trocar impressora',
@@ -68,6 +68,6 @@ describe('NewDemandView', () => {
 
     expect(router.currentRoute.value.name).toBe('demand')
     expect(router.currentRoute.value.params.id).toBe('12')
-    expect(router.options.history.state.notice).toBe('Demanda criada.')
+    expect(router.options.history.state.notice).toBe('Solicitação criada.')
   })
 })

@@ -15,7 +15,7 @@ defineProps<{
     :to="to"
     :aria-label="`Voltar para ${label}`"
     :title="`Voltar para ${label}`"
-    class="text-sidebar-active bg-surface-item hover:bg-surface-item-hover flex size-10 shrink-0 items-center justify-center rounded-2xl shadow-sm shadow-slate-900/5 transition"
+    class="text-sidebar-active bg-surface-item hover:bg-surface-item-hover flex size-10 shrink-0 items-center justify-center rounded-2xl shadow-sm shadow-slate-900/5 transition dark:text-white dark:shadow-black/20"
   >
     <AppIcon name="chevron-left" class="size-5" />
   </RouterLink>

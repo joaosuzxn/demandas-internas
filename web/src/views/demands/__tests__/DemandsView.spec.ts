@@ -52,7 +52,7 @@ function page(data: Demand[], total = data.length, currentPage = 1, lastPage = 1
   return { data, meta: { total, current_page: currentPage, last_page: lastPage } }
 }
 
-// Demandas pendentes a partir de um id. As páginas aqui são do mock (20): a SPA não supõe tamanho,
+// Solicitações pendentes a partir de um id. As páginas aqui são do mock (20): a SPA não supõe tamanho,
 // só segue current_page e last_page (a API pagina de 10 em 10).
 function pendingRange(from: number, count = 20): Demand[] {
   return Array.from({ length: count }, (_, index) =>
@@ -71,21 +71,21 @@ function paginatedPending(params: FetchParams = {}): DemandPage {
 
 const Stub = defineComponent({ render: () => null })
 
-// Os cartões são links para a tela da demanda, e os filtros moram na query de `/demandas`.
+// Os cartões são links para a tela da solicitação, e os filtros moram na query de `/solicitacoes`.
 function makeRouter() {
   return createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: '/demandas', name: 'demands', component: Stub },
-      { path: '/demandas/nova', name: 'demand-new', component: Stub },
-      { path: '/demandas/:id', name: 'demand', component: Stub },
+      { path: '/solicitacoes', name: 'demands', component: Stub },
+      { path: '/solicitacoes/nova', name: 'demand-new', component: Stub },
+      { path: '/solicitacoes/:id', name: 'demand', component: Stub },
     ],
   })
 }
 
 let router: ReturnType<typeof makeRouter>
 
-async function mountView(path = '/demandas') {
+async function mountView(path = '/solicitacoes') {
   router = makeRouter()
   await router.push(path)
   return mount(DemandsView, { global: { plugins: [router] } })
@@ -148,7 +148,7 @@ describe('DemandsView', () => {
 
   describe('filtros', () => {
     // A lista do select vai para o body pelo Teleport; com o stub ela fica no wrapper.
-    async function mountWithSelect(path = '/demandas') {
+    async function mountWithSelect(path = '/solicitacoes') {
       router = makeRouter()
       await router.push(path)
       return mount(DemandsView, {
@@ -337,7 +337,7 @@ describe('DemandsView', () => {
       vi.advanceTimersByTime(300)
       await flushPromises()
       expect(fetchCount()).toBe(3)
-      expect(router.currentRoute.value.fullPath).toBe('/demandas')
+      expect(router.currentRoute.value.fullPath).toBe('/solicitacoes')
       wrapper.unmount()
     })
   })
@@ -373,7 +373,7 @@ describe('DemandsView', () => {
 
     it('abre com os filtros da query: preenche os campos e consulta com eles', async () => {
       const wrapper = await mountView(
-        '/demandas?search=monitor&category=hr&created_from=2026-10-01&created_to=2026-10-03',
+        '/solicitacoes?search=monitor&category=hr&created_from=2026-10-01&created_to=2026-10-03',
       )
       await flushPromises()
 
@@ -394,7 +394,7 @@ describe('DemandsView', () => {
     })
 
     it('ignora na query o que não é filtro válido', async () => {
-      await mountView('/demandas?category=xyz&created_from=ontem&search=impressora')
+      await mountView('/solicitacoes?category=xyz&created_from=ontem&search=impressora')
       await flushPromises()
       vi.advanceTimersByTime(300)
       await flushPromises()
@@ -451,11 +451,11 @@ describe('DemandsView', () => {
     })
 
     it('a query mudando por fora (voltar do navegador, link) atualiza campos e quadro', async () => {
-      const wrapper = await mountView('/demandas?search=monitor')
+      const wrapper = await mountView('/solicitacoes?search=monitor')
       await flushPromises()
       clearApi()
 
-      await router.push('/demandas?category=it')
+      await router.push('/solicitacoes?category=it')
       await flushPromises()
       vi.advanceTimersByTime(300)
       await flushPromises()
@@ -463,7 +463,7 @@ describe('DemandsView', () => {
       expect(fetchCount()).toBe(3)
       expect(demandsService.searchDemands).toHaveBeenCalledWith({ status: 'pending', category: 'it' })
       expect((wrapper.get('input[type="search"]').element as HTMLInputElement).value).toBe('')
-      expect(router.currentRoute.value.fullPath).toBe('/demandas?category=it')
+      expect(router.currentRoute.value.fullPath).toBe('/solicitacoes?category=it')
     })
 
     it('link com lixo vindo por fora também consulta uma vez só', async () => {
@@ -471,7 +471,7 @@ describe('DemandsView', () => {
       await flushPromises()
       clearApi()
 
-      await router.push('/demandas?category=xyz&search=%20monitor%20')
+      await router.push('/solicitacoes?category=xyz&search=%20monitor%20')
       await flushPromises()
       vi.advanceTimersByTime(300)
       await flushPromises()
@@ -480,8 +480,8 @@ describe('DemandsView', () => {
       expect(demandsService.searchDemands).toHaveBeenCalledWith({ status: 'pending', search: 'monitor' })
     })
 
-    it('lembra o último quadro para o voltar das telas da demanda', async () => {
-      await mountView('/demandas?category=hr')
+    it('lembra o último quadro para o voltar das telas da solicitação', async () => {
+      await mountView('/solicitacoes?category=hr')
       await flushPromises()
 
       expect(demandsBoardRoute()).toEqual({ name: 'demands', query: { category: 'hr' } })
@@ -497,11 +497,11 @@ describe('DemandsView', () => {
     expect(wrapper.get('[role="alert"]').text()).toContain('Não foi possível carregar')
   })
 
-  it('leva à tela de criar demanda pela pílula do cabeçalho', async () => {
+  it('leva à tela de criar solicitação pela pílula do cabeçalho', async () => {
     const wrapper = await mountView()
     await flushPromises()
 
-    expect(wrapper.get('a[aria-label="Criar demanda"]').attributes('href')).toBe('/demandas/nova')
+    expect(wrapper.get('a[aria-label="Criar solicitação"]').attributes('href')).toBe('/solicitacoes/nova')
   })
 
   describe('rolagem infinita', () => {
@@ -566,7 +566,7 @@ describe('DemandsView', () => {
       expect(pendingCards(wrapper)).toHaveLength(40)
     })
 
-    it('ignora demanda que já está na coluna (as páginas andam quando alguém cria uma)', async () => {
+    it('ignora solicitação que já está na coluna (as páginas andam quando alguém cria uma)', async () => {
       const io = installIntersectionObserver()
       fakeApi(async (params) => {
         if (params?.status !== 'pending') return page([])

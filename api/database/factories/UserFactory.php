@@ -31,7 +31,6 @@ class UserFactory extends Factory
             'cpf' => static::fictitiousCpf($sequence),
             'email' => fake()->unique()->safeEmail(),
             'password' => static::$password ??= Hash::make('password'),
-            'photo' => null,
             'role' => Role::Employee,
             'is_active' => true,
             'must_change_password' => false,
