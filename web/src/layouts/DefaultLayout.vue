@@ -4,6 +4,7 @@ import { RouterView, useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import AppLogo from '@/components/layout/AppLogo.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
+import AppBackdrop from '@/components/ui/AppBackdrop.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 
@@ -67,6 +68,9 @@ onBeforeUnmount(() => {
 <template>
   <!-- `isolate`: mantém o conteúdo de vidro acima do fundo, sem o `body` engolir o efeito. -->
   <div class="bg-surface-page isolate min-h-svh text-slate-800 dark:text-slate-100">
+    <!-- Fitas em onda atrás do vidro (item 0049), as mesmas do Órbita. -->
+    <AppBackdrop />
+
     <!-- Barra do mobile: a sidebar fica guardada atrás do botão. -->
     <header
       class="sticky top-0 z-20 flex items-center gap-3 border-b border-white/60 bg-white/60 px-4 py-3 backdrop-blur-xl lg:hidden dark:border-white/5 dark:bg-ink-950/60"
