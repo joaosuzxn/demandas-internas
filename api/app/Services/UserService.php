@@ -4,11 +4,11 @@ namespace App\Services;
 
 use App\Enums\Role;
 use App\Models\User;
+use App\Support\Like;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
@@ -22,16 +22,15 @@ class UserService
     public function paginate(?string $search): LengthAwarePaginator
     {
         $term = trim((string) $search);
-        // %, _ e \ do termo valem como texto, não como curinga do LIKE.
-        $escaped = addcslashes($term, '%_\\');
+        $pattern = Like::contains($term);
         $digits = preg_replace('/\D/', '', $term);
 
         return User::query()
-            ->when($term !== '', function (Builder $query) use ($escaped, $digits, $term) {
-                $query->where(function (Builder $query) use ($escaped, $digits, $term) {
-                    $query->where('name', 'ilike', "%{$escaped}%")
-                        ->orWhere('username', 'ilike', "%{$escaped}%")
-                        ->orWhere('email', 'ilike', "%{$escaped}%");
+            ->when($term !== '', function (Builder $query) use ($pattern, $digits, $term) {
+                $query->where(function (Builder $query) use ($pattern, $digits, $term) {
+                    $query->where('name', 'ilike', $pattern)
+                        ->orWhere('username', 'ilike', $pattern)
+                        ->orWhere('email', 'ilike', $pattern);
 
                     // Só procura no CPF quando o termo parece um CPF (dígitos, ponto, hífen).
                     if ($digits !== '' && preg_match('/^[\d.\-\s]+$/', $term)) {
@@ -75,8 +74,7 @@ class UserService
         }
 
         $user->is_active = false;
-        // Mata os cookies de "lembrar": reativada, a pessoa entra de novo com a senha.
-        $user->setRememberToken(Str::random(60));
+        // O User troca o remember_token: reativada, a pessoa entra de novo com a senha.
         $user->save();
 
         return $user;
@@ -102,8 +100,7 @@ class UserService
 
         $user->password = $this->defaultPassword();
         $user->must_change_password = true;
-        // Mata os cookies de "lembrar" emitidos com a senha antiga.
-        $user->setRememberToken(Str::random(60));
+        // O User troca o remember_token: os cookies de "lembrar" da senha antiga deixam de valer.
         $user->save();
     }
 

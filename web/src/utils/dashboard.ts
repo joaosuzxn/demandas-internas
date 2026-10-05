@@ -3,6 +3,7 @@
  * gráfico. Nada aqui sabe de Vue nem de API.
  */
 import { EARLIEST_DAY, isDate } from '@/utils/dates'
+import { single } from '@/utils/query'
 import type { DashboardGranularity } from '@/services/dashboard'
 import { DEMAND_CATEGORY_LABELS, type DemandCategory } from '@/services/demands'
 
@@ -135,20 +136,16 @@ export function describePeriod(period: DashboardPeriod | null): string {
   return period ? `${formatIsoDay(period.start)} – ${formatIsoDay(period.end)}` : 'Desde o início'
 }
 
-function single(value: unknown): string {
-  return typeof value === 'string' ? value : ''
-}
-
 /** Valor inválido na URL é ignorado em silêncio: a tela abre como se ele não existisse. */
 export function parseDashboardQuery(query: Record<string, unknown>): DashboardQueryState {
-  const range = single(query.range)
-  const category = single(query.category)
+  const range = single(query.range) ?? ''
+  const category = single(query.category) ?? ''
   const validRange = (DASHBOARD_RANGES as readonly string[]).includes(range)
     ? (range as DashboardRange)
     : 'all'
   const custom = validRange === 'custom'
-  const from = single(query.created_from)
-  const to = single(query.created_to)
+  const from = single(query.created_from) ?? ''
+  const to = single(query.created_to) ?? ''
 
   return {
     range: validRange,

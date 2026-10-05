@@ -1,5 +1,5 @@
 import type { User } from './auth'
-import { http } from './http'
+import { http, type Paginated, type Resource } from './http'
 
 // Gestão de usuários (só o administrador; a API responde 403 aos demais).
 
@@ -11,11 +11,8 @@ export type ListUsersParams = { search?: string; page?: number }
 // Uma página da lista (20 por página, por nome) e o total de usuários que batem com a busca.
 export type UserPage = { items: User[]; page: number; lastPage: number; total: number }
 
-type UserResponse = { data: User }
-type UserListResponse = {
-  data: User[]
-  meta: { total: number; current_page: number; last_page: number }
-}
+type UserResponse = Resource<User>
+type UserListResponse = Paginated<User>
 
 export async function listUsers(params: ListUsersParams = {}): Promise<UserPage> {
   const { data } = await http.get<UserListResponse>('/users', { params })

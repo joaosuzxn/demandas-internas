@@ -19,13 +19,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
-        );
-
-        // Erros da API em português e sem detalhes internos (nome de model, classe de exceção).
         $isApi = fn (Request $request) => $request->is('api/*') || $request->expectsJson();
 
+        $exceptions->shouldRenderJsonWhen($isApi);
+
+        // Erros da API em português e sem detalhes internos (nome de model, classe de exceção).
         $exceptions->render(fn (AuthenticationException $e, Request $request) => $isApi($request)
             ? response()->json(['message' => __('http.unauthenticated')], 401)
             : null);

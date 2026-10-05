@@ -17,6 +17,10 @@ export const http = axios.create({
   headers: { Accept: 'application/json' },
 })
 
+// Os envelopes de resposta da API: um recurso vem em `data`; uma lista paginada, em `data` com o `meta` do Laravel.
+export type Resource<T> = { data: T }
+export type Paginated<T> = { data: T[]; meta: { total: number; current_page: number; last_page: number } }
+
 export function csrfCookie() {
   return http.get('/sanctum/csrf-cookie', { baseURL: '/' })
 }

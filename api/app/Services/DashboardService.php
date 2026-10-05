@@ -77,7 +77,7 @@ class DashboardService
 
         $created = $this->bucketCounts(
             Demand::query()
-                ->when($category, fn (Builder $query) => $query->where('category', $category))
+                ->ofCategory($category)
                 ->where('created_at', '>=', $from)
                 ->where('created_at', '<', $until),
             'demands.created_at', $granularity, $timezone,
@@ -87,7 +87,7 @@ class DashboardService
         $finished = $this->bucketCounts(
             DemandMovement::query()
                 ->where('type', DemandMovementType::Finished)
-                ->whereHas('demand', fn (Builder $query) => $query->when($category, fn (Builder $inner) => $inner->where('category', $category)))
+                ->whereHas('demand', fn (Builder $query) => $query->ofCategory($category))
                 ->where('demand_movements.created_at', '>=', $from)
                 ->where('demand_movements.created_at', '<', $until),
             'demand_movements.created_at', $granularity, $timezone,
@@ -107,9 +107,7 @@ class DashboardService
     // O dia (no fuso do negócio) da solicitação mais antiga da categoria; null sem nenhuma solicitação.
     private function oldestDay(?string $category): ?Carbon
     {
-        $oldest = Demand::query()
-            ->when($category, fn (Builder $query) => $query->where('category', $category))
-            ->min('created_at');
+        $oldest = Demand::query()->ofCategory($category)->min('created_at');
 
         return $oldest === null
             ? null
@@ -161,8 +159,7 @@ class DashboardService
     private function scoped(array $filters): Builder
     {
         return Demand::query()
-            ->when($filters['category'] ?? null, fn (Builder $query, string $category) => $query->where('category', $category))
-            ->when($filters['created_from'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '>=', BusinessDay::start($day)->utc()))
-            ->when($filters['created_to'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '<', BusinessDay::start($day)->addDay()->utc()));
+            ->ofCategory($filters['category'] ?? null)
+            ->createdBetween($filters['created_from'] ?? null, $filters['created_to'] ?? null);
     }
 }

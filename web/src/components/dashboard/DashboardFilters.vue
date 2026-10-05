@@ -2,7 +2,7 @@
 import { computed, watch } from 'vue'
 import BaseField from '@/components/ui/BaseField.vue'
 import { useTabBar } from '@/composables/useTabBar'
-import { DEMAND_CATEGORY_LABELS, type DemandCategory } from '@/services/demands'
+import { DEMAND_CATEGORY_OPTIONS, type DemandCategory } from '@/services/demands'
 import { DASHBOARD_RANGES, DASHBOARD_RANGE_LABELS, type DashboardRange } from '@/utils/dashboard'
 
 // Filtros do dashboard (item 0030), no molde do Órbita: categoria no lugar da diretoria, intervalo com a pílula
@@ -18,11 +18,6 @@ const range = defineModel<DashboardRange>('range', { required: true })
 const category = defineModel<DemandCategory | ''>('category', { required: true })
 const customStart = defineModel<string>('customStart', { required: true })
 const customEnd = defineModel<string>('customEnd', { required: true })
-
-const categoryOptions = Object.entries(DEMAND_CATEGORY_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}))
 
 /** O `BaseField` fala `string`; aqui só chegam valores da lista de categorias (ou vazio). */
 const categoryText = computed({
@@ -68,7 +63,7 @@ const endError = computed(() => {
         control="select"
         label="Categoria"
         placeholder-option="Todas as categorias"
-        :options="categoryOptions"
+        :options="DEMAND_CATEGORY_OPTIONS"
         class="w-full lg:max-w-xs"
       />
 

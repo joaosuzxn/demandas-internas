@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\DemandCategory;
 use App\Enums\DemandStatus;
+use App\Support\BusinessDay;
 use Database\Factories\DemandFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +30,29 @@ class Demand extends Model
             'category' => DemandCategory::class,
             'status' => DemandStatus::class,
         ];
+    }
+
+    /**
+     * Só a categoria pedida; sem categoria, todas. Usado pela busca do quadro e pelo dashboard.
+     *
+     * @param  Builder<Demand>  $query
+     */
+    public function scopeOfCategory(Builder $query, ?string $category): void
+    {
+        $query->when($category, fn (Builder $query) => $query->where('category', $category));
+    }
+
+    /**
+     * Criadas entre dois dias (`Y-m-d`, inteiros, no fuso do negócio), convertidos para o UTC em que o banco grava.
+     * Cada ponta vale sozinha.
+     *
+     * @param  Builder<Demand>  $query
+     */
+    public function scopeCreatedBetween(Builder $query, ?string $from, ?string $to): void
+    {
+        $query
+            ->when($from, fn (Builder $query) => $query->where('created_at', '>=', BusinessDay::start($from)->utc()))
+            ->when($to, fn (Builder $query) => $query->where('created_at', '<', BusinessDay::start($to)->addDay()->utc()));
     }
 
     /**

@@ -12,10 +12,7 @@ import { parseApiError } from '@/services/apiErrors'
 import type { User } from '@/services/auth'
 import { listUsers } from '@/services/users'
 import { formatCpf } from '@/utils/cpf'
-
-/** O mesmo teto do `search` na API. */
-const SEARCH_MAX = 100
-const SEARCH_DELAY_MS = 300
+import { SEARCH_MAX, TYPING_PAUSE_MS } from '@/utils/query'
 
 const route = useRoute()
 const router = useRouter()
@@ -102,7 +99,7 @@ function applySearch(): void {
 
 watch(term, () => {
   clearTimeout(searchTimer)
-  searchTimer = setTimeout(applySearch, SEARCH_DELAY_MS)
+  searchTimer = setTimeout(applySearch, TYPING_PAUSE_MS)
 })
 
 // A URL mudou por fora (voltar do navegador): o campo segue, se ninguém está digitando.

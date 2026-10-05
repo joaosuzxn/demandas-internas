@@ -31,13 +31,6 @@ class DemandHistoryTest extends TestCase
         $this->stranger = User::factory()->create();
     }
 
-    private function actingAsSpa(User $user): static
-    {
-        $this->actingAs($user);
-
-        return $this->fromSpa();
-    }
-
     /** @return array<int, array{0: string, 1: int}> */
     private function movementsOf(Demand $demand): array
     {

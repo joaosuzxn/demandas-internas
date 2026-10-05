@@ -7,7 +7,7 @@ use App\Enums\DemandStatus;
 use App\Models\Demand;
 use App\Models\DemandMovement;
 use App\Models\User;
-use App\Support\BusinessDay;
+use App\Support\Like;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -24,16 +24,13 @@ class DemandService
     public function paginate(array $filters): LengthAwarePaginator
     {
         $term = trim((string) ($filters['search'] ?? ''));
-        // %, _ e \ do termo valem como texto, não como curinga do LIKE.
-        $escaped = addcslashes($term, '%_\\');
 
         return Demand::query()
             ->with('requester')
             ->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status))
-            ->when($filters['category'] ?? null, fn (Builder $query, string $category) => $query->where('category', $category))
-            ->when($term !== '', fn (Builder $query) => $query->where('title', 'ilike', "%{$escaped}%"))
-            ->when($filters['created_from'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '>=', BusinessDay::start($day)->utc()))
-            ->when($filters['created_to'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '<', BusinessDay::start($day)->addDay()->utc()))
+            ->ofCategory($filters['category'] ?? null)
+            ->createdBetween($filters['created_from'] ?? null, $filters['created_to'] ?? null)
+            ->when($term !== '', fn (Builder $query) => $query->where('title', 'ilike', Like::contains($term)))
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(self::PER_PAGE);

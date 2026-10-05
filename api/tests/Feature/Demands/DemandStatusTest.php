@@ -39,13 +39,6 @@ class DemandStatusTest extends TestCase
         $this->stranger = User::factory()->create();
     }
 
-    private function actingAsSpa(User $user): static
-    {
-        $this->actingAs($user);
-
-        return $this->fromSpa();
-    }
-
     private function demandIn(string $status): Demand
     {
         $factory = Demand::factory();

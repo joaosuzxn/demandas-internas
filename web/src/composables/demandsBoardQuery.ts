@@ -1,17 +1,12 @@
 import type { LocationQuery, LocationQueryRaw, RouteLocationRaw } from 'vue-router'
 import { DEMAND_CATEGORY_LABELS, type DemandCategory, type DemandFilters } from '@/services/demands'
 import { isFilterDay } from '@/utils/dates'
+import { SEARCH_MAX, readRememberedQuery, rememberQuery, single } from '@/utils/query'
 
 // Os filtros do quadro moram na URL (`/solicitacoes?category=hr&created_from=…`), com os nomes da API (item 0027):
 // o filtro se compartilha, sobrevive ao F5 e o voltar do navegador o desfaz.
 
-/** Mesmo teto do `ListDemandsRequest`. */
-export const SEARCH_MAX = 100
 const STORAGE_KEY = 'demands-board-query'
-
-function single(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined
-}
 
 function isCategory(value: string): value is DemandCategory {
   return Object.prototype.hasOwnProperty.call(DEMAND_CATEGORY_LABELS, value)
@@ -49,25 +44,11 @@ export function toBoardQuery(filters: DemandFilters): LocationQueryRaw {
 }
 
 // O último quadro fica na sessão do navegador (a aba): o "voltar" das telas da solicitação volta para ele.
-// O armazenamento pode faltar (modo privado, bloqueado): sem ele, o voltar só perde os filtros.
 export function rememberBoardQuery(filters: DemandFilters): void {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toBoardQuery(filters)))
-  } catch {
-    // sem armazenamento: nada a lembrar
-  }
-}
-
-function rememberedFilters(): DemandFilters {
-  try {
-    const saved: unknown = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? '{}')
-    return typeof saved === 'object' && saved !== null ? parseBoardQuery(saved as Record<string, unknown>) : {}
-  } catch {
-    return {}
-  }
+  rememberQuery(STORAGE_KEY, toBoardQuery(filters))
 }
 
 /** O quadro de solicitações com os filtros da última visita — destino do "voltar" das telas da solicitação. */
 export function demandsBoardRoute(): RouteLocationRaw {
-  return { name: 'demands', query: toBoardQuery(rememberedFilters()) }
+  return { name: 'demands', query: toBoardQuery(parseBoardQuery(readRememberedQuery(STORAGE_KEY))) }
 }

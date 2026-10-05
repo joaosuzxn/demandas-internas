@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -13,5 +14,13 @@ abstract class TestCase extends BaseTestCase
             'Origin' => 'http://localhost:8080',
             'Referer' => 'http://localhost:8080/',
         ]);
+    }
+
+    // Logado e com os cabeçalhos do navegador: a requisição como a SPA a faz.
+    protected function actingAsSpa(User $user): static
+    {
+        $this->actingAs($user);
+
+        return $this->fromSpa();
     }
 }

@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import BaseField from '@/components/ui/BaseField.vue'
+import { useFormErrors } from '@/composables/useFormErrors'
 import { parseApiError } from '@/services/apiErrors'
 import type { User } from '@/services/auth'
 import { createUser, updateUser, type UserPayload } from '@/services/users'
@@ -33,26 +34,20 @@ const fields = reactive<UserPayload>({
   email: props.editing?.email ?? '',
 })
 
-const fieldErrors = ref<Partial<Record<Field, string>>>({})
-const formError = ref<string | null>(null)
+const { fieldErrors, generalError: formError, reset, fail, clear } = useFormErrors()
 /** Enviando, ou já salvo e esperando a tela sair: nos dois casos o botão não aceita clique. */
 const busy = ref(false)
 
 function update(field: Field, value: string): void {
   fields[field] = value
   // Quem mexe no campo está corrigindo: o erro dele sai, os outros ficam.
-  if (fieldErrors.value[field]) {
-    const rest = { ...fieldErrors.value }
-    delete rest[field]
-    fieldErrors.value = rest
-  }
+  clear(field)
 }
 
 // A conferência dos campos é da API (422): a tela só mostra o que ela diz.
 async function onSubmit(): Promise<void> {
   busy.value = true
-  fieldErrors.value = {}
-  formError.value = null
+  reset()
 
   try {
     const payload = { ...fields }
@@ -62,8 +57,7 @@ async function onSubmit(): Promise<void> {
     emit('saved', saved)
   } catch (error) {
     const parsed = parseApiError(error, FIELDS)
-    fieldErrors.value = parsed.fieldErrors
-    formError.value = parsed.message
+    fail(parsed.fieldErrors, parsed.message)
     busy.value = false
   }
 }

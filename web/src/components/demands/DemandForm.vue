@@ -2,10 +2,11 @@
 import { reactive, ref } from 'vue'
 import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
-import BaseField, { type FieldOption } from '@/components/ui/BaseField.vue'
+import BaseField from '@/components/ui/BaseField.vue'
+import { useFormErrors } from '@/composables/useFormErrors'
 import { parseApiError } from '@/services/apiErrors'
 import {
-  DEMAND_CATEGORY_LABELS,
+  DEMAND_CATEGORY_OPTIONS,
   createDemand,
   updateDemand,
   type Demand,
@@ -29,10 +30,6 @@ type Field = keyof DemandPayload
 
 const FIELDS: readonly Field[] = ['title', 'description', 'category']
 
-const CATEGORY_OPTIONS: FieldOption[] = Object.entries(DEMAND_CATEGORY_LABELS).map(
-  ([value, label]) => ({ value, label }),
-)
-
 // Nasce com a solicitação que se edita, ou vazio. A categoria não vem escolhida: escolher é parte do pedido.
 const fields = reactive<DemandPayload>({
   title: props.editing?.title ?? '',
@@ -40,26 +37,20 @@ const fields = reactive<DemandPayload>({
   category: props.editing?.category ?? '',
 })
 
-const fieldErrors = ref<Partial<Record<Field, string>>>({})
-const formError = ref<string | null>(null)
+const { fieldErrors, generalError: formError, reset, fail, clear } = useFormErrors()
 /** Enviando, ou já salvo e esperando a tela sair: nos dois casos o botão não aceita clique. */
 const busy = ref(false)
 
 function update(field: Field, value: string): void {
   ;(fields as Record<Field, string>)[field] = value
   // Quem mexe no campo está corrigindo: o erro dele sai, os outros ficam.
-  if (fieldErrors.value[field]) {
-    const rest = { ...fieldErrors.value }
-    delete rest[field]
-    fieldErrors.value = rest
-  }
+  clear(field)
 }
 
 // A conferência de campo vazio é da API (422), como no Órbita: a tela só mostra o que ela diz.
 async function onSubmit(): Promise<void> {
   busy.value = true
-  fieldErrors.value = {}
-  formError.value = null
+  reset()
 
   try {
     const payload = { ...fields }
@@ -69,8 +60,7 @@ async function onSubmit(): Promise<void> {
     emit('saved', saved)
   } catch (error) {
     const parsed = parseApiError(error, FIELDS)
-    fieldErrors.value = parsed.fieldErrors
-    formError.value = parsed.message
+    fail(parsed.fieldErrors, parsed.message)
     busy.value = false
   }
 }
@@ -114,7 +104,7 @@ async function onSubmit(): Promise<void> {
       label="Categoria"
       control="select"
       required
-      :options="CATEGORY_OPTIONS"
+      :options="DEMAND_CATEGORY_OPTIONS"
       placeholder-option="Selecione a categoria"
       hint="A área que vai atender o pedido."
       :error="fieldErrors.category"

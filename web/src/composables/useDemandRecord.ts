@@ -62,7 +62,7 @@ export function useDemandRecord(id: Ref<number>) {
   const canEdit = computed(() => {
     const user = auth.user
     if (!user || !demand.value) return false
-    return user.role === 'admin' || demand.value.requester.id === user.id
+    return auth.isAdmin || demand.value.requester.id === user.id
   })
 
   return { demand, loading, error, notFound, canEdit, load, refresh }

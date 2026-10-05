@@ -6,7 +6,7 @@ export function formatDateTime(iso: string | null): string | null {
 
 const DATE_FORMAT = /^\d{4}-\d{2}-\d{2}$/
 
-/** Primeiro dia aceito nos filtros por período, o mesmo piso da API (`DashboardFiltersRequest`). */
+/** Primeiro dia aceito nos filtros por período, o mesmo piso da API (`DemandFilterRules`). */
 export const EARLIEST_DAY = '2000-01-01'
 
 // `AAAA-MM-DD` que existe no calendário (31/02 não).
