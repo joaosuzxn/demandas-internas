@@ -117,6 +117,8 @@ docker compose exec api php artisan migrate:fresh --seed
 Os dois seeders podem rodar quantas vezes for preciso sem duplicar dados. Para rodar só um deles:
 `docker compose exec api php artisan db:seed --class=AdminSeeder`.
 
+O detalhamento de cada tabela, coluna, chave e valor permitido está no [Dicionário de Dados](DICIONARIO_DE_DADOS.md).
+
 No ambiente de produção, os comandos levam `-f compose.prod.yml` e `--force`, que confirma a execução em produção:
 
 ```bash
