@@ -130,14 +130,34 @@ describe('DemandDetailView', () => {
     expect(wrapper.get('h1').text()).toBe('#12 - Trocar impressora')
   })
 
-  it('não mostra ações a quem não é o solicitante nem admin', async () => {
+  // Atender é de todos (ADR 0003); editar e excluir, só de quem pediu ou do admin.
+  it('quem não é o solicitante nem admin atende, mas não edita nem exclui', async () => {
     vi.mocked(demandsService.getDemand).mockResolvedValue(
       makeDemand({ requester: { id: 9, name: 'Joana' } }),
+    )
+    vi.mocked(demandsService.startDemand).mockResolvedValue(
+      makeDemand({ requester: { id: 9, name: 'Joana' }, status: 'in_progress' }),
     )
 
     const { wrapper } = await mountView('employee')
 
-    expect(wrapper.find('[aria-label="Ações da solicitação"]').exists()).toBe(false)
+    expect(button(wrapper, 'Excluir')).toBeUndefined()
+    expect(wrapper.find('a[href="/solicitacoes/12/editar"]').exists()).toBe(false)
+
+    await button(wrapper, 'Iniciar')!.trigger('click')
+    await flushPromises()
+
+    expect(demandsService.startDemand).toHaveBeenCalledWith(12)
+    expect(button(wrapper, 'Finalizar')).toBeDefined()
+    expect(button(wrapper, 'Excluir')).toBeUndefined()
+  })
+
+  it('o solicitante vê Editar e Excluir na sua solicitação pendente', async () => {
+    const { wrapper } = await mountView('employee')
+
+    expect(button(wrapper, 'Iniciar')).toBeDefined()
+    expect(button(wrapper, 'Excluir')).toBeDefined()
+    expect(wrapper.find('a[href="/solicitacoes/12/editar"]').exists()).toBe(true)
   })
 
   it('admin vê as ações na solicitação de outra pessoa', async () => {

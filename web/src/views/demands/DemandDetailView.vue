@@ -17,7 +17,7 @@ const route = useRoute()
 const router = useRouter()
 
 const id = computed(() => Number(route.params.id))
-const { demand, loading, error, notFound, canManage, load } = useDemandRecord(id)
+const { demand, loading, error, notFound, canEdit, load } = useDemandRecord(id)
 // "Solicitação criada." / "Solicitação atualizada.", de quem chega do formulário.
 const notice = useArrivalNotice()
 // O quadro com os filtros da última visita (lidos ao abrir a tela).
@@ -69,10 +69,11 @@ function onDeleted(): void {
           <DemandFacts class="order-1" :demand="demand" />
 
           <!-- No celular, a barra de ações fica presa no rodapé da tela; no painel, é mais um bloco. -->
+          <!-- Atender é de todos (ADR 0003); Editar e Excluir só aparecem para quem pode editar. -->
           <DemandActions
-            v-if="canManage"
             class="lg:bg-surface-panel sticky bottom-0 z-10 order-3 -mx-4 border-t border-white/60 bg-white/70 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:rounded-3xl lg:border lg:p-3.5 lg:shadow-xl lg:shadow-slate-900/10 dark:border-white/10 dark:bg-white/10"
             :demand="demand"
+            :can-edit="canEdit"
             @updated="demand = $event"
             @deleted="onDeleted"
           />

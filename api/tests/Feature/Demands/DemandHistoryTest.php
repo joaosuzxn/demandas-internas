@@ -102,8 +102,7 @@ class DemandHistoryTest extends TestCase
     {
         $demand = Demand::factory()->create(['requester_id' => $this->requester->id]);
 
-        // 403: estranho. 422: situação errada (finalizar uma pendente) e edição de não pendente.
-        $this->actingAsSpa($this->stranger)->postJson("/api/demands/{$demand->id}/start")->assertForbidden();
+        // 403: estranho editando. 422: situação errada (finalizar uma pendente) e edição de não pendente.
         $this->actingAsSpa($this->stranger)->putJson("/api/demands/{$demand->id}", $this->payload())->assertForbidden();
         $this->actingAsSpa($this->requester)->postJson("/api/demands/{$demand->id}/close")->assertUnprocessable();
         $this->actingAsSpa($this->requester)->postJson("/api/demands/{$demand->id}/reopen")->assertUnprocessable();

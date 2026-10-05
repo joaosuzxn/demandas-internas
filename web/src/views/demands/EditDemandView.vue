@@ -12,7 +12,7 @@ const route = useRoute()
 const router = useRouter()
 
 const id = computed(() => Number(route.params.id))
-const { demand, loading, error, notFound, canManage, load } = useDemandRecord(id)
+const { demand, loading, error, notFound, canEdit, load } = useDemandRecord(id)
 
 const demandRoute = computed(() => ({ name: 'demand', params: { id: id.value } }))
 
@@ -22,7 +22,7 @@ const demandRoute = computed(() => ({ name: 'demand', params: { id: id.value } }
  */
 const blockedReason = computed(() => {
   if (!demand.value) return null
-  if (!canManage.value) return 'Só quem pediu a solicitação ou o administrador pode editá-la.'
+  if (!canEdit.value) return 'Só quem pediu a solicitação ou o administrador pode editá-la.'
   if (demand.value.status !== 'pending') return 'Só solicitação pendente pode ser editada.'
   return null
 })

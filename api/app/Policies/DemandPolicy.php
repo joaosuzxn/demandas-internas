@@ -5,7 +5,8 @@ namespace App\Policies;
 use App\Models\Demand;
 use App\Models\User;
 
-// Todos veem e criam; só o solicitante ou o administrador altera (spec de solicitações §5.1).
+// Todos veem, criam e atendem (iniciar, finalizar, reabrir — ADR 0003); só o solicitante ou o administrador
+// edita e exclui.
 class DemandPolicy
 {
     public function viewAny(User $actor): bool
@@ -35,17 +36,17 @@ class DemandPolicy
 
     public function start(User $actor, Demand $demand): bool
     {
-        return $this->owns($actor, $demand);
+        return true;
     }
 
     public function close(User $actor, Demand $demand): bool
     {
-        return $this->owns($actor, $demand);
+        return true;
     }
 
     public function reopen(User $actor, Demand $demand): bool
     {
-        return $this->owns($actor, $demand);
+        return true;
     }
 
     private function owns(User $actor, Demand $demand): bool

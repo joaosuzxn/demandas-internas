@@ -12,7 +12,11 @@ import {
   type Demand,
 } from '@/services/demands'
 
-const props = defineProps<{ demand: Demand }>()
+const props = defineProps<{
+  demand: Demand
+  /** Quem pediu ou o admin: mostra Editar e Excluir. Iniciar, finalizar e reabrir são de todos (ADR 0003). */
+  canEdit: boolean
+}>()
 
 const emit = defineEmits<{
   /** A situação mudou: a tela passa a mostrar a solicitação que a API devolveu. */
@@ -167,7 +171,7 @@ const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700 da
       </button>
       <!-- Editar leva à tela do formulário; só na pendente, porque a API não edita as outras. -->
       <RouterLink
-        v-if="demand.status === 'pending'"
+        v-if="canEdit && demand.status === 'pending'"
         :to="{ name: 'demand-edit', params: { id: demand.id } }"
         :class="[BUTTON, SECONDARY]"
       >
@@ -175,6 +179,7 @@ const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700 da
         Editar
       </RouterLink>
       <button
+        v-if="canEdit"
         type="button"
         :class="[BUTTON, DANGER_SOFT]"
         :disabled="running !== null"

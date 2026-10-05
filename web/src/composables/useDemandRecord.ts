@@ -38,12 +38,13 @@ export function useDemandRecord(id: Ref<number>) {
 
   watch(id, () => void load(), { immediate: true })
 
-  // Espelha a DemandPolicy (solicitante ou admin); a API continua sendo a regra e recusa o resto.
-  const canManage = computed(() => {
+  // Editar e excluir: espelha a DemandPolicy (solicitante ou admin); a API continua sendo a regra e recusa o resto.
+  // Iniciar, finalizar e reabrir são de todos (ADR 0003) e não dependem disto.
+  const canEdit = computed(() => {
     const user = auth.user
     if (!user || !demand.value) return false
     return user.role === 'admin' || demand.value.requester.id === user.id
   })
 
-  return { demand, loading, error, notFound, canManage, load }
+  return { demand, loading, error, notFound, canEdit, load }
 }

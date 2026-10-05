@@ -104,15 +104,32 @@ class DemandStatusTest extends TestCase
         }
     }
 
-    public function test_stranger_cannot_move_the_demand(): void
+    // Atender é de todos (ADR 0003): quem não pediu também inicia, finaliza e reabre, e o histórico guarda quem foi.
+    public function test_any_user_moves_another_persons_demand(): void
     {
-        foreach (self::TRANSITIONS as $action => [$from]) {
+        foreach (self::TRANSITIONS as $action => [$from, $to]) {
             $demand = $this->demandIn($from);
 
-            $this->actingAsSpa($this->stranger)->postJson("/api/demands/{$demand->id}/{$action}")->assertForbidden();
+            $this->actingAsSpa($this->stranger)->postJson("/api/demands/{$demand->id}/{$action}")
+                ->assertOk()
+                ->assertJsonPath('data.status', $to);
 
-            $this->assertDatabaseHas('demands', ['id' => $demand->id, 'status' => $from]);
+            $this->assertDatabaseHas('demands', ['id' => $demand->id, 'status' => $to, 'requester_id' => $this->requester->id]);
+            $this->assertDatabaseHas('demand_movements', ['demand_id' => $demand->id, 'actor_id' => $this->stranger->id]);
         }
+    }
+
+    // Editar e excluir continuam com quem pediu ou com o administrador.
+    public function test_stranger_still_cannot_edit_or_delete(): void
+    {
+        $demand = $this->demandIn('pending');
+
+        $this->actingAsSpa($this->stranger)->putJson("/api/demands/{$demand->id}", [
+            'title' => 'Outro', 'description' => 'Outra', 'category' => 'hr',
+        ])->assertForbidden();
+        $this->actingAsSpa($this->stranger)->deleteJson("/api/demands/{$demand->id}")->assertForbidden();
+
+        $this->assertDatabaseHas('demands', ['id' => $demand->id]);
     }
 
     public function test_moving_does_not_change_content_or_requester(): void
