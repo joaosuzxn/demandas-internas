@@ -18,10 +18,10 @@ class DemandService
     private const PER_PAGE = 10;
 
     /**
-     * @param  array<string, mixed>  $filters  filtros já validados: a listagem (ListDemandsRequest) traz situação e "só as minhas"; a busca (SearchDemandsRequest), título, categoria e período
+     * @param  array<string, mixed>  $filters  filtros já validados: a listagem (ListDemandsRequest) traz a situação; a busca (SearchDemandsRequest), título, categoria e período
      * @return LengthAwarePaginator<int, Demand>
      */
-    public function paginate(array $filters, User $actor): LengthAwarePaginator
+    public function paginate(array $filters): LengthAwarePaginator
     {
         $term = trim((string) ($filters['search'] ?? ''));
         // %, _ e \ do termo valem como texto, não como curinga do LIKE.
@@ -32,7 +32,6 @@ class DemandService
             ->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status))
             ->when($filters['category'] ?? null, fn (Builder $query, string $category) => $query->where('category', $category))
             ->when($term !== '', fn (Builder $query) => $query->where('title', 'ilike', "%{$escaped}%"))
-            ->when($filters['mine'] ?? false, fn (Builder $query) => $query->where('requester_id', $actor->id))
             ->when($filters['created_from'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '>=', BusinessDay::start($day)->utc()))
             ->when($filters['created_to'] ?? null, fn (Builder $query, string $day) => $query->where('created_at', '<', BusinessDay::start($day)->addDay()->utc()))
             ->orderByDesc('created_at')

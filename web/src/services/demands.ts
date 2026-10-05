@@ -56,10 +56,9 @@ export type DemandBoardColumn = {
 
 export type DemandBoard = Record<DemandStatus, DemandBoardColumn>
 
-// Listagem (`GET /api/demands`): situação, "só as minhas" e página.
+// Listagem (`GET /api/demands`): situação e página.
 export type ListDemandsParams = {
   status?: DemandStatus
-  mine?: boolean
   page?: number
 }
 

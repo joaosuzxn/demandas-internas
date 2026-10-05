@@ -55,7 +55,6 @@ return [
         'email' => 'e-mail',
         'is_active' => 'situação',
         'login' => 'usuário ou e-mail',
-        'mine' => 'só as minhas',
         'name' => 'nome',
         'page' => 'página',
         'password' => 'senha',

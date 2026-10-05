@@ -115,37 +115,15 @@ class DemandListTest extends TestCase
         $this->listAs($this->employee, '?status=closed')->assertUnprocessable()->assertJsonValidationErrors(['status']);
     }
 
-    // O Axios manda true/false em texto.
-    public function test_mine_filter_accepts_textual_booleans(): void
+    // "Só as minhas" foi descartado (item 0046): o parâmetro não filtra nem é validado.
+    public function test_list_ignores_mine(): void
     {
-        $mine = Demand::factory()->create(['requester_id' => $this->employee->id]);
+        Demand::factory()->create(['requester_id' => $this->employee->id]);
         Demand::factory()->create();
 
-        foreach (['true', '1'] as $value) {
-            $this->listAs($this->employee, "?mine={$value}")
-                ->assertOk()
-                ->assertJsonCount(1, 'data')
-                ->assertJsonPath('data.0.id', $mine->id);
-        }
-
-        foreach (['false', '0', ''] as $value) {
+        foreach (['true', 'talvez'] as $value) {
             $this->listAs($this->employee, "?mine={$value}")->assertOk()->assertJsonCount(2, 'data');
         }
-
-        $this->listAs($this->employee, '?mine=talvez')
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['mine' => 'O campo só as minhas deve ser verdadeiro ou falso.']);
-    }
-
-    public function test_status_and_mine_combine(): void
-    {
-        $match = Demand::factory()->finished()->create(['requester_id' => $this->employee->id]);
-        Demand::factory()->create(['requester_id' => $this->employee->id]);
-        Demand::factory()->finished()->create();
-
-        $this->listAs($this->employee, '?status=finished&mine=true')
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.id', $match->id);
     }
 
     // Título, categoria e período são da busca (GET /api/demands/search, item 0027): a listagem não os aplica.

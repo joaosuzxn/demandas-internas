@@ -20,12 +20,12 @@ class DemandController extends Controller
 
     public function index(ListDemandsRequest $request): AnonymousResourceCollection
     {
-        return DemandResource::collection($this->demands->paginate($request->validated(), $request->user()));
+        return DemandResource::collection($this->demands->paginate($request->validated()));
     }
 
     public function search(SearchDemandsRequest $request): AnonymousResourceCollection
     {
-        return DemandResource::collection($this->demands->paginate($request->validated(), $request->user()));
+        return DemandResource::collection($this->demands->paginate($request->validated()));
     }
 
     public function store(StoreDemandRequest $request): DemandResource
