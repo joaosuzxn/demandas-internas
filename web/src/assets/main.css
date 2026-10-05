@@ -75,6 +75,8 @@
 
   /* Entrada suave de conteúdo que troca de lugar — uso: `animate-fade-in`. */
   --animate-fade-in: fade-in 0.4s ease-out both;
+  /* A mesma entrada, devagar: troca de recorte do dashboard (item 0050), que pede calma para ler os números novos. */
+  --animate-fade-in-slow: fade-in 0.8s ease-out both;
 
   @keyframes fade-in {
     from {

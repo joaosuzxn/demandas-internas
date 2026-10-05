@@ -58,17 +58,23 @@ const showCategories = computed(() => category.value === '')
       Escolha as duas datas para ver os números.
     </p>
 
-    <!-- Trocar o recorte remonta o conteúdo: a entrada suave diz que os números são outros. -->
+    <!--
+      Trocar o recorte remonta o conteúdo: a entrada suave diz que os números são outros. O esqueleto só aparece
+      sem número nenhum na tela; na troca, os antigos ficam até os novos chegarem — com a API respondendo em
+      milissegundos, o esqueleto só piscava no meio da entrada (item 0050).
+      A entrada anima cada card de vidro, não o bloco: opacidade abaixo de 1 num ancestral isola o `backdrop-blur`
+      dos cards do fundo da página, e o vidro "acendia" de uma vez no fim da animação.
+    -->
     <div
       v-else
       :key="scopeKey"
-      class="animate-fade-in flex flex-col gap-5 motion-reduce:animate-none"
+      class="flex flex-col gap-5 [&_.glass-panel]:animate-fade-in-slow motion-reduce:[&_.glass-panel]:animate-none"
     >
       <section aria-labelledby="dashboard-stats-title">
         <h2 id="dashboard-stats-title" class="sr-only">Números do período: {{ periodLabel }}</h2>
 
         <div
-          v-if="store.summary.loading"
+          v-if="store.summary.loading && !store.summary.data"
           role="status"
           class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4"
         >
@@ -113,7 +119,7 @@ const showCategories = computed(() => category.value === '')
       <div class="grid grid-cols-1 items-start gap-5 xl:grid-cols-3">
         <DashboardTrendCard
           :trend="store.trend.data"
-          :loading="store.trend.loading"
+          :loading="store.trend.loading && !store.trend.data"
           :error="store.trend.error"
           :class="showCategories ? 'xl:col-span-2' : 'xl:col-span-3'"
           @retry="store.loadTrend()"
@@ -122,7 +128,7 @@ const showCategories = computed(() => category.value === '')
         <DashboardCategoriesCard
           v-if="showCategories"
           :categories="store.categories.data ?? []"
-          :loading="store.categories.loading"
+          :loading="store.categories.loading && !store.categories.data"
           :error="store.categories.error"
           @select="category = $event"
           @retry="store.loadCategories()"
