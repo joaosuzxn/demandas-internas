@@ -34,7 +34,7 @@ const categoryText = computed({
  * A pílula que segue o intervalo escolhido é a mesma barra do Órbita. Aqui os botões são filtro, não aba:
  * o estado mora no `aria-pressed`, e a pílula é decoração.
  */
-const { active, pill, settled, select } = useTabBar(DASHBOARD_RANGES, range.value)
+const { active, pill, settled, select } = useTabBar(range.value)
 
 watch(active, (value) => (range.value = value))
 watch(range, (value) => select(value))

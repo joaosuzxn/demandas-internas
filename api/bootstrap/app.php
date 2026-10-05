@@ -11,11 +11,9 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 $app = Application::configure(basePath: dirname(__DIR__))
+    // Só a API: o resto do endereço é da SPA, servida pelo nginx (ADR 0001); o health é `GET /api/health`.
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
-        health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();

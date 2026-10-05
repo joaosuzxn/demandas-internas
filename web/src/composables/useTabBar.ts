@@ -1,7 +1,7 @@
-import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef, watch, type Ref } from 'vue'
+import { nextTick, onBeforeUnmount, ref, useTemplateRef, watch, type Ref } from 'vue'
 
 /** Onde a pílula da aba aberta está, em pixels medidos do próprio botão. */
-export interface TabPill {
+interface TabPill {
   left: number
   top: number
   width: number
@@ -9,27 +9,13 @@ export interface TabPill {
 }
 
 /**
- * Barra de abas do Órbita (item 0030): o item escolhido, o sentido do deslize e a pílula que segue o botão
- * selecionado. Aqui serve ao seletor de intervalo do dashboard. A view só precisa nomear o contêiner com
- * `ref="nav"` (ou passar outro nome em `navRef`).
+ * Barra de abas do Órbita (item 0030): o item escolhido e a pílula que segue o botão selecionado. Aqui serve ao
+ * seletor de intervalo do dashboard. A view nomeia o contêiner com `ref="nav"`.
  */
-export function useTabBar<T extends string>(keys: readonly T[], initial: T, navRef = 'nav') {
+export function useTabBar<T extends string>(initial: T) {
   const active = ref(initial) as Ref<T>
 
-  /** Sentido da última troca: 1 é ir para a direita na barra, -1 é voltar. */
-  const direction = ref(1)
-
-  /**
-   * Classes do deslize. Curto de propósito (6px): é uma pista de para onde a tela andou,
-   * não uma virada de página.
-   */
-  const slide = computed(() =>
-    direction.value === 1
-      ? { from: 'translate-x-1.5', to: '-translate-x-1.5' }
-      : { from: '-translate-x-1.5', to: 'translate-x-1.5' },
-  )
-
-  const nav = useTemplateRef<HTMLElement>(navRef)
+  const nav = useTemplateRef<HTMLElement>('nav')
   const pill = ref<TabPill>({ left: 0, top: 0, width: 0, height: 0 })
 
   /**
@@ -65,8 +51,8 @@ export function useTabBar<T extends string>(keys: readonly T[], initial: T, navR
     typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => measure())
 
   /**
-   * Mede quando a barra aparece (ela pode só existir depois de o cargo chegar) e a cada
-   * troca de aba. `post` para o DOM já estar com o `aria-selected` novo.
+   * Mede quando a barra aparece e a cada troca de aba. `post` para o DOM já estar com o
+   * `aria-selected` novo.
    */
   watch([nav, active], measure, { flush: 'post' })
 
@@ -91,14 +77,9 @@ export function useTabBar<T extends string>(keys: readonly T[], initial: T, navR
 
   onBeforeUnmount(() => observer?.disconnect())
 
-  /** Abre a aba e guarda de que lado ela veio, para o conteúdo deslizar no mesmo sentido. */
   function select(key: T): void {
-    if (key === active.value) return
-
-    const order = (candidate: T) => keys.indexOf(candidate)
-    direction.value = order(key) > order(active.value) ? 1 : -1
     active.value = key
   }
 
-  return { active, direction, slide, pill, settled, select, measure }
+  return { active, pill, settled, select }
 }

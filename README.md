@@ -106,7 +106,6 @@ docker compose exec api php artisan migrate:fresh --seed
 |---|---|
 | `create_users_table` | `users` (usuários, com a coluna do "Lembrar-me") e `sessions` (sessões de login) |
 | `create_cache_table` / `create_jobs_table` | tabelas internas do Laravel de cache e de fila |
-| `create_personal_access_tokens_table` | tabela padrão do Sanctum |
 | `create_demands_table` | `demands` (solicitações) |
 | `create_demand_movements_table` | `demand_movements` (histórico de cada solicitação) |
 

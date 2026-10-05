@@ -6,7 +6,7 @@ import type { FieldOption } from '@/components/ui/BaseField.vue'
 /**
  * O select do app, trazido do Órbita (item 0021). A lista aberta do `<select>` nativo é pintada pelo
  * sistema e não aceita estilo; esta é um cartão flutuante, com itens altos e seta que gira.
- * Diferente do Órbita: sem o `selectLayer` (aqui não há diálogo com select) e sem modo escuro.
+ * Diferente do Órbita: sem o `selectLayer` (aqui não há diálogo com select). Modo escuro desde o item 0032.
  *
  * Acessibilidade no padrão "select-only combobox" do WAI-ARIA: o foco fica no gatilho, e a
  * opção ativa é anunciada por `aria-activedescendant`.

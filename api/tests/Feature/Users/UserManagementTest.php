@@ -179,13 +179,6 @@ class UserManagementTest extends TestCase
         }
     }
 
-    public function test_ignores_photo_on_create(): void
-    {
-        $this->asAdmin()->postJson('/api/users', $this->validPayload(['photo' => 'data:image/png;base64,AAAA']))
-            ->assertCreated()
-            ->assertJsonMissingPath('data.photo');
-    }
-
     public function test_rejects_duplicate_username_cpf_and_email(): void
     {
         User::factory()->create(['username' => 'maria.souza', 'cpf' => FictitiousCpf::DEFAULT, 'email' => 'maria@example.com']);

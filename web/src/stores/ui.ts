@@ -68,5 +68,5 @@ export const useUiStore = defineStore('ui', () => {
     { flush: 'sync' },
   )
 
-  return { theme, isDark, setTheme, toggleTheme, enterThemedScreen, leaveThemedScreen }
+  return { theme, isDark, toggleTheme, enterThemedScreen, leaveThemedScreen }
 })

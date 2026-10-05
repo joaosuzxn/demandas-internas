@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 // password, role, is_active e must_change_password ficam fora do Fillable: só os Services os definem.
 #[Fillable(['name', 'username', 'cpf', 'email'])]
@@ -17,7 +16,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory;
 
     /**
      * @return array<string, string>
