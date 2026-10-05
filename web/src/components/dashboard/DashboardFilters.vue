@@ -52,9 +52,7 @@ const endError = computed(() => {
 </script>
 
 <template>
-  <div
-    class="bg-surface-panel flex flex-col gap-4 rounded-3xl border border-white/60 p-5 shadow-xl shadow-slate-900/10 backdrop-blur-lg sm:p-6 dark:border-white/10 dark:shadow-black/40"
-  >
+  <div class="glass-panel flex flex-col gap-4 p-5 sm:p-6">
     <h2 class="sr-only">Filtros do painel</h2>
 
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -68,7 +66,10 @@ const endError = computed(() => {
       />
 
       <div class="flex flex-col gap-1.5">
-        <span id="dashboard-range-label" class="text-xs font-medium text-slate-600 dark:text-slate-300">
+        <span
+          id="dashboard-range-label"
+          class="text-xs font-medium text-slate-600 dark:text-slate-300"
+        >
           Intervalo
         </span>
 

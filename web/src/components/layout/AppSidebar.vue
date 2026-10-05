@@ -36,7 +36,7 @@ const ITEM_ACTIVE =
 <template>
   <!-- Glassmorphism: translúcida + desfoque do que está atrás, com borda clara de "vidro". -->
   <aside
-    class="bg-surface-panel flex flex-col rounded-3xl border border-white/60 px-4 py-6 shadow-xl shadow-slate-900/10 backdrop-blur-lg backdrop-saturate-150 dark:border-white/10 dark:shadow-black/40"
+    class="glass-panel flex flex-col px-4 py-6 backdrop-saturate-150"
     aria-label="Barra lateral"
   >
     <div class="flex items-center justify-between gap-2 px-2">

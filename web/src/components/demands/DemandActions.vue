@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 import { isAxiosError } from 'axios'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import type { IconName } from '@/components/icons/icons'
+import InlineAlert from '@/components/ui/InlineAlert.vue'
 import { parseApiError } from '@/services/apiErrors'
 import {
   closeDemand,
@@ -150,16 +151,8 @@ const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700 da
 
 <template>
   <section aria-label="Ações da solicitação" class="flex flex-col gap-3">
-    <p
-      v-if="success"
-      role="status"
-      class="rounded-2xl bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-800 dark:text-emerald-300"
-    >
-      {{ success }}
-    </p>
-    <p v-if="error" role="alert" class="rounded-2xl bg-red-500/10 px-3.5 py-2 text-sm text-red-700 dark:text-red-300">
-      {{ error }}
-    </p>
+    <InlineAlert v-if="success" kind="success">{{ success }}</InlineAlert>
+    <InlineAlert v-if="error" kind="error">{{ error }}</InlineAlert>
 
     <!-- A confirmação toma o lugar dos botões, como no Órbita: um ato por vez. -->
     <div v-if="confirming" class="flex flex-col gap-3">

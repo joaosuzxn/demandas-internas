@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import GlassPanel from '@/components/ui/GlassPanel.vue'
+import InlineAlert from '@/components/ui/InlineAlert.vue'
 import PagePagination from '@/components/ui/PagePagination.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import PillLink from '@/components/ui/PillLink.vue'
@@ -129,22 +130,15 @@ const BADGE = 'rounded-full px-2 py-0.5 text-xs font-medium'
       </template>
     </PageHeader>
 
-    <div
+    <InlineAlert
       v-if="notice"
+      kind="success"
+      dismissible
       data-arrival-notice
-      role="status"
-      class="flex items-center justify-between gap-3 rounded-2xl bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-800 dark:text-emerald-300"
+      @dismiss="notice = null"
     >
       {{ notice }}
-      <button
-        type="button"
-        aria-label="Fechar aviso"
-        class="rounded-full p-1 hover:bg-emerald-500/10"
-        @click="notice = null"
-      >
-        <AppIcon name="x" class="size-4" />
-      </button>
-    </div>
+    </InlineAlert>
 
     <section role="search" aria-label="Busca de usuários">
       <label for="user-search" class="sr-only">Buscar usuário</label>
@@ -188,7 +182,10 @@ const BADGE = 'rounded-full px-2 py-0.5 text-xs font-medium'
                   </span>
                   <span
                     v-if="!user.is_active"
-                    :class="[BADGE, 'bg-slate-900/10 text-slate-600 dark:bg-white/10 dark:text-slate-300']"
+                    :class="[
+                      BADGE,
+                      'bg-slate-900/10 text-slate-600 dark:bg-white/10 dark:text-slate-300',
+                    ]"
                   >
                     Desativado
                   </span>

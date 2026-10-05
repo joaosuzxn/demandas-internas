@@ -4,6 +4,12 @@ export function formatDateTime(iso: string | null): string | null {
   return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 }
 
+// Só a data curta em pt-BR (ex.: 03/10/2026); um traço quando não há data.
+export function formatDate(iso: string | null): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('pt-BR')
+}
+
 const DATE_FORMAT = /^\d{4}-\d{2}-\d{2}$/
 
 /** Primeiro dia aceito nos filtros por período, o mesmo piso da API (`DemandFilterRules`). */

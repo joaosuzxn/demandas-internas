@@ -70,6 +70,12 @@
   }
 }
 
+/* Painel de vidro das telas internas (cartões, cabeçalho, sidebar): superfície translúcida, borda clara e sombra.
+   Uso: `glass-panel` mais o layout e o espaçamento de cada um. */
+@utility glass-panel {
+  @apply bg-surface-panel rounded-3xl border border-white/60 shadow-xl shadow-slate-900/10 backdrop-blur-lg dark:border-white/10 dark:shadow-black/40;
+}
+
 /* Rolagem no estilo do Safari: fina, arredondada e quase invisível até o cursor entrar na área.
    Uso: `scrollbar-soft` no elemento que rola. Firefox usa a propriedade padrão; Chrome e Safari, o webkit. */
 @utility scrollbar-soft {

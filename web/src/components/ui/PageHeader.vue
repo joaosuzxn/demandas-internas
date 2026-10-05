@@ -7,16 +7,16 @@ defineProps<{
 
 <template>
   <!-- Cabeçalho das telas internas, trazido do Órbita: o `h1` da página mora aqui (um por view). -->
-  <header
-    class="bg-surface-panel rounded-3xl border border-white/60 p-5 shadow-xl shadow-slate-900/10 backdrop-blur-lg sm:p-6 dark:border-white/10 dark:shadow-black/40"
-  >
+  <header class="glass-panel p-5 sm:p-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex min-w-0 items-center gap-3">
         <!-- À esquerda do título: só navegação (ex.: BackLink). -->
         <slot name="media" />
 
         <div class="min-w-0">
-          <h1 class="text-lg font-semibold wrap-break-word text-slate-900 sm:text-xl dark:text-white">
+          <h1
+            class="text-lg font-semibold wrap-break-word text-slate-900 sm:text-xl dark:text-white"
+          >
             {{ title }}
           </h1>
           <p v-if="subtitle" class="text-sm text-slate-600 dark:text-slate-300">{{ subtitle }}</p>
