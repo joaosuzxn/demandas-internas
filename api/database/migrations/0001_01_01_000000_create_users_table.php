@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('role', 20)->default('employee');
             $table->boolean('is_active')->default(true);
             $table->boolean('must_change_password')->default(true);
+            // "Lembrar-me": token do cookie de login longo.
+            $table->rememberToken();
             $table->timestamps();
         });
 
