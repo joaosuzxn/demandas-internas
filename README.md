@@ -117,6 +117,8 @@ docker compose exec api php artisan migrate:fresh --seed
 Os dois seeders podem rodar quantas vezes for preciso sem duplicar dados. Para rodar só um deles:
 `docker compose exec api php artisan db:seed --class=AdminSeeder`.
 
+O detalhamento de cada tabela, coluna, chave e valor permitido está no [Dicionário de Dados](docs/DICIONARIO_DE_DADOS.md).
+
 No ambiente de produção, os comandos levam `-f compose.prod.yml` e `--force`, que confirma a execução em produção:
 
 ```bash
@@ -218,6 +220,27 @@ colaborador comum: ele registra e acompanha solicitações, mas só edita e excl
 
 **Dados de exemplo:** no ambiente de desenvolvimento, o banco já sobe com 37 solicitações distribuídas pelos três
 status, para o quadro e o dashboard não aparecerem vazios.
+
+## Documentação da entrega
+
+| Documento | Arquivo |
+|---|---|
+| Memorial Técnico de Desenvolvimento | [docs/MEMORIAL_TECNICO_DE_DESENVOLVIMENTO.pdf](docs/MEMORIAL_TECNICO_DE_DESENVOLVIMENTO.pdf) |
+| Dicionário de Dados | [docs/DICIONARIO_DE_DADOS.md](docs/DICIONARIO_DE_DADOS.md) |
+| Evidências (prints) | [docs/evidencias/](docs/evidencias/) |
+
+### Evidências
+
+| Tela | Print |
+|---|---|
+| Login | ![Login](docs/evidencias/01-login.png) |
+| Troca de senha obrigatória no primeiro acesso | ![Troca de senha](docs/evidencias/02-troca-de-senha.png) |
+| Quadro de solicitações | ![Quadro de solicitações](docs/evidencias/03-quadro-de-solicitacoes.png) |
+| Nova solicitação | ![Nova solicitação](docs/evidencias/04-nova-solicitacao.png) |
+| Detalhe com histórico | ![Detalhe da solicitação](docs/evidencias/05-detalhe-da-solicitacao.png) |
+| Editar solicitação | ![Editar solicitação](docs/evidencias/06-editar-solicitacao.png) |
+| Dashboard | ![Dashboard](docs/evidencias/07-dashboard.png) |
+| Editar usuário | ![Editar usuário](docs/evidencias/08-editar-usuario.png) |
 
 ## Estrutura do repositório
 

@@ -40,7 +40,7 @@ describe('LoginView', () => {
   it('mostra o login em /login, dentro do card de vidro sobre a foto de fundo', async () => {
     const { wrapper } = await mountAt('/login')
 
-    expect(wrapper.get('main section h1').text()).toBe('Bem-vindo ao DI')
+    expect(wrapper.get('main section h1').text()).toBe('Bem-vindo ao SI')
     expect(wrapper.get('main > img').attributes('alt')).toBe('')
     expect(wrapper.get('main > img').attributes('aria-hidden')).toBe('true')
   })
@@ -65,6 +65,6 @@ describe('LoginView', () => {
     await flushPromises()
 
     expect(wrapper.get('section').element).toBe(card)
-    expect(wrapper.get('h1').text()).toBe('Bem-vindo ao DI')
+    expect(wrapper.get('h1').text()).toBe('Bem-vindo ao SI')
   })
 })

@@ -2,6 +2,10 @@
 .idea/
 .vscode/
 .env
-docs
+# docs/ é de uso interno; só os documentos da entrega vão para o repositório
+docs/*
+!docs/DICIONARIO_DE_DADOS.md
+!docs/MEMORIAL_TECNICO_DE_DESENVOLVIMENTO.pdf
+!docs/evidencias/
 CLAUDE.md
 .superpowers

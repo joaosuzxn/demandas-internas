@@ -58,7 +58,7 @@ async function submit() {
     <h1
       class="to-brand-300 mx-auto w-fit bg-linear-to-r from-white from-60% bg-clip-text text-center text-3xl font-light text-balance text-transparent sm:text-4xl"
     >
-      Bem-vindo ao DI
+      Bem-vindo ao SI
     </h1>
 
     <!-- `novalidate`: a validação é nossa, sem o balão nativo do navegador. -->
