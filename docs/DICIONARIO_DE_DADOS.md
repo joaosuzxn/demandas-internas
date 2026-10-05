@@ -1,7 +1,7 @@
 # Dicionário de Dados
 
 Banco **PostgreSQL 17**. A estrutura é criada pelas migrations do Laravel (`api/database/migrations/`), executadas
-automaticamente na subida dos containers (veja o [README](README.md#banco-de-dados-migrations-e-seeds)).
+automaticamente na subida dos containers (veja o [README](../README.md#banco-de-dados-migrations-e-seeds)).
 
 Convenções:
 
