@@ -178,8 +178,9 @@ const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700 da
         <AppIcon name="pencil" class="size-4" />
         Editar
       </RouterLink>
+      <!-- Excluir também só na pendente: a API recusa as outras (item 0041). -->
       <button
-        v-if="canEdit"
+        v-if="canEdit && demand.status === 'pending'"
         type="button"
         :class="[BUTTON, DANGER_SOFT]"
         :disabled="running !== null"

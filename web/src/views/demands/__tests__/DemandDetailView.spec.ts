@@ -94,7 +94,6 @@ describe('DemandDetailView', () => {
 
   it('o voltar e a exclusão levam ao quadro com os filtros da última visita', async () => {
     rememberBoardQuery({ category: 'hr', search: 'monitor' })
-    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'finished' }))
     vi.mocked(demandsService.deleteDemand).mockResolvedValue()
 
     const { router, wrapper } = await mountView()
@@ -226,8 +225,7 @@ describe('DemandDetailView', () => {
     )
   })
 
-  it('exclui a finalizada só depois de confirmar e volta ao quadro', async () => {
-    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'finished' }))
+  it('exclui a pendente só depois de confirmar e volta ao quadro', async () => {
     vi.mocked(demandsService.deleteDemand).mockResolvedValue()
 
     const { router, wrapper } = await mountView()
@@ -260,21 +258,23 @@ describe('DemandDetailView', () => {
     expect(edit!.attributes('href')).toBe('/solicitacoes/12/editar')
   })
 
-  it('não mostra Editar na em andamento', async () => {
+  // A API só edita e exclui a pendente (item 0041).
+  it('não mostra Editar nem Excluir na em andamento', async () => {
     vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'in_progress' }))
 
     const { wrapper } = await mountView()
 
     expect(wrapper.findAll('a').some((link) => link.text() === 'Editar')).toBe(false)
-    expect(button(wrapper, 'Excluir')).toBeDefined()
+    expect(button(wrapper, 'Excluir')).toBeUndefined()
   })
 
-  it('não mostra Editar na finalizada', async () => {
+  it('não mostra Editar nem Excluir na finalizada', async () => {
     vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'finished' }))
 
     const { wrapper } = await mountView()
 
     expect(wrapper.findAll('a').some((link) => link.text() === 'Editar')).toBe(false)
+    expect(button(wrapper, 'Excluir')).toBeUndefined()
   })
 
   it('mostra a movimentação da solicitação abaixo da descrição', async () => {

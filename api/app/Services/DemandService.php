@@ -83,10 +83,18 @@ class DemandService
         });
     }
 
-    // Soft delete: a linha fica no banco com deleted_at e some das consultas.
+    // Soft delete: a linha fica no banco com deleted_at e some das consultas. Como editar, só a pendente (item 0041).
     public function delete(Demand $demand): void
     {
-        $demand->delete();
+        DB::transaction(function () use ($demand) {
+            $locked = $this->lock($demand);
+
+            if ($locked->status !== DemandStatus::Pending) {
+                throw ValidationException::withMessages(['status' => __('demands.only_pending_can_be_deleted')]);
+            }
+
+            $locked->delete();
+        });
     }
 
     public function start(Demand $demand, User $actor): Demand
