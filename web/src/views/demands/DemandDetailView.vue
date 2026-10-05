@@ -17,7 +17,7 @@ const route = useRoute()
 const router = useRouter()
 
 const id = computed(() => Number(route.params.id))
-const { demand, loading, error, notFound, canEdit, load } = useDemandRecord(id)
+const { demand, loading, error, notFound, canEdit, load, refresh } = useDemandRecord(id)
 // "Solicitação criada." / "Solicitação atualizada.", de quem chega do formulário.
 const notice = useArrivalNotice()
 // O quadro com os filtros da última visita (lidos ao abrir a tela).
@@ -76,6 +76,7 @@ function onDeleted(): void {
             :can-edit="canEdit"
             @updated="demand = $event"
             @deleted="onDeleted"
+            @stale="refresh"
           />
         </div>
 

@@ -9,7 +9,6 @@ import PageHeader from '@/components/ui/PageHeader.vue'
 import PillLink from '@/components/ui/PillLink.vue'
 import {
   SEARCH_MAX,
-  isDate,
   parseBoardQuery,
   rememberBoardQuery,
   toBoardQuery,
@@ -25,6 +24,7 @@ import {
   type DemandPage,
   type DemandStatus,
 } from '@/services/demands'
+import { EARLIEST_DAY, isDate } from '@/utils/dates'
 
 // Pausa na digitação antes de consultar a API: uma busca por tecla seria uma requisição a mais por letra.
 const SEARCH_DELAY_MS = 300
@@ -57,7 +57,10 @@ const panelFilterCount = computed(
 const INVALID_DATE = 'Informe uma data válida.'
 
 function dateError(value: string): string | undefined {
-  return value && !isDate(value) ? INVALID_DATE : undefined
+  if (!value) return undefined
+  if (!isDate(value)) return INVALID_DATE
+  // Mesmo piso da API e do dashboard: digitar o ano passa por 0002, 0020, 0202.
+  return value < EARLIEST_DAY ? 'Use datas a partir de 01/01/2000.' : undefined
 }
 
 const fromError = computed(() => dateError(createdFrom.value))

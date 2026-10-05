@@ -29,6 +29,8 @@ async function load(): Promise<void> {
   loading.value = true
   error.value = null
   notFound.value = false
+  // O painel de acesso não fica à vista (e clicável) com o usuário anterior enquanto o novo chega.
+  user.value = null
 
   try {
     const loaded = await getUser(requested)

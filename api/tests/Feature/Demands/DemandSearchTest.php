@@ -141,6 +141,16 @@ class DemandSearchTest extends TestCase
         }
     }
 
+    // Mesmo piso do dashboard: digitar o ano no campo de data passa por 0002, 0020, 0202.
+    public function test_rejects_dates_before_2000(): void
+    {
+        $this->searchAs($this->employee, '?created_from=0002-10-01')
+            ->assertUnprocessable()->assertJsonValidationErrors(['created_from']);
+        $this->searchAs($this->employee, '?created_to=1999-12-31')
+            ->assertUnprocessable()->assertJsonValidationErrors(['created_to']);
+        $this->searchAs($this->employee, '?created_from=2000-01-01')->assertOk();
+    }
+
     public function test_filters_combine(): void
     {
         $match = Demand::factory()->finished()->create(['category' => 'it', 'title' => 'Monitor']);

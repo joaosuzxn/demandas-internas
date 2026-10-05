@@ -124,7 +124,7 @@ async function onSubmit(): Promise<void> {
     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
       <RouterLink
         :to="cancelTo"
-        class="inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-900/5 dark:text-slate-200"
+        class="inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-900/5 dark:text-slate-200 dark:hover:bg-white/10"
       >
         Cancelar
       </RouterLink>

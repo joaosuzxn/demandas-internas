@@ -35,6 +35,11 @@ describe('parseBoardQuery', () => {
     ).toEqual({})
   })
 
+  it('ignora data antes de 2000, o piso da API', () => {
+    expect(parseBoardQuery({ created_from: '0002-10-01', created_to: '1999-12-31' })).toEqual({})
+    expect(parseBoardQuery({ created_from: '2000-01-01' })).toEqual({ created_from: '2000-01-01' })
+  })
+
   it('ignora valor repetido (array) e busca maior que o limite da API', () => {
     expect(parseBoardQuery({ category: ['hr', 'it'], search: 'a'.repeat(101) })).toEqual({})
   })

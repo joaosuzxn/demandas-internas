@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import GlassPanel from '@/components/ui/GlassPanel.vue'
 import { parseApiError } from '@/services/apiErrors'
 import type { User } from '@/services/auth'
@@ -25,6 +25,16 @@ const SUCCESS: Record<Action, string> = {
 const confirming = ref<Action | null>(null)
 const busy = ref(false)
 const message = ref<{ kind: 'success' | 'error'; text: string } | null>(null)
+
+// A confirmação troca os botões de lugar: o foco vai para o Confirmar e, ao fechar, volta ao botão da linha.
+const confirmButton = useTemplateRef<HTMLButtonElement>('confirmButton')
+const statusButton = useTemplateRef<HTMLButtonElement>('statusButton')
+const resetButton = useTemplateRef<HTMLButtonElement>('resetButton')
+watch(confirming, async (now, before) => {
+  await nextTick()
+  if (now) confirmButton.value?.focus()
+  else if (before) (before === 'reset' ? resetButton : statusButton).value?.focus()
+})
 
 const firstName = computed(() => props.user.name.trim().split(/\s+/)[0])
 
@@ -104,7 +114,7 @@ const CONFIRM_BUTTON =
           <template v-if="!isSelf">
             <div v-if="confirming === 'deactivate' || confirming === 'activate'" class="flex flex-wrap items-center gap-2">
               <span class="text-sm text-slate-600 dark:text-slate-300">{{ question }}</span>
-              <button type="button" :class="CONFIRM_BUTTON" :disabled="busy" @click="confirm">
+              <button ref="confirmButton" type="button" :class="CONFIRM_BUTTON" :disabled="busy" @click="confirm">
                 {{ busy ? 'Aguarde…' : 'Confirmar' }}
               </button>
               <button type="button" :class="ACTION_BUTTON" :disabled="busy" @click="confirming = null">
@@ -113,8 +123,10 @@ const CONFIRM_BUTTON =
             </div>
             <button
               v-else
+              ref="statusButton"
               type="button"
               :class="ACTION_BUTTON"
+              :disabled="busy"
               @click="ask(user.is_active ? 'deactivate' : 'activate')"
             >
               {{ user.is_active ? 'Desativar' : 'Reativar' }}
@@ -132,14 +144,14 @@ const CONFIRM_BUTTON =
           <template v-if="!isSelf">
             <div v-if="confirming === 'reset'" class="flex flex-wrap items-center gap-2">
               <span class="text-sm text-slate-600 dark:text-slate-300">{{ question }}</span>
-              <button type="button" :class="CONFIRM_BUTTON" :disabled="busy" @click="confirm">
+              <button ref="confirmButton" type="button" :class="CONFIRM_BUTTON" :disabled="busy" @click="confirm">
                 {{ busy ? 'Aguarde…' : 'Confirmar' }}
               </button>
               <button type="button" :class="ACTION_BUTTON" :disabled="busy" @click="confirming = null">
                 Cancelar
               </button>
             </div>
-            <button v-else type="button" :class="ACTION_BUTTON" @click="ask('reset')">
+            <button v-else ref="resetButton" type="button" :class="ACTION_BUTTON" :disabled="busy" @click="ask('reset')">
               Redefinir senha
             </button>
           </template>

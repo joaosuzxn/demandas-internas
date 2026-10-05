@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useId } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, useTemplateRef } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import AppLogo from '@/components/layout/AppLogo.vue'
@@ -20,14 +20,37 @@ const activeRouteName = computed(
 )
 /** Drawer do mobile; do `lg` para cima a sidebar fica sempre à vista. */
 const isSidebarOpen = ref(false)
+const menuButton = useTemplateRef<HTMLButtonElement>('menuButton')
 
-function onKeydown(event: KeyboardEvent): void {
-  if (event.key === 'Escape') isSidebarOpen.value = false
+// O foco acompanha o drawer: entra nele ao abrir e volta ao botão "Abrir menu" ao fechar (Esc, fundo ou X).
+async function openSidebar(): Promise<void> {
+  isSidebarOpen.value = true
+  await nextTick()
+  document.getElementById(sidebarId)?.querySelector<HTMLElement>('a, button')?.focus()
 }
 
+function closeSidebar(): void {
+  if (!isSidebarOpen.value) return
+  isSidebarOpen.value = false
+  menuButton.value?.focus()
+}
+
+function onKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') closeSidebar()
+}
+
+// Um clique a mais no Sair, enquanto a API responde, não pede outra saída.
+let loggingOut = false
+
 async function logout(): Promise<void> {
-  await auth.logout()
-  await router.replace({ name: 'login' })
+  if (loggingOut) return
+  loggingOut = true
+  try {
+    await auth.logout()
+    await router.replace({ name: 'login' })
+  } finally {
+    loggingOut = false
+  }
 }
 
 // O tema escuro só vale enquanto este layout (as telas com sidebar) está montado: o login fica sempre claro.
@@ -49,12 +72,13 @@ onBeforeUnmount(() => {
       class="sticky top-0 z-20 flex items-center gap-3 border-b border-white/60 bg-white/60 px-4 py-3 backdrop-blur-xl lg:hidden dark:border-white/5 dark:bg-ink-950/60"
     >
       <button
+        ref="menuButton"
         type="button"
         class="rounded-lg p-1.5 text-slate-600 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-white/10"
         aria-label="Abrir menu"
         :aria-expanded="isSidebarOpen"
         :aria-controls="sidebarId"
-        @click="isSidebarOpen = true"
+        @click="openSidebar"
       >
         <AppIcon name="menu" class="size-6" />
       </button>
@@ -67,7 +91,7 @@ onBeforeUnmount(() => {
       v-if="isSidebarOpen"
       class="fixed inset-0 z-30 bg-slate-950/40 lg:hidden"
       aria-hidden="true"
-      @click="isSidebarOpen = false"
+      @click="closeSidebar"
     ></div>
 
     <!-- Card flutuante. Fechado no mobile, fica invisível além de fora da tela: o Tab não cai nele. -->
@@ -81,7 +105,7 @@ onBeforeUnmount(() => {
       @toggle-theme="ui.toggleTheme"
       @navigate="isSidebarOpen = false"
       @logout="logout"
-      @close="isSidebarOpen = false"
+      @close="closeSidebar"
     />
 
     <!-- Recuo = largura do card + as duas margens de 1rem em volta dele. -->

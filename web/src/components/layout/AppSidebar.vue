@@ -69,14 +69,9 @@ const ITEM_ACTIVE =
     </nav>
 
     <div class="mt-6 flex flex-col gap-1 border-t border-slate-900/5 pt-4 dark:border-white/10">
-      <!-- Tema da interface (item 0032): o rótulo diz para onde o clique leva, como no Órbita. -->
-      <button
-        type="button"
-        :class="[ITEM, ITEM_IDLE]"
-        :aria-pressed="isDark"
-        aria-label="Alternar tema escuro"
-        @click="emit('toggle-theme')"
-      >
+      <!-- Tema da interface (item 0032): o rótulo diz para onde o clique leva, como no Órbita. O nome acessível
+           é esse texto (WCAG 2.5.3), sem aria-pressed: "Modo claro, pressionado" contradiria o tema em vigor. -->
+      <button type="button" :class="[ITEM, ITEM_IDLE]" @click="emit('toggle-theme')">
         <AppIcon :name="isDark ? 'sun' : 'moon'" class="size-5 shrink-0" />
         {{ isDark ? 'Modo claro' : 'Modo escuro' }}
       </button>

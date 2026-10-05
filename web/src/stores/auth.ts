@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { isAxiosError } from 'axios'
 import * as authService from '@/services/auth'
 import type { ChangePasswordPayload, LoginCredentials, User } from '@/services/auth'
+import { useDashboardStore } from '@/stores/dashboard'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -70,10 +71,18 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Sem sessão, nada da pessoa anterior fica para quem entrar depois na mesma aba: os números do dashboard
+  // e os filtros lembrados do quadro e da lista de usuários (o sessionStorage só guarda isso).
   function clear(): void {
     user.value = null
     loaded.value = true
     loginPassword.value = null
+    useDashboardStore().clear()
+    try {
+      sessionStorage.clear()
+    } catch {
+      // armazenamento bloqueado: não há o que esquecer
+    }
   }
 
   // A senha guardada deixou de servir (a API a recusou): não fica na memória.

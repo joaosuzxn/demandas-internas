@@ -225,6 +225,62 @@ describe('DemandDetailView', () => {
     )
   })
 
+  it('quando outra pessoa já mudou a situação, relê a solicitação e mantém o aviso', async () => {
+    vi.mocked(demandsService.startDemand).mockRejectedValue(
+      httpError(422, { errors: { status: ['Só solicitação pendente pode ser iniciada.'] } }),
+    )
+
+    const { wrapper } = await mountView()
+    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'in_progress' }))
+    await button(wrapper, 'Iniciar')!.trigger('click')
+    await flushPromises()
+
+    expect(demandsService.getDemand).toHaveBeenCalledTimes(2)
+    expect(button(wrapper, 'Finalizar')).toBeDefined()
+    expect(button(wrapper, 'Excluir')).toBeUndefined()
+    expect(wrapper.get('[aria-label="Ações da solicitação"]').text()).toContain(
+      'Só solicitação pendente pode ser iniciada.',
+    )
+  })
+
+  it('quando outra pessoa já excluiu, a ação leva ao aviso de não encontrada', async () => {
+    vi.mocked(demandsService.startDemand).mockRejectedValue(httpError(404))
+
+    const { wrapper } = await mountView()
+    vi.mocked(demandsService.getDemand).mockRejectedValue(httpError(404))
+    await button(wrapper, 'Iniciar')!.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Solicitação não encontrada')
+  })
+
+  it('a exclusão recusada porque a situação mudou também relê a solicitação', async () => {
+    vi.mocked(demandsService.deleteDemand).mockRejectedValue(
+      httpError(422, { errors: { status: ['Só solicitação pendente pode ser excluída.'] } }),
+    )
+
+    const { wrapper } = await mountView()
+    vi.mocked(demandsService.getDemand).mockResolvedValue(makeDemand({ status: 'in_progress' }))
+    await button(wrapper, 'Excluir')!.trigger('click')
+    await button(wrapper, 'Excluir')!.trigger('click')
+    await flushPromises()
+
+    expect(button(wrapper, 'Excluir')).toBeUndefined()
+    expect(button(wrapper, 'Finalizar')).toBeDefined()
+    expect(wrapper.text()).toContain('Só solicitação pendente pode ser excluída.')
+  })
+
+  it('outra falha na ação não relê a solicitação', async () => {
+    vi.mocked(demandsService.startDemand).mockRejectedValue(networkError())
+
+    const { wrapper } = await mountView()
+    await button(wrapper, 'Iniciar')!.trigger('click')
+    await flushPromises()
+
+    expect(demandsService.getDemand).toHaveBeenCalledTimes(1)
+    expect(button(wrapper, 'Iniciar')).toBeDefined()
+  })
+
   it('exclui a pendente só depois de confirmar e volta ao quadro', async () => {
     vi.mocked(demandsService.deleteDemand).mockResolvedValue()
 

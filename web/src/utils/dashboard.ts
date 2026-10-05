@@ -2,7 +2,7 @@
  * Contas puras do dashboard (item 0030), trazidas do Órbita: o recorte de tempo, a URL e a geometria do
  * gráfico. Nada aqui sabe de Vue nem de API.
  */
-import { isDate } from '@/composables/demandsBoardQuery'
+import { EARLIEST_DAY, isDate } from '@/utils/dates'
 import type { DashboardGranularity } from '@/services/dashboard'
 import { DEMAND_CATEGORY_LABELS, type DemandCategory } from '@/services/demands'
 
@@ -34,9 +34,6 @@ export type DashboardQueryState = {
   customStart: string
   customEnd: string
 }
-
-/** Primeiro dia aceito no personalizado, o mesmo piso da API (`DashboardFiltersRequest`). */
-export const EARLIEST_DAY = '2000-01-01'
 
 /** Quanto cada intervalo pronto recua: 1 semana é hoje e os 6 dias anteriores. */
 const PRESET_OFFSET: Record<DashboardPresetRange, { months?: number; days?: number }> = {

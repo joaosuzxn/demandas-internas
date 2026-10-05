@@ -293,6 +293,21 @@ describe('DemandsView', () => {
       wrapper.unmount()
     })
 
+    it('data antes de 2000 avisa no campo e não consulta', async () => {
+      const wrapper = await mountWithSelect()
+      await flushPromises()
+      clearApi()
+
+      await dateInput(wrapper, 'De').setValue('0002-10-01')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      expect(fetchCount()).toBe(0)
+      expect(dateInput(wrapper, 'De').attributes('aria-invalid')).toBe('true')
+      expect(wrapper.text()).toContain('Use datas a partir de 01/01/2000.')
+      wrapper.unmount()
+    })
+
     it('período invertido avisa no Até e não consulta', async () => {
       const wrapper = await mountWithSelect()
       await flushPromises()

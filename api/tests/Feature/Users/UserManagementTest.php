@@ -8,6 +8,7 @@ use App\Services\UserService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Tests\Support\FictitiousCpf;
 use Tests\TestCase;
 
@@ -147,6 +148,37 @@ class UserManagementTest extends TestCase
         $this->assertTrue(Hash::check('123@Senha', $user->password));
     }
 
+    // Dois cadastros iguais ao mesmo tempo passam os dois pelo `unique` do Form Request; o segundo bate na
+    // constraint do banco. Chamando o service direto (sem o Form Request) reproduz esse segundo: 422, não 500.
+    public function test_duplicate_that_slips_past_validation_becomes_validation_error(): void
+    {
+        $taken = User::factory()->create();
+        $service = app(UserService::class);
+        $data = ['name' => 'Outra Pessoa', 'username' => $taken->username, 'cpf' => FictitiousCpf::DEFAULT, 'email' => 'outra@example.com'];
+
+        try {
+            $service->create($data);
+            $this->fail('O username repetido deveria virar erro de validação.');
+        } catch (ValidationException $e) {
+            $this->assertSame(['username' => ['Este usuário já está em uso.']], $e->errors());
+        }
+
+        try {
+            $service->create(['name' => 'Outra Pessoa', 'username' => 'outra.pessoa', 'cpf' => $taken->cpf, 'email' => 'outra@example.com']);
+            $this->fail('O CPF repetido deveria virar erro de validação.');
+        } catch (ValidationException $e) {
+            $this->assertSame(['cpf' => ['Este CPF já está em uso.']], $e->errors());
+        }
+
+        $other = User::factory()->create();
+        try {
+            $service->update($other, ['email' => $taken->email]);
+            $this->fail('O e-mail repetido deveria virar erro de validação.');
+        } catch (ValidationException $e) {
+            $this->assertSame(['email' => ['Este e-mail já está em uso.']], $e->errors());
+        }
+    }
+
     public function test_ignores_photo_on_create(): void
     {
         $this->asAdmin()->postJson('/api/users', $this->validPayload(['photo' => 'data:image/png;base64,AAAA']))
@@ -269,6 +301,18 @@ class UserManagementTest extends TestCase
         $this->assertTrue($this->admin->fresh()->is_active);
     }
 
+    // Na própria conta, a redefinição derrubaria a sessão de quem pediu; a troca é pela tela de senha.
+    public function test_admin_cannot_reset_own_password(): void
+    {
+        $hash = $this->admin->password;
+
+        $this->asAdmin()->postJson("/api/users/{$this->admin->id}/reset-password")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['password' => 'Você não pode redefinir a senha da sua própria conta.']);
+
+        $this->assertSame($hash, $this->admin->fresh()->password);
+    }
+
     public function test_resets_password_to_default(): void
     {
         $user = User::factory()->create(['password' => 'Minha@Senha1']);
@@ -281,9 +325,10 @@ class UserManagementTest extends TestCase
     }
 
     // Sessão real (não o usuário em memória do actingAs): a redefinição vale na requisição seguinte.
+    // Quem redefine é outra conta: a própria o service recusa.
     private function resetPasswordWithFreshInstance(): void
     {
-        app(UserService::class)->resetPassword(User::findOrFail($this->admin->id));
+        app(UserService::class)->resetPassword(User::findOrFail($this->admin->id), User::factory()->create());
         $this->app['auth']->forgetGuards();
     }
 

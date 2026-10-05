@@ -107,6 +107,16 @@ describe('EditUserView', () => {
     expect(wrapper.findAll('button').some((b) => b.text() === 'Confirmar')).toBe(false)
   })
 
+  it('enquanto o outro usuário carrega, não mostra o painel de acesso do anterior', async () => {
+    const { router, wrapper } = await mountView()
+    vi.mocked(usersService.getUser).mockReturnValue(new Promise(() => {}))
+
+    await router.push('/admin/usuarios/8/editar')
+    await flushPromises()
+
+    expect(wrapper.findAll('button').some((b) => b.text() === 'Desativar')).toBe(false)
+  })
+
   it('ignora a resposta de um usuário que não é mais o da tela', async () => {
     let resolveOld!: (user: User) => void
     vi.mocked(usersService.getUser)

@@ -113,4 +113,25 @@ describe('useDashboardFilters', () => {
       created_to: '2026-10-04',
     })
   })
+
+  // Os filtros moram na URL de outras telas também (o quadro usa `category`): sair do dashboard não pode
+  // aplicar a query da tela seguinte nem puxar a pessoa de volta.
+  it('sair do dashboard para outra tela com query não volta ao dashboard', async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/dashboard', name: 'dashboard', component: Host },
+        { path: '/solicitacoes', name: 'demands', component: defineComponent({ render: () => null }) },
+      ],
+    })
+    await router.push('/dashboard?range=month&category=it')
+    mount(App, { global: { plugins: [router] } })
+    await flushPromises()
+
+    await router.push('/solicitacoes?category=hr')
+    await flushPromises()
+
+    expect(router.currentRoute.value.fullPath).toBe('/solicitacoes?category=hr')
+  })
 })
+

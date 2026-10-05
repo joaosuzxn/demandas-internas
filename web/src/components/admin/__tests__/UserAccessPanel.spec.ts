@@ -49,6 +49,32 @@ describe('UserAccessPanel', () => {
     expect(button(wrapper, 'Desativar')).toBeDefined()
   })
 
+  it('o foco vai para o Confirmar ao perguntar e volta ao botão da linha ao cancelar', async () => {
+    const wrapper = mount(UserAccessPanel, {
+      props: { user: makeUser({ id: 7, name: 'Ana Souza' }), isSelf: false },
+      attachTo: document.body,
+    })
+
+    await button(wrapper, 'Redefinir senha')!.trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(button(wrapper, 'Confirmar')!.element)
+
+    await button(wrapper, 'Cancelar')!.trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(button(wrapper, 'Redefinir senha')!.element)
+    wrapper.unmount()
+  })
+
+  it('enquanto uma confirmação corre, a ação da outra linha fica travada', async () => {
+    vi.mocked(usersService.resetUserPassword).mockReturnValue(new Promise(() => {}))
+    const wrapper = mountPanel()
+
+    await button(wrapper, 'Redefinir senha')!.trigger('click')
+    await button(wrapper, 'Confirmar')!.trigger('click')
+
+    expect(button(wrapper, 'Desativar')!.attributes('disabled')).toBeDefined()
+  })
+
   it('desativa depois de confirmar e entrega o usuário atualizado a quem usa', async () => {
     const deactivated = makeUser({ id: 7, name: 'Ana Souza', is_active: false })
     vi.mocked(usersService.deactivateUser).mockResolvedValue(deactivated)

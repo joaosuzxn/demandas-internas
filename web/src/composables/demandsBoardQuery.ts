@@ -1,23 +1,16 @@
 import type { LocationQuery, LocationQueryRaw, RouteLocationRaw } from 'vue-router'
 import { DEMAND_CATEGORY_LABELS, type DemandCategory, type DemandFilters } from '@/services/demands'
+import { isFilterDay } from '@/utils/dates'
 
 // Os filtros do quadro moram na URL (`/solicitacoes?category=hr&created_from=…`), com os nomes da API (item 0027):
 // o filtro se compartilha, sobrevive ao F5 e o voltar do navegador o desfaz.
 
 /** Mesmo teto do `ListDemandsRequest`. */
 export const SEARCH_MAX = 100
-const DATE_FORMAT = /^\d{4}-\d{2}-\d{2}$/
 const STORAGE_KEY = 'demands-board-query'
 
 function single(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined
-}
-
-// `AAAA-MM-DD` que existe no calendário (31/02 não).
-export function isDate(value: string): boolean {
-  if (!DATE_FORMAT.test(value)) return false
-  const date = new Date(`${value}T00:00:00Z`)
-  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value)
 }
 
 function isCategory(value: string): value is DemandCategory {
@@ -26,7 +19,7 @@ function isCategory(value: string): value is DemandCategory {
 
 /**
  * Os filtros que a URL traz. O que não vale (categoria desconhecida, data impossível, período invertido) é
- * ignorado em silêncio: o quadro abre como se aquele filtro não existisse, em vez de um erro.
+ * ignorado em silêncio (data antes de 2000 também): o quadro abre como se aquele filtro não existisse, em vez de um erro.
  */
 export function parseBoardQuery(query: LocationQuery | Record<string, unknown>): DemandFilters {
   const filters: DemandFilters = {}
@@ -39,8 +32,8 @@ export function parseBoardQuery(query: LocationQuery | Record<string, unknown>):
 
   const from = single(query.created_from)
   const to = single(query.created_to)
-  const validFrom = from && isDate(from) ? from : undefined
-  const validTo = to && isDate(to) ? to : undefined
+  const validFrom = from && isFilterDay(from) ? from : undefined
+  const validTo = to && isFilterDay(to) ? to : undefined
   // As datas em `AAAA-MM-DD` se comparam como texto.
   if (!(validFrom && validTo && validTo < validFrom)) {
     if (validFrom) filters.created_from = validFrom

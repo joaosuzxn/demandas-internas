@@ -36,6 +36,25 @@ export function useDemandRecord(id: Ref<number>) {
     }
   }
 
+  // Releitura sem o esqueleto: a tela fica de pé (com o aviso de erro) e só troca os dados.
+  // Serve quando uma ação foi recusada porque outra pessoa mudou ou excluiu a solicitação.
+  async function refresh(): Promise<void> {
+    const request = ++latestRequest
+
+    try {
+      const loaded = await getDemand(id.value)
+      if (request !== latestRequest) return
+      demand.value = loaded
+    } catch (failure) {
+      if (request !== latestRequest) return
+      if (isAxiosError(failure) && failure.response?.status === 404) {
+        demand.value = null
+        notFound.value = true
+      }
+      // Outra falha: fica a cópia que já está na tela.
+    }
+  }
+
   watch(id, () => void load(), { immediate: true })
 
   // Editar e excluir: espelha a DemandPolicy (solicitante ou admin); a API continua sendo a regra e recusa o resto.
@@ -46,5 +65,5 @@ export function useDemandRecord(id: Ref<number>) {
     return user.role === 'admin' || demand.value.requester.id === user.id
   })
 
-  return { demand, loading, error, notFound, canEdit, load }
+  return { demand, loading, error, notFound, canEdit, load, refresh }
 }

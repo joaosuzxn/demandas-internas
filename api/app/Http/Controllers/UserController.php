@@ -47,9 +47,9 @@ class UserController extends Controller
         return new UserResource($this->users->activate($user));
     }
 
-    public function resetPassword(User $user): Response
+    public function resetPassword(Request $request, User $user): Response
     {
-        $this->users->resetPassword($user);
+        $this->users->resetPassword($user, $request->user());
 
         return response()->noContent();
     }

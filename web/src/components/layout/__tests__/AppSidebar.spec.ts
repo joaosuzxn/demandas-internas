@@ -80,9 +80,10 @@ describe('AppSidebar', () => {
     const wrapper = await mountSidebar('demands', true)
 
     const toggle = wrapper.findAll('button').find((button) => button.text() === 'Modo claro')!
-    expect(toggle.attributes('aria-pressed')).toBe('true')
-    // Nome fixo: com o rótulo que muda, o leitor de tela diria "Modo claro, pressionado" com o escuro ligado.
-    expect(toggle.attributes('aria-label')).toBe('Alternar tema escuro')
+    // O nome acessível é o texto visível (WCAG 2.5.3): quem fala "Modo claro" no comando de voz acha o botão.
+    // Sem aria-pressed: o rótulo já diz a ação, e "Modo claro, pressionado" contradiria o tema em vigor.
+    expect(toggle.attributes('aria-label')).toBeUndefined()
+    expect(toggle.attributes('aria-pressed')).toBeUndefined()
     await toggle.trigger('click')
     expect(wrapper.emitted('toggle-theme')).toHaveLength(1)
   })

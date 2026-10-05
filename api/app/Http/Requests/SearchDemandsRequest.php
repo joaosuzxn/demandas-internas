@@ -25,8 +25,9 @@ class SearchDemandsRequest extends FormRequest
             'search' => ['nullable', 'string', 'max:100'],
             'category' => ['nullable', Rule::enum(DemandCategory::class)],
             // Período pela data de criação, dias inteiros no fuso do negócio; cada ponta vale sozinha.
-            'created_from' => ['nullable', 'date_format:Y-m-d'],
-            'created_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:created_from'],
+            // Mesmo piso do dashboard: digitar o ano no campo de data passa por 0002, 0020, 0202.
+            'created_from' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:'.DashboardFiltersRequest::EARLIEST_DAY],
+            'created_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:'.DashboardFiltersRequest::EARLIEST_DAY, 'after_or_equal:created_from'],
             'status' => ['nullable', Rule::enum(DemandStatus::class)],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
