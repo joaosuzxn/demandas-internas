@@ -64,7 +64,7 @@ describe('LoginForm', () => {
     const login = wrapper.get('input[name="login"]')
     const password = wrapper.get('input[name="password"]')
 
-    expect(wrapper.get('h1').text()).toBe('Bem-vindo ao DI')
+    expect(wrapper.get('h1').text()).toBe('Bem-vindo ao SI')
     expect(wrapper.get(`label[for="${login.attributes('id')}"]`).text()).toBe('Usuário ou e-mail')
     expect(login.attributes('placeholder')).toBe('Digite seu usuário ou e-mail')
     expect(login.attributes('autocomplete')).toBe('username')
