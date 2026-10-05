@@ -2,7 +2,7 @@
 import { computed, watch } from 'vue'
 import BaseField from '@/components/ui/BaseField.vue'
 import { useTabBar } from '@/composables/useTabBar'
-import { DEMAND_CATEGORY_LABELS, type DemandCategory } from '@/services/demands'
+import { DEMAND_CATEGORY_OPTIONS, type DemandCategory } from '@/services/demands'
 import { DASHBOARD_RANGES, DASHBOARD_RANGE_LABELS, type DashboardRange } from '@/utils/dashboard'
 
 // Filtros do dashboard (item 0030), no molde do Órbita: categoria no lugar da diretoria, intervalo com a pílula
@@ -19,11 +19,6 @@ const category = defineModel<DemandCategory | ''>('category', { required: true }
 const customStart = defineModel<string>('customStart', { required: true })
 const customEnd = defineModel<string>('customEnd', { required: true })
 
-const categoryOptions = Object.entries(DEMAND_CATEGORY_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}))
-
 /** O `BaseField` fala `string`; aqui só chegam valores da lista de categorias (ou vazio). */
 const categoryText = computed({
   get: () => category.value,
@@ -34,7 +29,7 @@ const categoryText = computed({
  * A pílula que segue o intervalo escolhido é a mesma barra do Órbita. Aqui os botões são filtro, não aba:
  * o estado mora no `aria-pressed`, e a pílula é decoração.
  */
-const { active, pill, settled, select } = useTabBar(DASHBOARD_RANGES, range.value)
+const { active, pill, settled, select } = useTabBar(range.value)
 
 watch(active, (value) => (range.value = value))
 watch(range, (value) => select(value))
@@ -57,9 +52,7 @@ const endError = computed(() => {
 </script>
 
 <template>
-  <div
-    class="bg-surface-panel flex flex-col gap-4 rounded-3xl border border-white/60 p-5 shadow-xl shadow-slate-900/10 backdrop-blur-lg sm:p-6 dark:border-white/10 dark:shadow-black/40"
-  >
+  <div class="glass-panel flex flex-col gap-4 p-5 sm:p-6">
     <h2 class="sr-only">Filtros do painel</h2>
 
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -68,12 +61,15 @@ const endError = computed(() => {
         control="select"
         label="Categoria"
         placeholder-option="Todas as categorias"
-        :options="categoryOptions"
+        :options="DEMAND_CATEGORY_OPTIONS"
         class="w-full lg:max-w-xs"
       />
 
       <div class="flex flex-col gap-1.5">
-        <span id="dashboard-range-label" class="text-xs font-medium text-slate-600 dark:text-slate-300">
+        <span
+          id="dashboard-range-label"
+          class="text-xs font-medium text-slate-600 dark:text-slate-300"
+        >
           Intervalo
         </span>
 

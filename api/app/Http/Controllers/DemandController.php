@@ -20,12 +20,12 @@ class DemandController extends Controller
 
     public function index(ListDemandsRequest $request): AnonymousResourceCollection
     {
-        return DemandResource::collection($this->demands->paginate($request->validated(), $request->user()));
+        return DemandResource::collection($this->demands->paginate($request->validated()));
     }
 
     public function search(SearchDemandsRequest $request): AnonymousResourceCollection
     {
-        return DemandResource::collection($this->demands->paginate($request->validated(), $request->user()));
+        return DemandResource::collection($this->demands->paginate($request->validated()));
     }
 
     public function store(StoreDemandRequest $request): DemandResource
@@ -35,14 +35,12 @@ class DemandController extends Controller
 
     public function show(Demand $demand): DemandResource
     {
-        return new DemandResource($demand->load('movements.actor'));
+        return $this->withHistory($demand);
     }
 
     public function update(UpdateDemandRequest $request, Demand $demand): DemandResource
     {
-        $updated = $this->demands->update($demand, $request->validated(), $request->user());
-
-        return new DemandResource($updated->load('movements.actor'));
+        return $this->withHistory($this->demands->update($demand, $request->validated(), $request->user()));
     }
 
     public function destroy(Demand $demand): Response
@@ -54,16 +52,22 @@ class DemandController extends Controller
 
     public function start(Request $request, Demand $demand): DemandResource
     {
-        return new DemandResource($this->demands->start($demand, $request->user())->load('movements.actor'));
+        return $this->withHistory($this->demands->start($demand, $request->user()));
     }
 
     public function close(Request $request, Demand $demand): DemandResource
     {
-        return new DemandResource($this->demands->close($demand, $request->user())->load('movements.actor'));
+        return $this->withHistory($this->demands->close($demand, $request->user()));
     }
 
     public function reopen(Request $request, Demand $demand): DemandResource
     {
-        return new DemandResource($this->demands->reopen($demand, $request->user())->load('movements.actor'));
+        return $this->withHistory($this->demands->reopen($demand, $request->user()));
+    }
+
+    // A solicitação com o histórico e quem fez cada movimentação: a resposta de ver e de toda ação.
+    private function withHistory(Demand $demand): DemandResource
+    {
+        return new DemandResource($demand->load('movements.actor'));
     }
 }

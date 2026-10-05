@@ -36,7 +36,7 @@ const ITEM_ACTIVE =
 <template>
   <!-- Glassmorphism: translúcida + desfoque do que está atrás, com borda clara de "vidro". -->
   <aside
-    class="bg-surface-panel flex flex-col rounded-3xl border border-white/60 px-4 py-6 shadow-xl shadow-slate-900/10 backdrop-blur-lg backdrop-saturate-150 dark:border-white/10 dark:shadow-black/40"
+    class="glass-panel flex flex-col px-4 py-6 backdrop-saturate-150"
     aria-label="Barra lateral"
   >
     <div class="flex items-center justify-between gap-2 px-2">
@@ -69,14 +69,9 @@ const ITEM_ACTIVE =
     </nav>
 
     <div class="mt-6 flex flex-col gap-1 border-t border-slate-900/5 pt-4 dark:border-white/10">
-      <!-- Tema da interface (item 0032): o rótulo diz para onde o clique leva, como no Órbita. -->
-      <button
-        type="button"
-        :class="[ITEM, ITEM_IDLE]"
-        :aria-pressed="isDark"
-        aria-label="Alternar tema escuro"
-        @click="emit('toggle-theme')"
-      >
+      <!-- Tema da interface (item 0032): o rótulo diz para onde o clique leva, como no Órbita. O nome acessível
+           é esse texto (WCAG 2.5.3), sem aria-pressed: "Modo claro, pressionado" contradiria o tema em vigor. -->
+      <button type="button" :class="[ITEM, ITEM_IDLE]" @click="emit('toggle-theme')">
         <AppIcon :name="isDark ? 'sun' : 'moon'" class="size-5 shrink-0" />
         {{ isDark ? 'Modo claro' : 'Modo escuro' }}
       </button>

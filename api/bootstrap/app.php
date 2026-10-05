@@ -11,23 +11,19 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 $app = Application::configure(basePath: dirname(__DIR__))
+    // Só a API: o resto do endereço é da SPA, servida pelo nginx (ADR 0001); o health é `GET /api/health`.
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
-        health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
-        );
-
-        // Erros da API em português e sem detalhes internos (nome de model, classe de exceção).
         $isApi = fn (Request $request) => $request->is('api/*') || $request->expectsJson();
 
+        $exceptions->shouldRenderJsonWhen($isApi);
+
+        // Erros da API em português e sem detalhes internos (nome de model, classe de exceção).
         $exceptions->render(fn (AuthenticationException $e, Request $request) => $isApi($request)
             ? response()->json(['message' => __('http.unauthenticated')], 401)
             : null);

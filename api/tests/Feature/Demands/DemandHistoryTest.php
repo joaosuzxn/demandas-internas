@@ -6,7 +6,9 @@ use App\Models\Demand;
 use App\Models\DemandMovement;
 use App\Models\User;
 use App\Services\DemandService;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -27,13 +29,6 @@ class DemandHistoryTest extends TestCase
         $this->requester = User::factory()->create();
         $this->admin = User::factory()->admin()->create();
         $this->stranger = User::factory()->create();
-    }
-
-    private function actingAsSpa(User $user): static
-    {
-        $this->actingAs($user);
-
-        return $this->fromSpa();
     }
 
     /** @return array<int, array{0: string, 1: int}> */
@@ -211,5 +206,27 @@ class DemandHistoryTest extends TestCase
 
         $this->assertDatabaseHas('demands', ['id' => $demand->id, 'title' => 'Original', 'status' => 'in_progress']);
         $this->assertSame([['started', $this->admin->id]], $this->movementsOf($demand));
+    }
+
+    // Os testes de cópia velha acima provam a releitura, não a trava: rodam um depois do outro. Este garante
+    // que cada ação relê com `FOR UPDATE`, que é o que faz duas ações simultâneas passarem uma de cada vez.
+    public function test_each_action_rereads_the_demand_locking_the_row(): void
+    {
+        $service = app(DemandService::class);
+        $locks = 0;
+        DB::listen(function (QueryExecuted $query) use (&$locks): void {
+            if (str_contains(strtolower($query->sql), 'for update')) {
+                $locks++;
+            }
+        });
+
+        $demand = Demand::factory()->create(['requester_id' => $this->requester->id]);
+        $service->update($demand, $this->payload(['title' => 'Outro título']), $this->requester);
+        $service->start($demand, $this->admin);
+        $service->close($demand, $this->admin);
+        $service->reopen($demand, $this->admin);
+        $service->delete($demand);
+
+        $this->assertSame(5, $locks);
     }
 }

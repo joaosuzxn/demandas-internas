@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Enums\Role;
 use App\Models\User;
+use App\Support\Like;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
@@ -20,16 +22,15 @@ class UserService
     public function paginate(?string $search): LengthAwarePaginator
     {
         $term = trim((string) $search);
-        // %, _ e \ do termo valem como texto, não como curinga do LIKE.
-        $escaped = addcslashes($term, '%_\\');
+        $pattern = Like::contains($term);
         $digits = preg_replace('/\D/', '', $term);
 
         return User::query()
-            ->when($term !== '', function (Builder $query) use ($escaped, $digits, $term) {
-                $query->where(function (Builder $query) use ($escaped, $digits, $term) {
-                    $query->where('name', 'ilike', "%{$escaped}%")
-                        ->orWhere('username', 'ilike', "%{$escaped}%")
-                        ->orWhere('email', 'ilike', "%{$escaped}%");
+            ->when($term !== '', function (Builder $query) use ($pattern, $digits, $term) {
+                $query->where(function (Builder $query) use ($pattern, $digits, $term) {
+                    $query->where('name', 'ilike', $pattern)
+                        ->orWhere('username', 'ilike', $pattern)
+                        ->orWhere('email', 'ilike', $pattern);
 
                     // Só procura no CPF quando o termo parece um CPF (dígitos, ponto, hífen).
                     if ($digits !== '' && preg_match('/^[\d.\-\s]+$/', $term)) {
@@ -51,7 +52,7 @@ class UserService
         $user->password = $this->defaultPassword();
         $user->is_active = true;
         $user->must_change_password = true;
-        $user->save();
+        $this->saveUnique($user);
 
         return $user;
     }
@@ -61,7 +62,7 @@ class UserService
      */
     public function update(User $user, array $data): User
     {
-        $user->fill($data)->save();
+        $this->saveUnique($user->fill($data));
 
         return $user;
     }
@@ -73,8 +74,7 @@ class UserService
         }
 
         $user->is_active = false;
-        // Mata os cookies de "lembrar": reativada, a pessoa entra de novo com a senha.
-        $user->setRememberToken(Str::random(60));
+        // O User troca o remember_token: reativada, a pessoa entra de novo com a senha.
         $user->save();
 
         return $user;
@@ -91,13 +91,36 @@ class UserService
     // Volta para a senha padrão; a sessão aberta do usuário é encerrada (401 pelo AuthenticateSession do
     // Sanctum) e a pessoa entra de novo com a senha padrão, caindo na troca obrigatória (spec §5.4).
     // Se a redefinição ocorrer entre o login e a requisição seguinte, a resposta é 403 PASSWORD_CHANGE_REQUIRED.
-    public function resetPassword(User $user): void
+    public function resetPassword(User $user, User $actor): void
     {
+        // Na própria conta derrubaria a sessão de quem pediu; a troca é pela tela de senha (como no deactivate).
+        if ($actor->is($user)) {
+            throw ValidationException::withMessages(['password' => __('users.cannot_reset_own_password')]);
+        }
+
         $user->password = $this->defaultPassword();
         $user->must_change_password = true;
-        // Mata os cookies de "lembrar" emitidos com a senha antiga.
-        $user->setRememberToken(Str::random(60));
+        // O User troca o remember_token: os cookies de "lembrar" da senha antiga deixam de valer.
         $user->save();
+    }
+
+    // Dois cadastros iguais ao mesmo tempo passam os dois pelo `unique` do Form Request (UserRules); o segundo
+    // bate na constraint do banco e sai como o mesmo 422 da validação, não como 500.
+    private function saveUnique(User $user): void
+    {
+        try {
+            // Em transação (savepoint, se já houver uma): no PostgreSQL a violação aborta a transação em volta.
+            DB::transaction(fn () => $user->save());
+        } catch (UniqueConstraintViolationException $e) {
+            $column = collect($e->columns)->first(fn (string $column) => in_array($column, ['username', 'cpf', 'email'], true));
+            if ($column === null) {
+                throw $e;
+            }
+
+            throw ValidationException::withMessages([
+                $column => __('validation.unique', ['attribute' => __("validation.attributes.{$column}")]),
+            ]);
+        }
     }
 
     private function defaultPassword(): string

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { RouterLink, type RouteLocationRaw } from 'vue-router'
-import AppIcon from '@/components/icons/AppIcon.vue'
+import type { RouteLocationRaw } from 'vue-router'
 import BaseField from '@/components/ui/BaseField.vue'
+import FormActions from '@/components/ui/FormActions.vue'
+import InlineAlert from '@/components/ui/InlineAlert.vue'
+import { useFormErrors } from '@/composables/useFormErrors'
 import { parseApiError } from '@/services/apiErrors'
 import type { User } from '@/services/auth'
 import { createUser, updateUser, type UserPayload } from '@/services/users'
@@ -33,26 +35,20 @@ const fields = reactive<UserPayload>({
   email: props.editing?.email ?? '',
 })
 
-const fieldErrors = ref<Partial<Record<Field, string>>>({})
-const formError = ref<string | null>(null)
+const { fieldErrors, generalError: formError, reset, fail, clear } = useFormErrors()
 /** Enviando, ou já salvo e esperando a tela sair: nos dois casos o botão não aceita clique. */
 const busy = ref(false)
 
 function update(field: Field, value: string): void {
   fields[field] = value
   // Quem mexe no campo está corrigindo: o erro dele sai, os outros ficam.
-  if (fieldErrors.value[field]) {
-    const rest = { ...fieldErrors.value }
-    delete rest[field]
-    fieldErrors.value = rest
-  }
+  clear(field)
 }
 
 // A conferência dos campos é da API (422): a tela só mostra o que ela diz.
 async function onSubmit(): Promise<void> {
   busy.value = true
-  fieldErrors.value = {}
-  formError.value = null
+  reset()
 
   try {
     const payload = { ...fields }
@@ -62,8 +58,7 @@ async function onSubmit(): Promise<void> {
     emit('saved', saved)
   } catch (error) {
     const parsed = parseApiError(error, FIELDS)
-    fieldErrors.value = parsed.fieldErrors
-    formError.value = parsed.message
+    fail(parsed.fieldErrors, parsed.message)
     busy.value = false
   }
 }
@@ -71,14 +66,7 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <form novalidate class="flex flex-col gap-5" @submit.prevent="onSubmit">
-    <p
-      v-if="formError"
-      data-form-error
-      role="alert"
-      class="rounded-2xl bg-red-500/10 px-3.5 py-2 text-sm text-red-700 dark:text-red-300"
-    >
-      {{ formError }}
-    </p>
+    <InlineAlert v-if="formError" kind="error" data-form-error>{{ formError }}</InlineAlert>
 
     <BaseField
       :model-value="fields.name"
@@ -132,21 +120,11 @@ async function onSubmit(): Promise<void> {
       O usuário entra com a senha padrão e precisa trocá-la no primeiro acesso.
     </p>
 
-    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-      <RouterLink
-        :to="cancelTo"
-        class="inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-900/5 dark:text-slate-200"
-      >
-        Cancelar
-      </RouterLink>
-      <button
-        type="submit"
-        :disabled="busy"
-        class="bg-sidebar-active inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium text-white shadow-sm shadow-slate-950/20 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950"
-      >
-        <AppIcon name="send" class="size-4" />
-        {{ busy ? 'Salvando…' : submitLabel }}
-      </button>
-    </div>
+    <FormActions
+      :cancel-to="cancelTo"
+      :submit-label="submitLabel"
+      busy-label="Salvando…"
+      :busy="busy"
+    />
   </form>
 </template>

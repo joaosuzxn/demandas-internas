@@ -6,8 +6,8 @@ import DemandFacts from '@/components/demands/DemandFacts.vue'
 import DemandRecordState from '@/components/demands/DemandRecordState.vue'
 import DemandSection from '@/components/demands/DemandSection.vue'
 import DemandTimeline from '@/components/demands/DemandTimeline.vue'
-import AppIcon from '@/components/icons/AppIcon.vue'
 import BackLink from '@/components/ui/BackLink.vue'
+import InlineAlert from '@/components/ui/InlineAlert.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import { useArrivalNotice } from '@/composables/useArrivalNotice'
 import { useDemandRecord } from '@/composables/useDemandRecord'
@@ -17,7 +17,7 @@ const route = useRoute()
 const router = useRouter()
 
 const id = computed(() => Number(route.params.id))
-const { demand, loading, error, notFound, canEdit, load } = useDemandRecord(id)
+const { demand, loading, error, notFound, canEdit, load, refresh } = useDemandRecord(id)
 // "Solicitação criada." / "Solicitação atualizada.", de quem chega do formulário.
 const notice = useArrivalNotice()
 // O quadro com os filtros da última visita (lidos ao abrir a tela).
@@ -41,22 +41,15 @@ function onDeleted(): void {
       </template>
     </PageHeader>
 
-    <div
+    <InlineAlert
       v-if="notice"
+      kind="success"
+      dismissible
       data-arrival-notice
-      role="status"
-      class="flex items-center justify-between gap-3 rounded-2xl bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-800 dark:text-emerald-300"
+      @dismiss="notice = null"
     >
       {{ notice }}
-      <button
-        type="button"
-        aria-label="Fechar aviso"
-        class="rounded-full p-1 hover:bg-emerald-500/10"
-        @click="notice = null"
-      >
-        <AppIcon name="x" class="size-4" />
-      </button>
-    </div>
+    </InlineAlert>
 
     <DemandRecordState :loading="loading" :error="error" :not-found="notFound" @retry="load">
       <!-- Como no Órbita: no celular, uma coluna, com o painel virando `contents` para os filhos se
@@ -76,13 +69,18 @@ function onDeleted(): void {
             :can-edit="canEdit"
             @updated="demand = $event"
             @deleted="onDeleted"
+            @stale="refresh"
           />
         </div>
 
         <div class="order-2 flex flex-col gap-3 lg:col-span-2 lg:col-start-1 lg:row-start-1">
           <DemandSection title="Descrição" data-demand-description>
-            <div class="bg-surface-item rounded-2xl px-3.5 py-3 shadow-sm shadow-slate-900/5 dark:shadow-black/20">
-              <p class="text-sm wrap-break-word whitespace-pre-line text-slate-700 dark:text-slate-200">
+            <div
+              class="bg-surface-item rounded-2xl px-3.5 py-3 shadow-sm shadow-slate-900/5 dark:shadow-black/20"
+            >
+              <p
+                class="text-sm wrap-break-word whitespace-pre-line text-slate-700 dark:text-slate-200"
+              >
                 {{ demand.description }}
               </p>
             </div>

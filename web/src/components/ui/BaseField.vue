@@ -8,7 +8,7 @@ export interface FieldOption {
   label: string
 }
 
-// Campo do Órbita (item 0021), só com a máscara de CPF e sem modo escuro: rótulo, controle, dica e erro.
+// Campo do Órbita (item 0021), com a máscara de CPF e o modo escuro do item 0032: rótulo, controle, dica e erro.
 const props = withDefaults(
   defineProps<{
     /** Rótulo exibido acima do campo. */

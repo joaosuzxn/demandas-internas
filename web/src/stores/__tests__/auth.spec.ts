@@ -4,6 +4,7 @@ import * as authService from '@/services/auth'
 import type { ChangePasswordPayload, LoginCredentials, User } from '@/services/auth'
 import { httpError, makeUser, networkError } from '@/services/__tests__/fixtures'
 import { useAuthStore } from '../auth'
+import { useDashboardStore } from '../dashboard'
 
 vi.mock('@/services/auth', () => ({
   login: vi.fn<(credentials: LoginCredentials) => Promise<User>>(),
@@ -157,6 +158,23 @@ describe('auth store', () => {
 
     await expect(auth.logout()).resolves.toBeUndefined()
     expect(auth.isAuthenticated).toBe(false)
+  })
+
+  it('ao sair, quem entra depois não herda os números do dashboard nem os filtros lembrados', async () => {
+    vi.mocked(authService.fetchMe).mockResolvedValue(makeUser())
+    vi.mocked(authService.logout).mockResolvedValue()
+    const auth = useAuthStore()
+    await auth.ensureLoaded()
+    const dashboard = useDashboardStore()
+    dashboard.summary.data = { total: 3, pending: 1, in_progress: 1, finished: 1 }
+    sessionStorage.setItem('demands-board-query', '{"search":"impressora"}')
+    sessionStorage.setItem('admin-users-query', '{"search":"joão"}')
+
+    await auth.logout()
+
+    expect(dashboard.summary.data).toBeNull()
+    expect(sessionStorage.getItem('demands-board-query')).toBeNull()
+    expect(sessionStorage.getItem('admin-users-query')).toBeNull()
   })
 
   it('clear tira o usuário sem ir à rede e marca a sessão como consultada', async () => {

@@ -11,6 +11,7 @@ import {
   type DemandStatus,
 } from '@/services/demands'
 import type { IconName } from '@/components/icons/icons'
+import { formatDate } from '@/utils/dates'
 
 defineProps<{
   /** As solicitações já repartidas por situação — uma coluna para cada. */
@@ -39,11 +40,6 @@ const COLUMNS: readonly { status: DemandStatus; label: string; icon: IconName }[
   { status: 'finished', label: DEMAND_STATUS_LABELS.finished, icon: 'circle-check' },
 ]
 
-function formatDate(iso: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('pt-BR')
-}
-
 function categoryLabel(demand: Demand): string {
   return DEMAND_CATEGORY_LABELS[demand.category]
 }
@@ -52,12 +48,18 @@ function categoryLabel(demand: Demand): string {
 <template>
   <section
     aria-label="Quadro de solicitações por situação"
-    class="bg-surface-panel flex flex-col gap-4 rounded-3xl border border-white/60 p-5 shadow-xl shadow-slate-900/10 backdrop-blur-lg sm:p-6 dark:border-white/10 dark:shadow-black/40"
+    class="glass-panel flex flex-col gap-4 p-5 sm:p-6"
   >
     <div v-if="loading" role="status" class="flex flex-col gap-3">
       <span class="sr-only">Carregando solicitações…</span>
-      <div class="h-4 w-40 animate-pulse rounded-full bg-slate-900/5 dark:bg-white/10" aria-hidden="true"></div>
-      <div class="h-24 animate-pulse rounded-2xl bg-slate-900/5 dark:bg-white/10" aria-hidden="true"></div>
+      <div
+        class="h-4 w-40 animate-pulse rounded-full bg-slate-900/5 dark:bg-white/10"
+        aria-hidden="true"
+      ></div>
+      <div
+        class="h-24 animate-pulse rounded-2xl bg-slate-900/5 dark:bg-white/10"
+        aria-hidden="true"
+      ></div>
     </div>
 
     <div v-else-if="error" role="alert" class="flex flex-wrap items-center justify-between gap-3">
@@ -75,7 +77,11 @@ function categoryLabel(demand: Demand): string {
       v-else-if="COLUMNS.every((column) => board[column.status].total === 0)"
       class="py-6 text-center text-sm text-slate-500 dark:text-slate-400"
     >
-      {{ filtering ? 'Nenhuma solicitação corresponde aos filtros.' : 'Nenhuma solicitação registrada ainda.' }}
+      {{
+        filtering
+          ? 'Nenhuma solicitação corresponde aos filtros.'
+          : 'Nenhuma solicitação registrada ainda.'
+      }}
     </p>
 
     <!-- As situações ficam à vista ao mesmo tempo, como num quadro: a leitura é a comparação
@@ -120,13 +126,18 @@ function categoryLabel(demand: Demand): string {
               class="bg-surface-item hover:bg-surface-item-hover flex flex-col gap-2 rounded-2xl p-3.5 shadow-sm shadow-slate-900/5 transition dark:shadow-black/20"
             >
               <!-- O número é o protocolo da solicitação: o mesmo `#id - título` da tela da solicitação. -->
-              <p data-demand-title class="text-sm font-semibold wrap-break-word text-slate-900 dark:text-white">
+              <p
+                data-demand-title
+                class="text-sm font-semibold wrap-break-word text-slate-900 dark:text-white"
+              >
                 #{{ demand.id }} - {{ demand.title }}
               </p>
               <p class="text-xs text-slate-600 dark:text-slate-300">
                 {{ categoryLabel(demand) }} · {{ demand.requester.name }}
               </p>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Criada em {{ formatDate(demand.created_at) }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                Criada em {{ formatDate(demand.created_at) }}
+              </p>
             </RouterLink>
           </li>
 
@@ -149,7 +160,9 @@ function categoryLabel(demand: Demand): string {
             role="alert"
             class="flex flex-wrap items-center justify-between gap-2 px-1 py-2"
           >
-            <span class="text-xs text-red-600 dark:text-red-300">{{ board[column.status].loadMoreError }}</span>
+            <span class="text-xs text-red-600 dark:text-red-300">{{
+              board[column.status].loadMoreError
+            }}</span>
             <button
               type="button"
               class="bg-surface-item hover:bg-surface-item-hover rounded-full px-3 py-1 text-xs font-medium text-slate-700 shadow-sm shadow-slate-900/5 dark:text-slate-200 dark:shadow-black/20"
@@ -160,7 +173,9 @@ function categoryLabel(demand: Demand): string {
           </li>
         </ul>
 
-        <p v-else class="px-1 py-3 text-xs text-slate-500 dark:text-slate-400">Nenhuma solicitação aqui.</p>
+        <p v-else class="px-1 py-3 text-xs text-slate-500 dark:text-slate-400">
+          Nenhuma solicitação aqui.
+        </p>
       </section>
     </div>
   </section>

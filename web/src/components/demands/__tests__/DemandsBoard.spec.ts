@@ -82,7 +82,7 @@ describe('DemandsBoard', () => {
     expect(wrapper.get('[data-column="pending"]').text()).toContain('25')
     expect(wrapper.get('[data-column="in_progress"]').text()).toContain('Em andamento')
     expect(wrapper.get('[data-column="in_progress"]').text()).toContain('4')
-    expect(wrapper.get('[data-column="finished"]').text()).toContain('Finalizado')
+    expect(wrapper.get('[data-column="finished"]').text()).toContain('Finalizada')
     expect(wrapper.get('[data-column="finished"]').text()).toContain('3')
   })
 

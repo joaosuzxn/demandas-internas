@@ -33,13 +33,6 @@ class DemandUpdateDeleteTest extends TestCase
         ]);
     }
 
-    private function actingAsSpa(User $user): static
-    {
-        $this->actingAs($user);
-
-        return $this->fromSpa();
-    }
-
     private function validPayload(array $overrides = []): array
     {
         return array_merge([

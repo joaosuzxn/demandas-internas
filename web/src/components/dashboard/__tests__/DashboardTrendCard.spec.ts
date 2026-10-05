@@ -17,12 +17,12 @@ describe('DashboardTrendCard', () => {
 
     expect(wrapper.get('h2').text()).toBe('Evolução das solicitações')
     expect(wrapper.text()).toContain('Criadas')
-    expect(wrapper.text()).toContain('Concluídas')
+    expect(wrapper.text()).toContain('Finalizadas')
     expect(wrapper.text()).toContain('01/10')
     expect(wrapper.get('svg[role="img"]').attributes('aria-label')).toBe(
-      'Evolução das solicitações: 3 criadas e 3 concluídas no período.',
+      'Evolução das solicitações: 3 criadas e 3 finalizadas no período.',
     )
-    expect(wrapper.get('ul.sr-only').text()).toContain('02/10/2026: 1 criadas, 3 concluídas.')
+    expect(wrapper.get('ul.sr-only').text()).toContain('02/10/2026: 1 criadas, 3 finalizadas.')
   })
 
   it('por mês, o eixo e a lista falam do mês', () => {

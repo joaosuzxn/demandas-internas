@@ -12,7 +12,7 @@ import {
 } from '@/services/dashboard'
 
 // Uma parte do painel (item 0030): cada card carrega e falha sozinho.
-export type DashboardSection<T> = { data: T | null; loading: boolean; error: string | null }
+type DashboardSection<T> = { data: T | null; loading: boolean; error: string | null }
 
 type SectionKey = 'summary' | 'categories' | 'trend'
 

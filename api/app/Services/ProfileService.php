@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Auth\Recaller;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class ProfileService
 {
@@ -17,8 +16,7 @@ class ProfileService
 
         $user->password = $password;
         $user->must_change_password = false;
-        $user->setRememberToken(Str::random(60));
-        $user->save();
+        $user->save(); // o User troca o remember_token
 
         if ($wasRemembered) {
             Auth::guard('web')->login($user, true);
@@ -27,7 +25,7 @@ class ProfileService
 
     // Cookie no formato id|token|hash: vale se for deste usuário e trouxer o remember_token atual.
     // O hash da senha que vem no cookie é ignorado de propósito: isso só é seguro porque toda escrita
-    // de senha troca o remember_token (regra no api/CLAUDE.md).
+    // de senha troca o remember_token (hook `saving` do User).
     private function recallerMatches(User $user, ?string $recallerCookie): bool
     {
         if ($recallerCookie === null) {

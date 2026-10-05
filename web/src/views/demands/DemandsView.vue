@@ -3,19 +3,17 @@ import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DemandsBoard from '@/components/demands/DemandsBoard.vue'
 import AppIcon from '@/components/icons/AppIcon.vue'
-import BaseField, { type FieldOption } from '@/components/ui/BaseField.vue'
+import BaseField from '@/components/ui/BaseField.vue'
 import CollapseTransition from '@/components/ui/CollapseTransition.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import PillLink from '@/components/ui/PillLink.vue'
 import {
-  SEARCH_MAX,
-  isDate,
   parseBoardQuery,
   rememberBoardQuery,
   toBoardQuery,
 } from '@/composables/demandsBoardQuery'
 import {
-  DEMAND_CATEGORY_LABELS,
+  DEMAND_CATEGORY_OPTIONS,
   listDemands,
   searchDemands,
   type DemandBoard,
@@ -25,13 +23,8 @@ import {
   type DemandPage,
   type DemandStatus,
 } from '@/services/demands'
-
-// Pausa na digitação antes de consultar a API: uma busca por tecla seria uma requisição a mais por letra.
-const SEARCH_DELAY_MS = 300
-
-const CATEGORY_OPTIONS: FieldOption[] = Object.entries(DEMAND_CATEGORY_LABELS).map(
-  ([value, label]) => ({ value, label }),
-)
+import { EARLIEST_DAY, isDate } from '@/utils/dates'
+import { SEARCH_MAX, TYPING_PAUSE_MS } from '@/utils/query'
 
 const route = useRoute()
 const router = useRouter()
@@ -57,7 +50,10 @@ const panelFilterCount = computed(
 const INVALID_DATE = 'Informe uma data válida.'
 
 function dateError(value: string): string | undefined {
-  return value && !isDate(value) ? INVALID_DATE : undefined
+  if (!value) return undefined
+  if (!isDate(value)) return INVALID_DATE
+  // Mesmo piso da API e do dashboard: digitar o ano passa por 0002, 0020, 0202.
+  return value < EARLIEST_DAY ? 'Use datas a partir de 01/01/2000.' : undefined
 }
 
 const fromError = computed(() => dateError(createdFrom.value))
@@ -205,7 +201,7 @@ function reload(delay: number): void {
 // A categoria e o "Limpar filtros" (tudo vazio) consultam na hora. Mudanças no mesmo tick chegam juntas: uma consulta só.
 watch([term, category, createdFrom, createdTo], (next, previous) => {
   const categoryChanged = next[1] !== previous[1]
-  reload(categoryChanged || !filtering.value ? 0 : SEARCH_DELAY_MS)
+  reload(categoryChanged || !filtering.value ? 0 : TYPING_PAUSE_MS)
 })
 
 function clearFilters(): void {
@@ -299,7 +295,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
               :model-value="category"
               label="Categoria"
               control="select"
-              :options="CATEGORY_OPTIONS"
+              :options="DEMAND_CATEGORY_OPTIONS"
               placeholder-option="Todas as categorias"
               @update:model-value="category = $event as DemandCategory | ''"
             />

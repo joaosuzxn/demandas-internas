@@ -71,9 +71,29 @@ describe('DashboardView', () => {
     await flushPromises()
     expect(wrapper.get('h1').text()).toBe('Dashboard')
     const cards = wrapper.findAll('h3').map((title) => title.text())
-    expect(cards).toEqual(['Total', 'Pendentes', 'Em atendimento', 'Concluídas'])
+    expect(cards).toEqual(['Total', 'Pendentes', 'Em andamento', 'Finalizadas'])
     expect(wrapper.text()).toContain('10')
     expect(service.getDashboardSummary).toHaveBeenCalledWith({})
+  })
+
+  // Item 0050: com a API respondendo em milissegundos, o esqueleto só piscava entre os números antigos e os novos.
+  it('trocar o intervalo mantém os números na tela enquanto os novos chegam', async () => {
+    const { wrapper } = await mountAt()
+    await flushPromises()
+
+    vi.mocked(service.getDashboardSummary).mockReturnValueOnce(new Promise(() => {}))
+    vi.mocked(service.getDashboardCategories).mockReturnValueOnce(new Promise(() => {}))
+    vi.mocked(service.getDashboardTrend).mockReturnValueOnce(new Promise(() => {}))
+    const week = wrapper
+      .findAll('button[aria-pressed]')
+      .find((button) => button.text() === '1 semana')!
+    await week.trigger('click')
+    await flushPromises()
+
+    expect(service.getDashboardSummary).toHaveBeenCalledTimes(2)
+    expect(wrapper.find('[role="status"]').exists()).toBe(false)
+    expect(wrapper.findAll('h3')).toHaveLength(4)
+    expect(wrapper.text()).toContain('Por categoria')
   })
 
   it('o erro de um card não derruba os outros', async () => {

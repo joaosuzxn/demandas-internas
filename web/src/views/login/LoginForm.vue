@@ -88,7 +88,7 @@ async function submit() {
         @update:model-value="clear('password', 'credentials')"
       />
 
-      <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center">
         <label class="flex cursor-pointer items-center gap-2.5 text-sm font-light text-white/80">
           <input
             v-model="form.remember"

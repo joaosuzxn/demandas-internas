@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { nextTick, ref, useTemplateRef, watch } from 'vue'
 import { RouterLink } from 'vue-router'
+import { isAxiosError } from 'axios'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import type { IconName } from '@/components/icons/icons'
+import InlineAlert from '@/components/ui/InlineAlert.vue'
 import { parseApiError } from '@/services/apiErrors'
 import {
   closeDemand,
@@ -23,13 +25,31 @@ const emit = defineEmits<{
   updated: [demand: Demand]
   /** A solicitação foi excluída: quem ouve sai da tela. */
   deleted: []
+  /** A API recusou porque outra pessoa já mudou (422) ou excluiu (404) a solicitação: quem ouve relê. */
+  stale: []
 }>()
+
+// Atender é de todos (ADR 0003): outra pessoa mexer na mesma solicitação é o caso comum, não a exceção.
+function reportIfStale(failure: unknown): void {
+  const status = isAxiosError(failure) ? failure.response?.status : undefined
+  if (status === 404 || status === 422) emit('stale')
+}
 
 /** Pedido de exclusão aberto: a confirmação toma o lugar dos botões. */
 const confirming = ref(false)
 const running = ref<'status' | 'delete' | null>(null)
 const success = ref<string | null>(null)
 const error = ref<string | null>(null)
+
+// A confirmação troca os botões de lugar: o foco acompanha, senão cai no `body` (teclado e leitor de tela).
+// Só nos gestos de quem está na tela: trocar de solicitação também fecha a confirmação, sem mexer no foco.
+const confirmDeleteButton = useTemplateRef<HTMLButtonElement>('confirmDeleteButton')
+const deleteButton = useTemplateRef<HTMLButtonElement>('deleteButton')
+
+async function focusAfterRender(target: typeof deleteButton): Promise<void> {
+  await nextTick()
+  target.value?.focus()
+}
 
 // Outra solicitação na mesma tela não herda o aviso nem a confirmação da anterior.
 watch(
@@ -84,6 +104,7 @@ async function changeStatus(): Promise<void> {
   } catch (failure) {
     // O 422 de situação já alterada vem no campo `status`: a mensagem dele explica o que houve.
     error.value = parseApiError(failure).message
+    reportIfStale(failure)
   } finally {
     running.value = null
   }
@@ -93,6 +114,12 @@ function askDelete(): void {
   success.value = null
   error.value = null
   confirming.value = true
+  void focusAfterRender(confirmDeleteButton)
+}
+
+function cancelDelete(): void {
+  confirming.value = false
+  void focusAfterRender(deleteButton)
 }
 
 async function confirmDelete(): Promise<void> {
@@ -105,9 +132,12 @@ async function confirmDelete(): Promise<void> {
   } catch (failure) {
     error.value = parseApiError(failure).message
     confirming.value = false
+    reportIfStale(failure)
   } finally {
     running.value = null
   }
+  // Recusada: a confirmação fechou e o foco volta ao Excluir da linha (depois de reabilitado).
+  if (!confirming.value) void focusAfterRender(deleteButton)
 }
 
 const BUTTON =
@@ -121,16 +151,8 @@ const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700 da
 
 <template>
   <section aria-label="Ações da solicitação" class="flex flex-col gap-3">
-    <p
-      v-if="success"
-      role="status"
-      class="rounded-2xl bg-emerald-500/10 px-3.5 py-2 text-sm text-emerald-800 dark:text-emerald-300"
-    >
-      {{ success }}
-    </p>
-    <p v-if="error" role="alert" class="rounded-2xl bg-red-500/10 px-3.5 py-2 text-sm text-red-700 dark:text-red-300">
-      {{ error }}
-    </p>
+    <InlineAlert v-if="success" kind="success">{{ success }}</InlineAlert>
+    <InlineAlert v-if="error" kind="error">{{ error }}</InlineAlert>
 
     <!-- A confirmação toma o lugar dos botões, como no Órbita: um ato por vez. -->
     <div v-if="confirming" class="flex flex-col gap-3">
@@ -140,6 +162,7 @@ const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700 da
       </p>
       <div class="flex flex-wrap gap-2">
         <button
+          ref="confirmDeleteButton"
           type="button"
           :class="[BUTTON, DANGER]"
           :disabled="running !== null"
@@ -152,7 +175,7 @@ const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700 da
           type="button"
           :class="[BUTTON, SECONDARY]"
           :disabled="running !== null"
-          @click="confirming = false"
+          @click="cancelDelete"
         >
           Voltar
         </button>
@@ -181,6 +204,7 @@ const DANGER_SOFT = 'bg-surface-item hover:bg-surface-item-hover text-red-700 da
       <!-- Excluir também só na pendente: a API recusa as outras (item 0041). -->
       <button
         v-if="canEdit && demand.status === 'pending'"
+        ref="deleteButton"
         type="button"
         :class="[BUTTON, DANGER_SOFT]"
         :disabled="running !== null"

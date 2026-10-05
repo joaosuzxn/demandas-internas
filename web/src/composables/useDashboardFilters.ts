@@ -12,9 +12,7 @@ import {
   type DashboardQueryState,
   type DashboardRange,
 } from '@/utils/dashboard'
-
-/** Pausa na digitação das datas antes de valerem (a mesma do quadro). */
-const TYPING_PAUSE_MS = 300
+import { TYPING_PAUSE_MS } from '@/utils/query'
 
 // Filtros do dashboard (item 0030). A URL é a fonte da verdade, como no quadro (item 0027): o recorte se
 // compartilha, sobrevive ao F5 e o voltar do navegador o desfaz.

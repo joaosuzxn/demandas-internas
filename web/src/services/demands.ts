@@ -1,4 +1,4 @@
-import { http } from './http'
+import { http, type Paginated, type Resource } from './http'
 
 export type DemandStatus = 'pending' | 'in_progress' | 'finished'
 
@@ -37,10 +37,7 @@ export const DEMAND_MOVEMENT_LABELS: Record<DemandMovementType, string> = {
 }
 
 // Resposta paginada da API: a página atual, a última e o total de solicitações que batem com o filtro.
-export type DemandPage = {
-  data: Demand[]
-  meta: { total: number; current_page: number; last_page: number }
-}
+export type DemandPage = Paginated<Demand>
 
 // Uma coluna do quadro: o que já foi carregado (página a página, na rolagem) e o total daquela situação.
 export type DemandBoardColumn = {
@@ -56,10 +53,9 @@ export type DemandBoardColumn = {
 
 export type DemandBoard = Record<DemandStatus, DemandBoardColumn>
 
-// Listagem (`GET /api/demands`): situação, "só as minhas" e página.
+// Listagem (`GET /api/demands`): situação e página.
 export type ListDemandsParams = {
   status?: DemandStatus
-  mine?: boolean
   page?: number
 }
 
@@ -86,10 +82,23 @@ export const DEMAND_CATEGORY_LABELS: Record<DemandCategory, string> = {
   infrastructure: 'Infraestrutura',
 }
 
+/** As categorias como opções de um select (o quadro, o formulário e o dashboard). */
+export const DEMAND_CATEGORY_OPTIONS = Object.entries(DEMAND_CATEGORY_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}))
+
 export const DEMAND_STATUS_LABELS: Record<DemandStatus, string> = {
   pending: 'Pendente',
   in_progress: 'Em andamento',
-  finished: 'Finalizado',
+  finished: 'Finalizada',
+}
+
+/** Os mesmos termos no plural, para os totais do Dashboard (item 0044). */
+export const DEMAND_STATUS_TOTAL_LABELS: Record<DemandStatus, string> = {
+  pending: 'Pendentes',
+  in_progress: 'Em andamento',
+  finished: 'Finalizadas',
 }
 
 // Corpo de criar e editar. A categoria vazia (nada escolhido) vai assim mesmo: quem recusa é a API, com 422.
@@ -99,7 +108,7 @@ export type DemandPayload = {
   category: DemandCategory | ''
 }
 
-type DemandResponse = { data: Demand }
+type DemandResponse = Resource<Demand>
 
 export async function listDemands(params: ListDemandsParams = {}): Promise<DemandPage> {
   const { data } = await http.get<DemandPage>('/demands', { params })

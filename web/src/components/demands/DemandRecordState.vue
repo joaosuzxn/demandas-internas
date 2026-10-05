@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ErrorRetry from '@/components/ui/ErrorRetry.vue'
+
 defineProps<{
   loading: boolean
   error: string | null
@@ -23,7 +25,7 @@ const emit = defineEmits<{ retry: [] }>()
 
   <div
     v-else-if="notFound"
-    class="bg-surface-panel flex flex-col items-center gap-2 rounded-3xl border border-white/60 px-4 py-10 text-center shadow-xl shadow-slate-900/10 dark:border-white/10 dark:shadow-black/40"
+    class="glass-panel flex flex-col items-center gap-2 px-4 py-10 text-center"
   >
     <p class="text-sm font-semibold text-slate-900 dark:text-white">Solicitação não encontrada</p>
     <p class="text-sm text-slate-600 dark:text-slate-300">
@@ -31,20 +33,7 @@ const emit = defineEmits<{ retry: [] }>()
     </p>
   </div>
 
-  <div
-    v-else-if="error"
-    role="alert"
-    class="flex flex-col items-center justify-center gap-3 rounded-2xl border border-red-300/60 bg-red-500/5 px-4 py-8 text-center dark:border-red-400/70"
-  >
-    <p class="text-sm text-red-700 dark:text-red-300">{{ error }}</p>
-    <button
-      type="button"
-      class="bg-surface-item hover:bg-surface-item-hover inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition dark:text-slate-200"
-      @click="emit('retry')"
-    >
-      Tentar de novo
-    </button>
-  </div>
+  <ErrorRetry v-else-if="error" :message="error" @retry="emit('retry')" />
 
   <slot v-else />
 </template>

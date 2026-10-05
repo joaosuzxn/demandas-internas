@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 // password, role, is_active e must_change_password ficam fora do Fillable: só os Services os definem.
 #[Fillable(['name', 'username', 'cpf', 'email'])]
@@ -17,7 +17,18 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory;
+
+    // Mata os cookies de "lembrar" quando a senha muda ou a conta é desativada, venha a escrita de onde vier.
+    // O ProfileService confia nisso: ele ignora o hash da senha que vem no cookie.
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            if ($user->exists && ($user->isDirty('password') || ($user->isDirty('is_active') && ! $user->is_active))) {
+                $user->setRememberToken(Str::random(60));
+            }
+        });
+    }
 
     /**
      * @return array<string, string>

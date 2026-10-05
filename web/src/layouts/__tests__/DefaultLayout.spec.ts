@@ -18,7 +18,7 @@ vi.mock('@/services/auth', () => ({
 
 const Stub = defineComponent({ render: () => null })
 
-async function mountLayout(path = '/solicitacoes') {
+async function mountLayout(path = '/solicitacoes', attachTo?: HTMLElement) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -43,6 +43,7 @@ async function mountLayout(path = '/solicitacoes') {
     router,
     wrapper: mount(DefaultLayout, {
       global: { plugins: [pinia, router], stubs: { RouterView: true } },
+      attachTo,
     }),
   }
 }
@@ -90,6 +91,34 @@ describe('DefaultLayout', () => {
 
     expect(authService.logout).toHaveBeenCalledTimes(1)
     expect(router.currentRoute.value.name).toBe('login')
+  })
+
+  it('o duplo clique em Sair encerra a sessão uma vez só', async () => {
+    let finish!: () => void
+    vi.mocked(authService.logout).mockReturnValue(new Promise((resolve) => (finish = resolve)))
+    const { wrapper } = await mountLayout()
+    const exit = wrapper.findAll('button').find((button) => button.text() === 'Sair')!
+
+    await exit.trigger('click')
+    await exit.trigger('click')
+    finish()
+    await flushPromises()
+
+    expect(authService.logout).toHaveBeenCalledTimes(1)
+  })
+
+  it('o menu do celular leva o foco para dentro e o devolve ao botão de abrir quando fecha', async () => {
+    const { wrapper } = await mountLayout('/solicitacoes', document.body)
+    const open = wrapper.get('[aria-label="Abrir menu"]')
+
+    await open.trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(wrapper.get('[aria-label="Fechar menu"]').element)
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await flushPromises()
+    expect(document.activeElement).toBe(open.element)
+    wrapper.unmount()
   })
 
   it('mantém Solicitações destacado na tela de uma solicitação', async () => {

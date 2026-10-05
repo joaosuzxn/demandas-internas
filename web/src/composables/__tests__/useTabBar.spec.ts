@@ -39,7 +39,7 @@ function stopMeasuring(): void {
 
 const Host = defineComponent({
   setup() {
-    return { keys: KEYS, ...useTabBar(KEYS, 'sectors') }
+    return { keys: KEYS, ...useTabBar('sectors') }
   },
   template: `
     <nav ref="nav" role="tablist">
@@ -74,31 +74,27 @@ describe('useTabBar', () => {
     expect(mountHost().vm.active).toBe('sectors')
   })
 
-  it('ir para a aba da direita faz a nova entrar pela direita', async () => {
+  it('o clique abre a aba', async () => {
     const wrapper = mountHost()
 
     await openTab(wrapper, 'people')
 
     expect(wrapper.vm.active).toBe('people')
-    expect(wrapper.vm.slide).toEqual({ from: 'translate-x-1.5', to: '-translate-x-1.5' })
   })
 
-  it('voltar para a aba da esquerda inverte o sentido do deslize', async () => {
-    const wrapper = mountHost()
+  // Só o que a barra usa sai do composable (o deslize entre abas do Órbita não tem uso aqui).
+  it('devolve só a aba aberta, a pílula, o settled e o select', () => {
+    let returned: object = {}
+    mount(
+      defineComponent({
+        setup() {
+          returned = useTabBar('sectors')
+          return () => null
+        },
+      }),
+    )
 
-    await openTab(wrapper, 'people')
-    await openTab(wrapper, 'sectors')
-
-    expect(wrapper.vm.slide).toEqual({ from: '-translate-x-1.5', to: 'translate-x-1.5' })
-  })
-
-  it('clicar na aba já aberta não mexe no sentido', async () => {
-    const wrapper = mountHost()
-
-    await openTab(wrapper, 'people')
-    await openTab(wrapper, 'people')
-
-    expect(wrapper.vm.slide).toEqual({ from: 'translate-x-1.5', to: '-translate-x-1.5' })
+    expect(Object.keys(returned).sort()).toEqual(['active', 'pill', 'select', 'settled'])
   })
 
   it('a pílula assume a posição e o tamanho da aba aberta', async () => {
@@ -131,7 +127,7 @@ describe('useTabBar', () => {
 /** A mesma barra, mas com botões de filtro (`aria-pressed`) em vez de abas. */
 const FilterHost = defineComponent({
   setup() {
-    return { keys: KEYS, ...useTabBar(KEYS, 'sectors') }
+    return { keys: KEYS, ...useTabBar('sectors') }
   },
   template: `
     <div ref="nav" role="group">

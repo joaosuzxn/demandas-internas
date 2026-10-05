@@ -26,11 +26,25 @@
   --color-dusk-700: oklch(0.41 0.11 289);
   --color-dusk-800: oklch(0.32 0.09 287);
   --color-dusk-900: oklch(0.24 0.07 285);
-  /* Seta do BaseSelect, como no Órbita. */
+  /* 200 e 950: pé do degradê do fundo (`AppBackdrop`), claro e escuro. */
+  --color-dusk-200: oklch(0.9 0.045 293);
+  --color-dusk-950: oklch(0.18 0.05 285);
+
+  /* Óleo na água — a paleta das fitas do fundo (`AppBackdrop`, item 0049), valores do Órbita. Croma mais
+     alto que o da marca de propósito: o fundo vive de mistura, e cor lavada não muda de tom ao se cruzar.
+     O indigo também é a seta do BaseSelect e o degradê da logo. */
+  --color-silk-blue: oklch(0.63 0.19 250);
   --color-silk-indigo: oklch(0.55 0.2 275);
+  --color-silk-violet: oklch(0.6 0.2 305);
+  --color-silk-sky: oklch(0.72 0.15 232);
+  --color-silk-plum: oklch(0.48 0.18 322);
+  /* O quente da paleta: aparece em poucos pontos e faz o azul e o roxo em volta parecerem mais frios. */
+  --color-silk-amber: oklch(0.76 0.19 72);
 
   /* Superfícies das telas com sidebar, trazidas do Órbita (tema claro). Cor nova entra aqui. */
   --color-haze-100: oklch(0.94 0.014 250);
+  /* Topo do degradê do fundo (`AppBackdrop`). */
+  --color-haze-200: oklch(0.905 0.02 250);
   /* Fundo do tema escuro (Órbita, item 0032). */
   --color-ink-950: oklch(0.155 0.018 275);
   --color-surface-page: var(--color-haze-100);
@@ -61,6 +75,8 @@
 
   /* Entrada suave de conteúdo que troca de lugar — uso: `animate-fade-in`. */
   --animate-fade-in: fade-in 0.4s ease-out both;
+  /* A mesma entrada, devagar: troca de recorte do dashboard (item 0050), que pede calma para ler os números novos. */
+  --animate-fade-in-slow: fade-in 0.8s ease-out both;
 
   @keyframes fade-in {
     from {
@@ -68,6 +84,12 @@
       transform: scale(0.96);
     }
   }
+}
+
+/* Painel de vidro das telas internas (cartões, cabeçalho, sidebar): superfície translúcida, borda clara e sombra.
+   Uso: `glass-panel` mais o layout e o espaçamento de cada um. */
+@utility glass-panel {
+  @apply bg-surface-panel rounded-3xl border border-white/60 shadow-xl shadow-slate-900/10 backdrop-blur-lg dark:border-white/10 dark:shadow-black/40;
 }
 
 /* Rolagem no estilo do Safari: fina, arredondada e quase invisível até o cursor entrar na área.

@@ -1,4 +1,4 @@
-import { csrfCookie, http } from './http'
+import { csrfCookie, http, type Resource } from './http'
 
 export type Role = 'admin' | 'employee'
 
@@ -28,7 +28,7 @@ export type ChangePasswordPayload = {
   password_confirmation: string
 }
 
-type UserResponse = { data: User }
+type UserResponse = Resource<User>
 
 export async function login(credentials: LoginCredentials): Promise<User> {
   await csrfCookie()
